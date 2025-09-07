@@ -1,0 +1,30 @@
+﻿using OpenTK;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace _2DHelmholtz_solver.src.model_store.fe_objects
+{
+
+    public class node_store
+    {
+        public int node_id { get; set; }
+        public Vector3 node_pt { get; set; }
+        public Vector3 node_color { get; set; }
+
+    }
+
+    public class nodes_list_store
+    {
+
+
+        public nodes_list_store() 
+        {
+        
+        
+        }
+
+    }
+}

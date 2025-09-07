@@ -16,5 +16,26 @@ namespace _2DHelmholtz_solver.other_windows
         {
             InitializeComponent();
         }
+
+        private void buttonOpenFile_Click(object sender, EventArgs e)
+        {
+            // Open File
+
+
+        }
+
+        private void buttonOk_Click(object sender, EventArgs e)
+        {
+            // Ok
+
+
+        }
+
+        private void buttonCancel_Click(object sender, EventArgs e)
+        {
+            // Cancel
+
+
+        }
     }
 }

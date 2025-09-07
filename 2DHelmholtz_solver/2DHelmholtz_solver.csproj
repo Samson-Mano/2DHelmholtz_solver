@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props" Condition="Exists('..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -8,10 +9,13 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>_2DHelmholtz_solver</RootNamespace>
     <AssemblyName>2DHelmholtz_solver</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -36,6 +40,15 @@
     <ApplicationIcon>innx_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.3.3.3\lib\net20\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.GLControl.3.3.3\lib\net20\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpFont, Version=2.5.3.0, Culture=neutral, PublicKeyToken=48add4c483071cdf, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpFont.2.5.3.0\lib\net20\SharpFont.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -63,6 +76,27 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\global_variables\gvariables_static.cs" />
+    <Compile Include="src\model_store\fe_objects\elementline_list_store.cs" />
+    <Compile Include="src\model_store\fe_objects\elementquad_list_store.cs" />
+    <Compile Include="src\model_store\fe_objects\fedata_store.cs" />
+    <Compile Include="src\model_store\fe_objects\nodescnst_list_store.cs" />
+    <Compile Include="src\model_store\fe_objects\nodesload_list_store.cs" />
+    <Compile Include="src\model_store\fe_objects\nodes_list_store.cs" />
+    <Compile Include="src\model_store\geom_objects\line_list_store.cs" />
+    <Compile Include="src\model_store\geom_objects\meshdata_store.cs" />
+    <Compile Include="src\model_store\geom_objects\point_list_store.cs" />
+    <Compile Include="src\model_store\geom_objects\quad_list_store.cs" />
+    <Compile Include="src\model_store\geom_objects\tri_list_store.cs" />
+    <Compile Include="src\opentk_control\opentk_bgdraw\drawing_area_control.cs" />
+    <Compile Include="src\opentk_control\opentk_buffer\IndexBuffer.cs" />
+    <Compile Include="src\opentk_control\opentk_buffer\VertexArray.cs" />
+    <Compile Include="src\opentk_control\opentk_buffer\VertexBuffer.cs" />
+    <Compile Include="src\opentk_control\opentk_buffer\VertexBufferLayout.cs" />
+    <Compile Include="src\opentk_control\opentk_main_control.cs" />
+    <Compile Include="src\opentk_control\shader_compiler\Shader.cs" />
+    <Compile Include="src\opentk_control\shader_compiler\shader_control.cs" />
+    <Compile Include="src\opentk_control\shader_compiler\Shader_Support.cs" />
     <EmbeddedResource Include="main_frm.resx">
       <DependentUpon>main_frm.cs</DependentUpon>
     </EmbeddedResource>
@@ -77,7 +111,10 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="OpenTK.dll.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -87,13 +124,34 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="SharpFont.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Example_model\circle_158_quad.txt" />
+    <Content Include="Example_model\circle_316_quad.txt" />
+    <Content Include="Example_model\grid_100x100_quad.txt" />
+    <Content Include="Example_model\grid_100x100_tri.txt" />
+    <Content Include="Example_model\grid_200x200_quad.txt" />
+    <Content Include="Example_model\grid_200x200_tri.txt" />
+    <Content Include="Example_model\grid_50x50_quad.txt" />
+    <Content Include="Example_model\grid_50x50_tri.txt" />
+    <Content Include="freetype6.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="innx_icon.ico" />
+    <Content Include="src\global_variables\Junk_code.txt" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpFont.Dependencies.2.6\build\SharpFont.Dependencies.props'))" />
+  </Target>
 </Project>
