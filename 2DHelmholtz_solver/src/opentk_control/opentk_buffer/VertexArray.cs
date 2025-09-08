@@ -18,43 +18,62 @@ namespace _2DHelmholtz_solver.opentk_control.opentk_buffer
 
         public VertexArray()
         {
+            // Main Constructor: generates a unique vertex array object ID.
             this._m_renderer_id = GL.GenVertexArray();
-            //   GL.BindVertexArray(this._m_renderer_id);
+            
         }
 
-        public void Add_vertexBuffer(VertexBuffer vb, List<VertexBufferLayout> layout_list)
+        public void Add_vertexBuffer(VertexBuffer vb, VertexBufferLayout layout)
         {
             // Add and Bind a vertex buffer to an appropriate layout
             // Vertex Buffer layout  contains the information about co-ordinates, normals, color etc
 
+            // Bind the vertex array object.
             Bind();
+
+            // Bind the vertex buffer object.
             vb.Bind();
 
             // Set up the layout here
+            IReadOnlyList<VertexBufferElement> elements = layout.GetElements;
             int offset = 0;
 
-            for (int i = 0; i < layout_list.Count; i++)
+            for (int i = 0; i < elements.Count; i++)
             {
-                VertexBufferLayout layout = layout_list[i];
+                VertexBufferElement element = elements[i];
+
+                // Enable the vertex attribute array for the specified buffer index.
                 GL.EnableVertexAttribArray(i);
-                GL.VertexAttribPointer(i, layout.count, VertexAttribPointerType.Float, false, layout.stride_size, offset);
+
+                // Set up the vertex attribute pointer for the specified buffer index.
+                // This specifies how to interpret the vertex data in the vertex buffer object.
+                GL.VertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride, offset);
 
 
                 // Offset is the previous layout count (most likely the stride will remain the same)
-                offset = offset + (layout.count * sizeof(float));
+                offset = offset + (element.count * VertexBufferElement.GetSizeOfType(element.type));
             }
+
+            // Unbind the vertex buffer object.
+            vb.UnBind();
+
+            // Unbind the vertex array object.
+            UnBind();
+
         }
 
         public void Bind()
         {
-            // Bind buffer
+            // Binds the vertex array object for use with subsequent OpenGL calls.
             GL.BindVertexArray(this._m_renderer_id);
+
         }
 
         public void UnBind()
         {
-            // Unbind with 0
+            // Unbinds the currently bound vertex array object.
             GL.BindVertexArray(0);
+
         }
 
         public void Delete_VertexArray()

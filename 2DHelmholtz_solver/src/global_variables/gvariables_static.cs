@@ -26,7 +26,9 @@ namespace _2DHelmholtz_solver.global_variables
         public static bool is_paint_shrunk_triangle = true;
         public static double triangle_shrink_factor = 0.88f;
 
-        public static Color[] standard_colors = new [] { Color.Blue, Color.BlueViolet,
+        public static Color[] standard_colors = new [] 
+        { 
+            Color.Blue, Color.BlueViolet,
             Color.Brown, Color.BurlyWood,Color.CadetBlue, Color.Chocolate,Color.Coral, Color.CornflowerBlue,
             Color.Crimson, Color.DarkBlue,Color.DarkCyan, Color.DarkGoldenrod,Color.DarkGreen, Color.DarkKhaki,
             Color.DarkMagenta, Color.DarkOliveGreen,Color.DarkOrange, Color.DarkOrchid,Color.DarkRed, Color.DarkSalmon,
@@ -41,8 +43,10 @@ namespace _2DHelmholtz_solver.global_variables
             Color.SandyBrown, Color.SeaGreen,Color.Sienna, Color.SkyBlue,Color.SlateBlue, Color.SlateGray,
             Color.SteelBlue, Color.Tan,Color.Teal, Color.Thistle,Color.Tomato, Color.Turquoise,
             Color.Violet, Color.Wheat,Color.Yellow, Color.YellowGreen
-    }; // 14 x 5 = 70
-    public static int RoundOff(this int i)
+        }; // 14 x 5 = 70
+
+
+         public static int RoundOff(this int i)
         {
             // Roundoff to nearest 10 (used to display zoom value)
             return ((int)Math.Round(i / 10.0)) * 10;
@@ -71,6 +75,32 @@ namespace _2DHelmholtz_solver.global_variables
             form.Controls.OfType<TextBox>().First().Dispose();
             form.Dispose();
         }
+
+
+        public static int get_unique_id(List<int> all_ids)
+        {
+            // Return the unique id
+            if (all_ids != null && all_ids.Count != 0)
+            {
+                // Sort the list ascendingly
+                all_ids.Sort();
+
+                // Find if any of the nodes are missing in an ordered int
+                for (int i = 0; i < all_ids.Count; i++)
+                {
+                    if (all_ids[i] != i)
+                    {
+                        return i;
+                    }
+                }
+
+                // no node id is missing in an ordered list so add to the end
+                return all_ids.Count;
+            }
+
+            return 0;
+        }
+
 
 
         public static double get_angle_ABX(PointF A_pt, PointF B_pt, bool is_deg = false)

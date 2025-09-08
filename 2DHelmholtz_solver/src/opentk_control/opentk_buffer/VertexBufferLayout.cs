@@ -11,23 +11,76 @@ using OpenTK.Input;
 
 namespace _2DHelmholtz_solver.opentk_control.opentk_buffer
 {
-  public  class VertexBufferLayout
+
+    public struct VertexBufferElement
     {
-        private int _count;
-        private int _stride_count;
-        private int _stride_size;
+        public VertexAttribPointerType type { get; }
+        public int count { get; }
+        public bool normalized { get; }
 
-        public int count { get { return this._count; } }
-
-        public int stride_size { get { return this._stride_size; } }
-
-        public VertexBufferLayout(int t_count, int t_index_stride)
+        public VertexBufferElement(VertexAttribPointerType t_type, int t_count, bool t_normalized)
         {
-            this._count = t_count;
-            // Only support Float type as of now
-            // Normalized is always false !!! (Send the data normalized)
-            this._stride_count = t_index_stride;
-            this._stride_size = sizeof(float) * t_index_stride;
+            type = t_type;
+            count = t_count;
+            normalized = t_normalized;
+        }
+
+        public static int GetSizeOfType(VertexAttribPointerType type)
+        {
+            switch (type)
+            {
+                case VertexAttribPointerType.Float:
+                    return sizeof(float);
+                case VertexAttribPointerType.UnsignedInt:
+                    return sizeof(uint);
+                case VertexAttribPointerType.UnsignedByte:
+                    return sizeof(byte);
+                case VertexAttribPointerType.Byte:
+                    return sizeof(sbyte);
+                case VertexAttribPointerType.Int:
+                    return sizeof(int);
+                default:
+                    throw new ArgumentException("Unsupported VertexAttribPointerType: " + type);
+            }
         }
     }
+
+
+    public class VertexBufferLayout
+    {
+        private readonly List<VertexBufferElement> m_elements = new List<VertexBufferElement>();
+        private int m_stride;
+
+        public IReadOnlyList<VertexBufferElement> GetElements => m_elements;
+        public int GetStride => m_stride;
+
+        public void AddFloat(int count)
+        {
+            Push(VertexAttribPointerType.Float, count, false);
+        }
+
+        public void AddUnsignedInt(int count)
+        {
+            Push(VertexAttribPointerType.UnsignedInt, count, false);
+        }
+
+        public void AddUnsignedByte(int count)
+        {
+            Push(VertexAttribPointerType.UnsignedByte, count, true);
+        }
+
+        public void AddInt(int count)
+        {
+            Push(VertexAttribPointerType.Int, count, false);
+        }
+
+
+        private void Push(VertexAttribPointerType type, int count, bool normalized)
+        {
+            var element = new VertexBufferElement(type, count, normalized);
+            m_elements.Add(element);
+            m_stride += count * VertexBufferElement.GetSizeOfType(type);
+        }
+    }
+
 }

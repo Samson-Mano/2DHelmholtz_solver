@@ -19,24 +19,31 @@ namespace _2DHelmholtz_solver.opentk_control.opentk_buffer
         public int GetCount { get { return this._m_count; } }
 
         // count is element count
-        public IndexBuffer(uint[] data, int count)
+        public IndexBuffer(int[] indexbuffer_indices, int indexbuffer_count)
         {
             // Main Constructor
             // Set up Index buffer
-            this._m_count = count;
+            this._m_count = indexbuffer_count;
+
+            // Generate a new buffer ID for the index buffer
             this._m_renderer_id = GL.GenBuffer();
+
+            // Bind the buffer to the GL_ELEMENT_ARRAY_BUFFER target
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, this._m_renderer_id);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, count * sizeof(uint), data, BufferUsageHint.StaticDraw);
+
+            // Copy the index data to the buffer
+            GL.BufferData(BufferTarget.ElementArrayBuffer, indexbuffer_count * sizeof(uint), indexbuffer_indices, BufferUsageHint.StaticDraw);
         }
 
         public void Bind()
         {
-            // Bind buffer
+            // Bind the buffer to the GL_ELEMENT_ARRAY_BUFFER target
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, this._m_renderer_id);
         }
 
         public void UnBind()
         {
+            // Unbind the buffer from the GL_ELEMENT_ARRAY_BUFFER target
             // Unbind with 0
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
         }

@@ -1,0 +1,79 @@
+﻿using OpenTK;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _2DHelmholtz_solver.src.model_store.fe_objects
+{
+    public class elementtri_store
+    {
+        public int tri_id { get; set; }
+        public int nodeid1 { get; set; }
+        public int nodeid2 { get; set; }
+        public int nodeid3 { get; set; }
+        public int material_id { get; set; }
+
+    }
+
+
+    public class elementtri_list_store
+    {
+        public Dictionary<int, elementtri_store> elementtriMap = new Dictionary<int, elementtri_store>();
+        public int elementtri_count = 0;
+
+        public elementtri_list_store()
+        {
+            // (Re)Initialize the data
+            elementtriMap = new Dictionary<int, elementtri_store>();
+            elementtri_count = 0;
+
+        }
+
+        public void add_elementtriangle(int tri_id, int nodeid1, int nodeid2, int nodeid3)
+        {
+            // Check whether the tri_id is already there
+            if (elementtriMap.ContainsKey(tri_id))
+                return;
+
+
+            // Add the Triangle to the list
+            elementtri_store temp_elementtri = new elementtri_store
+            {
+                tri_id = tri_id,
+                nodeid1 = nodeid1,
+                nodeid2 = nodeid2,
+                nodeid3 = nodeid3
+            };
+
+            elementtriMap[tri_id] = temp_elementtri;
+            elementtri_count++;
+
+        }
+
+        
+        public void update_material()
+        {
+
+
+        }
+
+
+        public void execute_delete_material()
+        {
+
+
+        }
+
+
+        //public List<int> IsTriSelected(Vector2 cornerPt1, Vector2 cornerPt2)
+        //{
+
+
+        //}
+
+
+    }
+}
