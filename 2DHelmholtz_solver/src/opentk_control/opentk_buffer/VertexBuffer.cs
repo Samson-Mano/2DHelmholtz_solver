@@ -20,14 +20,14 @@ namespace _2DHelmholtz_solver.opentk_control.opentk_buffer
 
         // size is byte
 
-        public VertexBuffer(float[] vertexbuffer_data, int vertexbuffer_size, bool is_StaticDraw)
+        public VertexBuffer(float[] vertexbuffer_data, int vertexbuffer_size, bool is_DynamicDraw)
         {
             // Main Constructor
             // Set up vertex buffer
             this._m_renderer_id = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, this._m_renderer_id);
 
-            if (is_StaticDraw == true)
+            if (is_DynamicDraw == false)
             {
                 // Setup static buffer
                 GL.BufferData(BufferTarget.ArrayBuffer, vertexbuffer_size, vertexbuffer_data, BufferUsageHint.StaticDraw);

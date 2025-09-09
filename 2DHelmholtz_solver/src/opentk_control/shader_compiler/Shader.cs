@@ -20,7 +20,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
         private readonly Dictionary<string, int> _uniformLocations;
 
-        public Shader_Support update_shader = new Shader_Support();
+        public ShaderControl update_shader = new ShaderControl();
 
         // This is how you create a simple shader.
         // Shaders are written in GLSL, which is a language very similar to C in its semantics.
@@ -124,10 +124,16 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
         }
 
         // A wrapper function that enables the shader program.
-        public void Use()
+        public void Bind()
         {
             GL.UseProgram(Handle);
         }
+
+        public void UnBind()
+        {
+            GL.UseProgram(0);
+        }
+
 
         // The shader sources provided with this project use hardcoded layout(location)-s. If you want to do it dynamically,
         // you can omit the layout(location=X) lines in the vertex shader, and use this in VertexAttribPointer instead of the hardcoded values.

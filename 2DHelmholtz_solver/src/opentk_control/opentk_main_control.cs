@@ -20,7 +20,7 @@ namespace _2DHelmholtz_solver.opentk_control
     public class opentk_main_control
     {
         // variable stores all the shader information
-        private shader_control all_shaders = new shader_control();
+       //  private static ShaderLibrary all_shaders;
 
         // variable to control the boundary rectangle
        // private boundary_rectangle_store boundary_rect = new boundary_rectangle_store(false, null);
@@ -46,10 +46,10 @@ namespace _2DHelmholtz_solver.opentk_control
                 ((float)clr_bg.A / 255.0f));
 
             // create the shaders
-            this._br_shader = new Shader(all_shaders.get_vertex_shader(0),
-                 all_shaders.get_fragment_shader(0));
-            this._txt_shader = new Shader(all_shaders.get_vertex_shader(1),
-                 all_shaders.get_fragment_shader(1));
+            this._br_shader = new Shader(ShaderLibrary.get_vertex_shader(0),
+                 ShaderLibrary.get_fragment_shader(0));
+            this._txt_shader = new Shader(ShaderLibrary.get_vertex_shader(1),
+                 ShaderLibrary.get_fragment_shader(1));
 
         }
 

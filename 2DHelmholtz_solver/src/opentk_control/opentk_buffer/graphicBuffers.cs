@@ -15,14 +15,14 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_buffer
 
         public graphicBuffers(float[] vertexbuffer_data, int vertexbuffer_size,
             int[] indexbuffer_indices, int indexbuffer_count,
-            VertexBufferLayout vertexbuffer_layout, bool is_StaticDraw)
+            VertexBufferLayout vertexbuffer_layout, bool is_DynamicDraw)
         {
             
             // Initialize the vertex array
             vao = new VertexArray();
 
             // Vertex buffer (vertices and number of vertices * sizeof(float))
-            vbo = new VertexBuffer(vertexbuffer_data, vertexbuffer_size, is_StaticDraw);
+            vbo = new VertexBuffer(vertexbuffer_data, vertexbuffer_size, is_DynamicDraw);
 
             // Index buffer (indices and number of indices)
             ibo = new IndexBuffer(indexbuffer_indices, indexbuffer_count);

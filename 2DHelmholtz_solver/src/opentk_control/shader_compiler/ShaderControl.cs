@@ -14,7 +14,7 @@ using _2DHelmholtz_solver.opentk_control.opentk_bgdraw;
 
 namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 {
-    public class Shader_Support
+    public class ShaderControl
     {
         // scale to control the units of drawing area
         private float _boundary_scale = 1.0f;
@@ -45,7 +45,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
         public drawing_area_control drawing_area_details { get { return this._drawing_area_details; } }
 
-        public Shader_Support()
+        public ShaderControl()
         {
             // Empty constructor
         }
