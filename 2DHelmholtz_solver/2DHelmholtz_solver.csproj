@@ -89,6 +89,7 @@
     <Compile Include="src\model_store\geom_objects\quad_list_store.cs" />
     <Compile Include="src\model_store\geom_objects\tri_list_store.cs" />
     <Compile Include="src\opentk_control\opentk_bgdraw\drawing_area_control.cs" />
+    <Compile Include="src\opentk_control\opentk_bgdraw\drawing_events.cs" />
     <Compile Include="src\opentk_control\opentk_buffer\graphicBuffers.cs" />
     <Compile Include="src\opentk_control\opentk_buffer\IndexBuffer.cs" />
     <Compile Include="src\opentk_control\opentk_buffer\VertexArray.cs" />

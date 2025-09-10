@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         private int half_edge_count = 0;
 
+        // To control the drawing events
+        public drawing_events graphic_events_control { get; private set; }
+
 
         public meshdata_store()
         {
@@ -33,11 +37,15 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
             selected_mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
 
+            // To control the drawing graphics
+            graphic_events_control = new drawing_events(this);
+
         }
 
 
         public void add_mesh_point(int point_id, double x_coord, double y_coord, double z_coord)
         {
+            // Add the mesh point
             mesh_points.add_point(point_id, x_coord, y_coord, z_coord); 
 
         }
@@ -262,11 +270,148 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void set_mesh_wireframe()
         {
 
+            HashSet<(int, int)> uniqueEdges = new HashSet<(int, int)>();
+
+
+            foreach (var kvp in mesh_half_edges.lineMap)
+            {
+                int start = kvp.Value.start_pt_id;
+                int end = kvp.Value.end_pt_id;
+
+                // Store edge as an unordered pair
+                (int, int) edge = (Math.Min(start, end), Math.Max(start, end));
+
+                if (!uniqueEdges.Contains(edge))
+                {
+                    uniqueEdges.Add(edge);
+
+                    // Add to wireframe rendering or storage
+                    mesh_boundaries.add_line(kvp.Key, edge.Item1, edge.Item2);
+
+                }
+            }
 
         }
 
 
+        public void update_tri_material_ids(List<int> selected_tri_id, int material_id)
+        {
+            // Update the material id of the Triangle element
 
+
+        }
+
+
+        public void update_quad_material_ids(List<int> selected_quad_id, int material_id)
+        {
+            // Update the material id of the Quadrilateral element
+
+
+        }
+
+
+        public void set_buffer()
+        {
+            // Set the buffer
+            // mesh points
+            mesh_points.set_buffer();
+
+            // mesh boundaries
+            mesh_boundaries.set_buffer();
+
+            // mesh tris and quads
+            mesh_tris.set_buffer();
+            mesh_quads.set_buffer();
+
+
+
+        }
+
+
+        public void paint_static_mesh()
+        {
+            // Paint the static mesh (mesh which are fixed)
+            // Paint the mesh triangles
+            mesh_tris.paint_static_triangles();
+            mesh_quads.paint_static_quadrilaterals();
+
+        }
+
+
+        public void paint_static_mesh_boundaries()
+        {
+            // Paint the mesh boundaries
+            mesh_boundaries.paint_static_lines();
+
+        }
+
+
+        public void paint_static_mesh_points()
+        {
+            // Paint the mesh points
+            mesh_points.paint_static_points();
+
+        }
+
+        public void paint_dynamic_mesh()
+        {
+            // Paint the dynamic mesh (mesh which are not-fixed but variable)
+            // Paint the mesh triangles
+            mesh_tris.paint_dynamic_triangles();
+            mesh_quads.paint_dynamic_quadrilaterals();
+
+        }
+
+        public void paint_dynamic_mesh_boundaries()
+        {
+            // Paint the mesh lines
+            mesh_boundaries.paint_dynamic_lines();
+
+        }
+
+        public void paint_dynamic_mesh_points()
+        {
+            // Paint the mesh points
+            mesh_points.paint_dynamic_points();
+
+        }
+
+        public void paint_selected_points()
+        {
+            // Paint the selected points
+            selected_mesh_points.paint_static_points();
+
+        }
+
+        public void paint_selected_mesh()
+        {
+            // Paint the selected tris and quds
+            selected_mesh_tris.paint_static_triangles();
+            selected_mesh_quads.paint_static_quadrilaterals();
+
+        }
+
+
+        public void paint_mesh_materialids()
+        {
+            // // Paint the mesh material IDs
+            // mesh_tri_material_ids.paint_static_texts();
+            // mesh_quad_material_ids.paint_static_texts();
+
+        }
+
+
+        public void update_openTK_uniforms(bool is_zoomtofit, bool is_intellizoom, bool is_pan, bool is_drawingareachange)
+        {
+            // Following graphics operation is performed
+            // 1) Zoom to Fit (Ctrl + F)
+            // 2) Intelli Zoom (Ctrl + Scroll up/ down)
+            // 3) Pan operation (Ctrl + Right button drag)
+            // 4) Drawing Area change (Resize of drawing area)
+
+
+
+        }
 
 
 
