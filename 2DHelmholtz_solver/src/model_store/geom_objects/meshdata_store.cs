@@ -3,6 +3,7 @@ using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,6 +25,12 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         // To control the drawing events
         public drawing_events graphic_events_control { get; private set; }
 
+        // Drawing bound data
+        public Vector3 min_bounds { get; } = new Vector3(-1);
+        public Vector3 max_bounds { get; } = new Vector3(1);
+        public Vector3 geom_bounds { get; } = new Vector3(2);
+
+        public bool is_ModelSet = false;
 
         public meshdata_store()
         {
@@ -39,6 +46,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
+
+            is_ModelSet = false;
 
         }
 
@@ -401,7 +410,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public void update_openTK_uniforms(bool is_zoomtofit, bool is_intellizoom, bool is_pan, bool is_drawingareachange)
+        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency)
         {
             // Following graphics operation is performed
             // 1) Zoom to Fit (Ctrl + F)
@@ -409,7 +418,69 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // 3) Pan operation (Ctrl + Right button drag)
             // 4) Drawing Area change (Resize of drawing area)
 
+            if (is_ModelSet == false)
+                return;
 
+            // Update the openGl uniform matrices
+            if (set_modelmatrix == true)
+            {
+                // Set the model matrix
+                mesh_quads.quad_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                mesh_tris.tri_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                selected_mesh_quads.quad_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                selected_mesh_tris.tri_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+
+                mesh_boundaries.line_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+
+                selected_mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+
+                // Set the projection matrix
+                mesh_quads.quad_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+                mesh_tris.tri_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+                selected_mesh_quads.quad_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+                selected_mesh_tris.tri_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+
+                mesh_boundaries.line_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+
+                selected_mesh_points.point_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+                mesh_points.point_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+
+            }
+
+            if (set_viewmatrix == true)
+            {
+                // Set the view matrix
+                mesh_quads.quad_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+                mesh_tris.tri_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+                selected_mesh_quads.quad_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+                selected_mesh_tris.tri_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+
+                mesh_boundaries.line_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+
+                selected_mesh_points.point_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+                mesh_points.point_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+
+            }
+
+            if (set_transparency == true)
+            {
+                // Set the transparency float
+                mesh_quads.quad_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                mesh_tris.tri_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+
+                mesh_boundaries.line_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+
+                selected_mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+
+            }
+
+
+            // mesh_tri_material_ids.update_opengl_uniforms(set_modelmatrix, set_viewmatrix, set_transparency);
+            // mesh_quad_material_ids.update_opengl_uniforms(set_modelmatrix, set_viewmatrix, set_transparency);
 
         }
 

@@ -27,10 +27,10 @@ namespace _2DHelmholtz_solver.opentk_control
 
         // Shader variable
         // Boundary shader
-        private Shader _br_shader;
+        // private Shader _br_shader;
 
         // Texture shader
-        private Shader _txt_shader;
+        // private Shader _txt_shader;
 
         // Imported drawing scale
         public float _zoom_val { get; private set; }
@@ -45,11 +45,11 @@ namespace _2DHelmholtz_solver.opentk_control
                 ((float)clr_bg.B / 255.0f),
                 ((float)clr_bg.A / 255.0f));
 
-            // create the shaders
-            this._br_shader = new Shader(ShaderLibrary.get_vertex_shader(0),
-                 ShaderLibrary.get_fragment_shader(0));
-            this._txt_shader = new Shader(ShaderLibrary.get_vertex_shader(1),
-                 ShaderLibrary.get_fragment_shader(1));
+            //// create the shaders
+            //this._br_shader = new Shader(ShaderLibrary.get_vertex_shader(0),
+            //     ShaderLibrary.get_fragment_shader(0));
+            //this._txt_shader = new Shader(ShaderLibrary.get_vertex_shader(1),
+            //     ShaderLibrary.get_fragment_shader(1));
 
         }
 
@@ -61,70 +61,72 @@ namespace _2DHelmholtz_solver.opentk_control
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-        public void set_opengl_shader(int s_type)
-        {
-            // Bind the shader
-            if (s_type == 0)
-            {
-                _br_shader.Use();
-            }
-            else if (s_type == 1)
-            {
-                _txt_shader.Use();
-            }
-        }
+        //public void set_opengl_shader(int s_type)
+        //{
+        //    // Bind the shader
+        //    if (s_type == 0)
+        //    {
+        //        _br_shader.Use();
+        //    }
+        //    else if (s_type == 1)
+        //    {
+        //        _txt_shader.Use();
+        //    }
+        //}
 
-        public void update_shader_uniform_var(int s_type,Color txt_clr)
-        {
-            // Change the txt shader color uniform variable
-            if (s_type == 1)
-            {
-                this._txt_shader.SetVector4("u_Color", new Vector4(txt_clr.R, txt_clr.G, txt_clr.B, 1.0f));
-            }
-        }
+        //public void update_shader_uniform_var(int s_type,Color txt_clr)
+        //{
+        //    // Change the txt shader color uniform variable
+        //    if (s_type == 1)
+        //    {
+        //        this._txt_shader.SetVector4("u_Color", new Vector4(txt_clr.R, txt_clr.G, txt_clr.B, 1.0f));
+        //    }
+        //}
 
-        public void update_drawing_area_size(int width, int height,double bound_x, double bound_y)
-        {
-            // update the drawing area size
-            this._br_shader.update_shader.update_primary_scale(this._br_shader, width, height,bound_x,bound_y);
-            this._txt_shader.update_shader.update_primary_scale(this._txt_shader, width, height,bound_x,bound_y);
+        //public void update_drawing_area_size(int width, int height,double bound_x, double bound_y)
+        //{
+        //    // update the drawing area size
+        //    this._br_shader.update_shader.update_primary_scale(this._br_shader, width, height,bound_x,bound_y);
+        //    this._txt_shader.update_shader.update_primary_scale(this._txt_shader, width, height,bound_x,bound_y);
 
-            // Update the graphics drawing area
-            GL.Viewport(this._br_shader.update_shader.drawing_area_details.drawing_area_center_x,
-                this._br_shader.update_shader.drawing_area_details.drawing_areas_center_y,
-                this._br_shader.update_shader.drawing_area_details.max_drawing_area_size,
-                this._br_shader.update_shader.drawing_area_details.max_drawing_area_size);
+        //    // Update the graphics drawing area
+        //    GL.Viewport(this._br_shader.update_shader.drawing_area_details.drawing_area_center_x,
+        //        this._br_shader.update_shader.drawing_area_details.drawing_areas_center_y,
+        //        this._br_shader.update_shader.drawing_area_details.max_drawing_area_size,
+        //        this._br_shader.update_shader.drawing_area_details.max_drawing_area_size);
 
-        }
+        //}
 
-        public void intelli_zoom_operation(double e_Delta, int e_X, int e_Y)
-        {
-            // Intelli zoom all the vertex shaders
-            this._br_shader.update_shader.intelli_zoom(this._br_shader, e_Delta, e_X, e_Y);
-            this._txt_shader.update_shader.intelli_zoom(this._txt_shader, e_Delta, e_X, e_Y);
+        //public void intelli_zoom_operation(double e_Delta, int e_X, int e_Y)
+        //{
+        //    // Intelli zoom all the vertex shaders
+        //    this._br_shader.update_shader.intelli_zoom(this._br_shader, e_Delta, e_X, e_Y);
+        //    this._txt_shader.update_shader.intelli_zoom(this._txt_shader, e_Delta, e_X, e_Y);
 
-            this._zoom_val = this._br_shader.update_shader._zm_scale;
-        }
+        //    this._zoom_val = this._br_shader.update_shader._zm_scale;
+        //}
 
-        public void pan_operation(float et_X, float et_Y)
-        {
-            // Pan the vertex shader
-            this._br_shader.update_shader.pan_operation(this._br_shader, et_X, et_Y);
-            this._txt_shader.update_shader.pan_operation(this._txt_shader, et_X, et_Y);
-        }
+        //public void pan_operation(float et_X, float et_Y)
+        //{
+        //    // Pan the vertex shader
+        //    this._br_shader.update_shader.pan_operation(this._br_shader, et_X, et_Y);
+        //    this._txt_shader.update_shader.pan_operation(this._txt_shader, et_X, et_Y);
+        //}
 
-        public void pan_operation_complete()
-        {
-            // End the pan operation saving translate
-            this._br_shader.update_shader.save_translate_transform();
-            this._txt_shader.update_shader.save_translate_transform();
-        }
+        //public void pan_operation_complete()
+        //{
+        //    // End the pan operation saving translate
+        //    this._br_shader.update_shader.save_translate_transform();
+        //    this._txt_shader.update_shader.save_translate_transform();
+        //}
 
-        public void zoom_to_fit(ref GLControl this_Gcntrl)
-        {
-            // Zoom to fit the vertex shader
-            this._br_shader.update_shader.zoom_to_fit_operation(this._br_shader, ref this_Gcntrl);
-            this._txt_shader.update_shader.zoom_to_fit_operation(this._txt_shader, ref this_Gcntrl);
-        }
+        //public void zoom_to_fit(ref GLControl this_Gcntrl)
+        //{
+        //    // Zoom to fit the vertex shader
+        //    this._br_shader.update_shader.zoom_to_fit_operation(this._br_shader, ref this_Gcntrl);
+        //    this._txt_shader.update_shader.zoom_to_fit_operation(this._txt_shader, ref this_Gcntrl);
+        //}
+
+
     }
 }

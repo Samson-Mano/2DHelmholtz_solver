@@ -41,7 +41,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private bool is_DynamicDraw = false;
 
         private graphicBuffers line_buffer;
-        private Shader line_shader;
+        public Shader line_shader;
 
         private readonly point_list_store _allPts;
 
@@ -50,10 +50,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // (Re)Initialize the data
             lineMap = new Dictionary<int, line_store>();
             line_count = 0;
-
-            // Shader
-            line_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
-                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
 
             // store the all points data
             _allPts = allPts;
@@ -83,6 +79,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_buffer()
         {
+
+            // Create Shader
+            line_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
+                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
 
             // Set the buffer for index
             int line_indices_count = 2 * line_count; // 2 indices to form a line

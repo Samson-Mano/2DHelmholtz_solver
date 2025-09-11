@@ -29,7 +29,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private bool is_DynamicDraw = false;
 
         private graphicBuffers quad_buffer;
-        private Shader quad_shader;
+        public Shader quad_shader;
 
         private readonly point_list_store _allPts;
         private readonly line_list_store _allLines;
@@ -40,10 +40,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // (Re)Initialize the data
             quadMap = new Dictionary<int, quad_store>();
             quad_count = 0;
-
-            // Shader
-            quad_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
-                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
 
             // store the all points data
             _allPts = allPts;
@@ -90,6 +86,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_buffer()
         {
+
+            // Create Shader
+            quad_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
+                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
 
             // Set the buffer for index
             int quad_indices_count = 6 * quad_count; // 6 indices to form a quadrilateral ( 3 + 3 triangles)

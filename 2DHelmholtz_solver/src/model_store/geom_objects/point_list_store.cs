@@ -40,18 +40,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private bool is_DynamicDraw = false;    
 
         private graphicBuffers point_buffer;
-        private Shader point_shader;
+        public Shader point_shader;
 
         public point_list_store()
         {
             // (Re)Initialize the data
             pointMap = new Dictionary<int, point_store>();
             point_count = 0;
-
-            // Shader
-            point_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
-                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
-
 
         }
 
@@ -85,6 +80,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_buffer()
         {
+
+            // Create Shader
+            point_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
+                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
 
             // Set the buffer for index
             int point_indices_count = 1 * point_count; // 1 index per point

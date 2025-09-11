@@ -30,7 +30,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private bool is_DynamicDraw = false;
 
         private graphicBuffers tri_buffer;
-        private Shader tri_shader;
+        public Shader tri_shader;
 
         private readonly point_list_store _allPts;
         private readonly line_list_store _allLines;
@@ -41,10 +41,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // (Re)Initialize the data
             triMap = new Dictionary<int, tri_store>();
             tri_count = 0;
-
-            // Shader
-            tri_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
-                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
 
             // store the all points data
             _allPts = allPts;
@@ -72,6 +68,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_buffer()
         {
+
+            // Create Shader
+            tri_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
+                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
 
             // Set the buffer for index
             int tri_indices_count = 3 * tri_count; // 3 indices to form a triangle

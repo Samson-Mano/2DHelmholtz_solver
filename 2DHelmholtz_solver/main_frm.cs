@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using System.IO;
 
 
 
@@ -28,22 +28,17 @@ namespace _2DHelmholtz_solver
 
         public main_frm()
         {
-            // Initialize the finite element model data
-            fedata = new fedata_store();
 
             InitializeComponent();
+
+            // Initialize the finite element model data
+            fedata = new fedata_store();
 
             // Fill the gcontrol panel
             glControl_main_panel.Dock = DockStyle.Fill;
 
         }
 
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            // Exit application
-            this.Close();
-
-        }
 
         private void main_frm_Load(object sender, EventArgs e)
         {
@@ -60,7 +55,7 @@ namespace _2DHelmholtz_solver
         {
             // Update the size of the drawing area
             fedata.meshdata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
-                glControl_main_panel.Height, 2.0, 2.0);
+                glControl_main_panel.Height);
 
             // Refresh the controller (doesnt do much.. nothing to draw)
             glControl_main_panel.Invalidate();
@@ -69,6 +64,13 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_Paint(object sender, PaintEventArgs e)
         {
+            // Paint the drawing area (glControl_main)
+            // Tell OpenGL to use MyGLControl
+            glControl_main_panel.MakeCurrent();
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(0, BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
 
 
 
@@ -84,7 +86,7 @@ namespace _2DHelmholtz_solver
         {
             // Update the size of the drawing area
             fedata.meshdata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
-                glControl_main_panel.Height, geom_obj.geom_bound_width, geom_obj.geom_bound_height);
+                glControl_main_panel.Height);
 
             toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(1.0f * 100))).ToString() + "%";
 
@@ -101,35 +103,113 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            if (e.Button == MouseButtons.Left)
+            {
+                // Left button down
+                fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(true, e.X, e.Y);
+
+            }
+            else if(e.Button == MouseButtons.Right)
+            {
+                // Right button down
+                fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(true, e.X, e.Y);
+
+            }
 
         }
 
         private void glControl_main_panel_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            // Mouse wheel
+            fedata.meshdata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
 
         }
 
         private void glControl_main_panel_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            // Mouse move 
+            fedata.meshdata.graphic_events_control.handleMouseMove(e.X, e.Y);
 
         }
 
         private void glControl_main_panel_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            if (e.Button == MouseButtons.Left)
+            {
+                // Left button up
+                fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(false, e.X, e.Y);
 
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                // Right button up
+                fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(false, e.X, e.Y);
+
+            }
         }
 
         private void glControl_main_panel_KeyDown(object sender, KeyEventArgs e)
         {
+            // Keyboard Key Down
+            fedata.meshdata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
 
         }
 
         private void glControl_main_panel_KeyUp(object sender, KeyEventArgs e)
         {
+            // Keyboard Key Up
+            fedata.meshdata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
 
         }
 
         #endregion
 
+
+        #region "File Events"
+
+        private void importModelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Import Model File",
+                Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = openFileDialog.FileName;
+
+                try
+                {
+                    string fileContent = File.ReadAllText(filePath);
+
+
+
+                    // Do something with the file content, e.g., parse the model
+                    // MessageBox.Show("Model file loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error reading file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+        }
+
+        private void exportModelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Exit application
+            this.Close();
+
+        }
+
+        #endregion
     }
 }
