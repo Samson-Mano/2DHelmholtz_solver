@@ -54,14 +54,14 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         }
 
         
-        public void update_material()
+        public void update_material(List<int> selected_element_tris, int material_id)
         {
 
 
         }
 
 
-        public void execute_delete_material()
+        public void execute_delete_material(int del_material_id)
         {
 
 

@@ -53,7 +53,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         }
 
 
-        public void update_material()
+        public void update_material(List<int> selected_element_quads, int material_id)
         {
 
 

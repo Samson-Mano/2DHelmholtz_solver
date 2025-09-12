@@ -185,7 +185,7 @@ namespace _2DHelmholtz_solver
                 {
                     string fileContent = File.ReadAllText(filePath);
 
-
+                    fedata.importMesh(fileContent);
 
                     // Do something with the file content, e.g., parse the model
                     // MessageBox.Show("Model file loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
