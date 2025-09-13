@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using _2DHelmholtz_solver.global_variables;
 
 namespace _2DHelmholtz_solver.src.model_store.geom_objects
 {
@@ -22,7 +23,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public double y_coord { get; set; }
         public double z_coord { get; set; } 
         public int point_index { get; set; }
-        public double normalized_defl_scale { get; set; } 
+        public double normalized_defl_scale { get; set; }
+        public int color_id { get; set; }
+        public Vector3 point_color { get; set; }
 
         public Vector3 pt_coord
         {
@@ -50,7 +53,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void add_point(int point_id, double x_coord, double y_coord, double z_coord)
+        public void add_point(int point_id, double x_coord, double y_coord, double z_coord, int color_id)
         {
             // Add the Point to the list
             point_store temp_point = new point_store
@@ -60,7 +63,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 y_coord = y_coord,
                 z_coord = z_coord,
                 point_index = point_count,
-                normalized_defl_scale = 0.0
+                normalized_defl_scale = 0.0,
+                color_id = color_id,
+                point_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id)
+
             };
 
             pointMap[point_id] = temp_point;
@@ -98,19 +104,20 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
             // Define the vertex layout
-            var nodeLayout = new VertexBufferLayout();
-            nodeLayout.AddFloat(2);  // Node center
-            nodeLayout.AddFloat(1);  // Is Dynamic data
-            nodeLayout.AddFloat(1);  // Normalized deflection scale
+            var pointLayout = new VertexBufferLayout();
+            pointLayout.AddFloat(2);  // Point center
+            pointLayout.AddFloat(3);  // Point color
+            pointLayout.AddFloat(1);  // Is Dynamic data
+            pointLayout.AddFloat(1);  // Normalized deflection scale
 
-            // Define the vertex buffer size for a point ( 2 position, 2 dynamic data)
-            int point_vertex_count = 4 * point_count;
+            // Define the vertex buffer size for a point ( 2 position, 3 color, 2 dynamic data)
+            int point_vertex_count = 7 * point_count;
             int point_vertex_size = point_vertex_count * sizeof(float);
 
             // Create the point dynamic buffers
             is_DynamicDraw = true;
             point_buffer = new graphicBuffers(null, point_vertex_size, point_vertex_indices,
-                point_indices_count, nodeLayout, is_DynamicDraw);
+                point_indices_count, pointLayout, is_DynamicDraw);
 
             // Update the buffer
             update_buffer();
@@ -119,8 +126,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void update_buffer()
         {
-            // Define the vertex buffer size for a point ( 2 position, 2 dynamic data)
-            int point_vertex_count = 4 * point_count;
+            // Define the vertex buffer size for a point ( 2 position, 3 color, 2 dynamic data)
+            int point_vertex_count = 7 * point_count;
             float[] point_vertices = new float[point_vertex_count];
 
             int point_v_index = 0;
@@ -144,12 +151,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Clear the data
             pointMap.Clear();
             point_count = 0;
-
-        }
-
-
-        public void set_point_color()
-        {
 
         }
 
@@ -192,12 +193,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             point_vertices[point_v_index + 0] = pt.pt_coord.X;
             point_vertices[point_v_index + 1] = pt.pt_coord.Y;
 
-            point_vertices[point_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            point_vertices[point_v_index + 2] = pt.point_color.X;
+            point_vertices[point_v_index + 3] = pt.point_color.Y;
+            point_vertices[point_v_index + 4] = pt.point_color.Y;
 
-            point_vertices[point_v_index + 3] = (float)pt.normalized_defl_scale;
+            point_vertices[point_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            point_vertices[point_v_index + 6] = (float)pt.normalized_defl_scale;
 
             // Iterate
-            point_v_index = point_v_index + 4;
+            point_v_index = point_v_index + 7;
 
         }
 

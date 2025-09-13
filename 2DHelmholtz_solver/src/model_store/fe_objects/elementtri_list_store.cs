@@ -56,7 +56,11 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         
         public void update_material(List<int> selected_element_tris, int material_id)
         {
-
+            // Update the material id of the tri element
+            foreach (int tri_id in selected_element_tris)
+            {
+                elementtriMap[tri_id].material_id = material_id;
+            }
 
         }
 

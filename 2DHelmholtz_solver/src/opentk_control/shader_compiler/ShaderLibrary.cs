@@ -29,12 +29,12 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-uniform vec3 vertexColor; // color of the mesh
 uniform float vertexTransparency; // Transparency of the mesh
 
 layout(location = 0) in vec2 node_position;
-layout(location = 1) in float is_dynamic;
-layout(location = 2) in float deflscale; // Deflection scale value = normalized_deflscale (varies 0 to 1) * max deformation
+layout(location = 1) in vec3 vertexColor;
+layout(location = 2) in float is_dynamic;
+layout(location = 3) in float deflscale; // Deflection scale value = normalized_deflscale (varies 0 to 1) * max deformation
 
 out vec3 v_Color;
 out float v_is_dynamic;

@@ -5,46 +5,111 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
+using OpenTK;
+using System.Security.AccessControl;
 
 namespace _2DHelmholtz_solver.global_variables
 {
     public static class gvariables_static
     {
+
+        public static class ColorUtils
+        {
+            private static readonly List<Color> StandardColors = new List<Color>
+            {
+        Color.Blue, Color.BlueViolet, Color.Brown, Color.BurlyWood, Color.CadetBlue, Color.Chocolate,
+        Color.Coral, Color.CornflowerBlue, Color.Crimson, Color.DarkBlue, Color.DarkCyan, Color.DarkGoldenrod,
+        Color.DarkGreen, Color.DarkKhaki, Color.DarkMagenta, Color.DarkOliveGreen, Color.DarkOrange,
+        Color.DarkOrchid, Color.DarkRed, Color.DarkSalmon, Color.DarkSeaGreen, Color.DarkSlateBlue,
+        Color.DarkSlateGray, Color.DarkTurquoise, Color.DarkViolet, Color.DeepPink, Color.DeepSkyBlue,
+        Color.DodgerBlue, Color.Firebrick, Color.ForestGreen, Color.Fuchsia, Color.Goldenrod, Color.Green,
+        Color.HotPink, Color.IndianRed, Color.Indigo, Color.Khaki, Color.LightCoral, Color.LightSalmon,
+        Color.LightSeaGreen, Color.LightSkyBlue, Color.LightSteelBlue, Color.LimeGreen, Color.Magenta,
+        Color.Maroon, Color.MediumAquamarine, Color.MediumBlue, Color.MediumOrchid, Color.MediumPurple,
+        Color.MediumSeaGreen, Color.MediumSlateBlue, Color.MediumTurquoise, Color.MediumVioletRed,
+        Color.MidnightBlue, Color.Navy, Color.Olive, Color.OliveDrab, Color.Orange, Color.OrangeRed,
+        Color.Orchid, Color.PaleVioletRed, Color.Peru, Color.Purple, Color.Red, Color.RosyBrown,
+        Color.RoyalBlue, Color.SaddleBrown, Color.Salmon, Color.SandyBrown, Color.SeaGreen, Color.Sienna,
+        Color.SkyBlue, Color.SlateBlue, Color.SlateGray, Color.SteelBlue, Color.Tan, Color.Teal,
+        Color.Thistle, Color.Tomato, Color.Turquoise, Color.Violet, Color.Wheat, Color.Yellow,
+        Color.YellowGreen
+    };
+
+            private static readonly List<Color> ShuffledColors;
+
+            static ColorUtils()
+            {
+                // Shuffle with fixed seed for deterministic results
+                Random rng = new Random(42);
+                ShuffledColors = new List<Color>(StandardColors);
+
+                for (int i = ShuffledColors.Count - 1; i > 0; i--)
+                {
+                    int swapIndex = rng.Next(i + 1);
+                    (ShuffledColors[i], ShuffledColors[swapIndex]) = (ShuffledColors[swapIndex], ShuffledColors[i]);
+                }
+            }
+
+            /// <summary>
+            /// Returns a deterministic pseudo-random color based on the given ID.
+            /// </summary>
+            private static Color GetRandomColor(int colorId)
+            {
+                return ShuffledColors[Math.Abs(colorId) % ShuffledColors.Count];
+            }
+
+
+
+            /// <summary>
+            /// Returns a Vector3 representation of a color for mesh rendering.
+            /// Special IDs:
+            /// -1: Black (default)
+            /// -2: White (selection)
+            /// </summary>
+            public static Vector3 MeshGetRandomColor(int colorId)
+            {
+
+                Color color;
+
+                switch (colorId)
+                {
+                    case -1:
+                        // Default color for mesh boundaries
+                        color = Color.Black;
+                        break;
+                    case -2:
+                        // Selection color 1
+                        color = Color.White;
+                        break;
+                    default:
+                        color = GetRandomColor(colorId);
+                        break;
+                }
+
+                return new Vector3(
+                    color.R / 255.0f,
+                    color.G / 255.0f,
+                    color.B / 255.0f
+                );
+
+            }
+
+
+        }
+
+
+
         public static Color glcontrol_background_color = Color.White;
 
         // Garphics Control variables
-        public static bool Is_panflg = false;
-        public static bool Is_cntrldown = false;
-        public static Color curve_color = Color.BlueViolet;
+        public static bool is_paint_mesh_boundaries = true;
+        public static bool is_paint_mesh = true;
+        public static bool is_paint_constraints = true;
+        public static bool is_paint_loads = true;
 
-        public static double boundary_scale = 1.0;
+        public static bool is_paint_shrunk_triangle = false;
 
-        public static double drawing_scale = 0.0;
-        public static double drawing_tx = 0.0;
-        public static double drawing_ty = 0.0;
-
-        public static bool is_paint_shrunk_triangle = true;
         public static double triangle_shrink_factor = 0.88f;
-
-        public static Color[] standard_colors = new [] 
-        { 
-            Color.Blue, Color.BlueViolet,
-            Color.Brown, Color.BurlyWood,Color.CadetBlue, Color.Chocolate,Color.Coral, Color.CornflowerBlue,
-            Color.Crimson, Color.DarkBlue,Color.DarkCyan, Color.DarkGoldenrod,Color.DarkGreen, Color.DarkKhaki,
-            Color.DarkMagenta, Color.DarkOliveGreen,Color.DarkOrange, Color.DarkOrchid,Color.DarkRed, Color.DarkSalmon,
-            Color.DarkSeaGreen, Color.DarkSlateBlue,Color.DarkSlateGray, Color.DarkTurquoise,Color.DarkViolet, Color.DeepPink,
-            Color.DeepSkyBlue, Color.DodgerBlue,Color.Firebrick, Color.ForestGreen,Color.Fuchsia, Color.Goldenrod,
-            Color.Green, Color.HotPink,Color.IndianRed, Color.Indigo,Color.Khaki, Color.LightCoral,
-            Color.LightSalmon, Color.LightSeaGreen,Color.LightSkyBlue, Color.LightSteelBlue,Color.LimeGreen, Color.Magenta,
-            Color.Maroon, Color.MediumAquamarine,Color.MediumBlue, Color.MediumOrchid,Color.MediumPurple, Color.MediumSeaGreen,
-            Color.MediumSlateBlue, Color.MediumTurquoise,Color.MediumVioletRed, Color.MidnightBlue,Color.Navy, Color.Olive,
-            Color.OliveDrab, Color.Orange,Color.OrangeRed, Color.Orchid,Color.PaleVioletRed, Color.Peru,
-            Color.Purple, Color.Red,Color.RosyBrown, Color.RoyalBlue,Color.SaddleBrown, Color.Salmon,
-            Color.SandyBrown, Color.SeaGreen,Color.Sienna, Color.SkyBlue,Color.SlateBlue, Color.SlateGray,
-            Color.SteelBlue, Color.Tan,Color.Teal, Color.Thistle,Color.Tomato, Color.Turquoise,
-            Color.Violet, Color.Wheat,Color.Yellow, Color.YellowGreen
-        }; // 14 x 5 = 70
-
 
          public static int RoundOff(this int i)
         {
@@ -100,6 +165,56 @@ namespace _2DHelmholtz_solver.global_variables
 
             return 0;
         }
+
+
+        public static Vector3 FindGeometricCenter(List<Vector3> allPts)
+        {
+            // Function returns the geometric center of the nodes
+            // Initialize the sum with zero
+            Vector3 sum = Vector3.Zero;
+
+            // Sum the points
+            foreach (var pt in allPts)
+            {
+                sum += pt;
+            }
+
+            return allPts.Count > 0 ? sum / allPts.Count : Vector3.Zero;
+        }
+
+
+
+        public static Tuple<Vector3, Vector3> FindMinMaxXY(List<Vector3> allPts)
+        {
+            if (allPts == null || allPts.Count < 1)
+            {
+                // Null input
+                return Tuple.Create(Vector3.Zero, Vector3.Zero);
+            }
+
+            // Initialize min and max values to first node in map
+            Vector3 minXY = allPts[0];
+            Vector3 maxXY = allPts[0];
+
+            // Loop through all nodes in map and update min and max values
+            foreach (var pt in allPts)
+            {
+                // Minimum
+                minXY.X = Math.Min(minXY.X, pt.X);
+                minXY.Y = Math.Min(minXY.Y, pt.Y);
+                minXY.Z = Math.Min(minXY.Z, pt.Z);
+
+                // Maximum
+                maxXY.X = Math.Max(maxXY.X, pt.X);
+                maxXY.Y = Math.Max(maxXY.Y, pt.Y);
+                maxXY.Z = Math.Max(maxXY.Z, pt.Z);
+            }
+
+            // Return pair of min and max values
+            return Tuple.Create(minXY, maxXY);
+        }
+
+
 
 
 

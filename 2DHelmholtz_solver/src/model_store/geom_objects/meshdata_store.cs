@@ -1,4 +1,5 @@
-﻿using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public bool is_ModelSet = false;
 
-        public meshdata_store()
+        public meshdata_store(Vector3 min_bounds, Vector3 max_bounds, Vector3 geom_bounds)
         {
             // Initialize the mesh points, lines, triangles and quadrilateral
             mesh_points = new point_list_store();
@@ -47,15 +48,20 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
 
+            // Geometry bounds
+            this.min_bounds = min_bounds;
+            this.max_bounds = max_bounds;
+            this.geom_bounds = geom_bounds; 
+
             is_ModelSet = false;
 
         }
 
 
-        public void add_mesh_point(int point_id, double x_coord, double y_coord, double z_coord)
+        public void add_mesh_point(int point_id, double x_coord, double y_coord, double z_coord, int color_id)
         {
             // Add the mesh point
-            mesh_points.add_point(point_id, x_coord, y_coord, z_coord); 
+            mesh_points.add_point(point_id, x_coord, y_coord, z_coord, color_id); 
 
         }
 
@@ -70,7 +76,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 // get the point
                 point_store pt = mesh_points.pointMap[pt_id];
 
-                selected_mesh_points.add_point(pt_id, pt.x_coord, pt.y_coord, pt.z_coord);
+                selected_mesh_points.add_point(pt_id, pt.x_coord, pt.y_coord, pt.z_coord, -2);
                 
             }
 
@@ -89,7 +95,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 // get the triangle
                 tri_store tri = mesh_tris.triMap[tri_id];
 
-                selected_mesh_tris.add_tri(tri_id, tri.edge1_id, tri.edge2_id, tri.edge3_id);
+                selected_mesh_tris.add_tri(tri_id, tri.edge1_id, tri.edge2_id, tri.edge3_id, -2);
 
             }
 
@@ -110,7 +116,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 tri_store tri341 = mesh_quads.quadMap[quad_id].tri341;
 
                 selected_mesh_quads.add_quad(quad_id, tri123.edge1_id, tri123.edge2_id, tri123.edge3_id,
-                    tri341.edge1_id, tri341.edge2_id, tri341.edge3_id);
+                    tri341.edge1_id, tri341.edge2_id, tri341.edge3_id, -2);
 
             }
 
@@ -118,7 +124,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void add_mesh_tris(int tri_id,int  point_id1, int point_id2, int point_id3)
+        public void add_mesh_tris(int tri_id,int  point_id1, int point_id2, int point_id3, int color_id)
         {
             //    2____3 
             //    |   /  
@@ -154,7 +160,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             //________________________________________
             // Add the mesh triangles
-            mesh_tris.add_tri(tri_id, line_id1, line_id2, line_id3);
+            mesh_tris.add_tri(tri_id, line_id1, line_id2, line_id3, color_id);
 
 
             // Set the half edges next line
@@ -186,7 +192,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void add_mesh_quads(int quad_id, int point_id1, int point_id2, int point_id3, int point_id4)
+        public void add_mesh_quads(int quad_id, int point_id1, int point_id2, int point_id3, int point_id4, int color_id)
         {
             //    2____3     2____3      3
             //    |   /|     |   /     / |  
@@ -235,7 +241,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             //________________________________________
             // Add the mesh quadrilaterals
-            mesh_quads.add_quad(quad_id, line_id1, line_id2, line_id3, line_id4, line_id5, line_id6);
+            mesh_quads.add_quad(quad_id, line_id1, line_id2, line_id3, 
+                line_id4, line_id5, line_id6, color_id);
 
             // Set the half edge face data 1st Half triangle of the quadrilateral
             mesh_half_edges.lineMap[line_id1].quad_face_id = quad_id;
@@ -295,7 +302,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                     uniqueEdges.Add(edge);
 
                     // Add to wireframe rendering or storage
-                    mesh_boundaries.add_line(kvp.Key, edge.Item1, edge.Item2);
+                    mesh_boundaries.add_line(kvp.Key, edge.Item1, edge.Item2, -1);
 
                 }
             }
@@ -306,7 +313,14 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void update_tri_material_ids(List<int> selected_tri_id, int material_id)
         {
             // Update the material id of the Triangle element
+            foreach (int  tri_id in selected_tri_id)
+            {
+                mesh_tris.triMap[tri_id].color_id = material_id;
+                mesh_tris.triMap[tri_id].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
+            }
 
+            // Update the buffer to change the color based on new material id
+            mesh_tris.update_buffer();
 
         }
 
@@ -314,7 +328,14 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void update_quad_material_ids(List<int> selected_quad_id, int material_id)
         {
             // Update the material id of the Quadrilateral element
+            foreach (int quad_id in selected_quad_id)
+            {
+                mesh_quads.quadMap[quad_id].color_id = material_id;
+                mesh_quads.quadMap[quad_id].quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
+            }
 
+            // Update the buffer to change the color based on new material id
+            mesh_quads.update_buffer();
 
         }
 
@@ -331,8 +352,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // mesh tris and quads
             mesh_tris.set_buffer();
             mesh_quads.set_buffer();
-
-
 
         }
 
@@ -488,7 +507,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         private int add_half_edge(int startpt_id, int endpt_id)
         {
-            mesh_half_edges.add_line(half_edge_count, startpt_id, endpt_id);
+            mesh_half_edges.add_line(half_edge_count, startpt_id, endpt_id, -1);
 
             // Iterate the half edge count
             half_edge_count++;

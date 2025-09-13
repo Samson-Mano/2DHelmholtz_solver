@@ -1,4 +1,5 @@
-﻿using _2DHelmholtz_solver.opentk_control.opentk_buffer;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.opentk_control.opentk_buffer;
 using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using _2DHelmholtz_solver.src.opentk_control.opentk_buffer;
 // OpenTK library
@@ -21,6 +22,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public int edge2_id { get; set; }
         public int edge3_id { get; set; }
 
+        public int color_id { get; set; }
+
+        public Vector3 tri_color { get; set; }
     }
 
     public class tri_list_store
@@ -49,7 +53,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public void add_tri(int tri_id, int edge1_id, int edge2_id, int edge3_id)
+        public void add_tri(int tri_id, int edge1_id, int edge2_id, int edge3_id, int color_id)
         {
             // Add the Tri to the list
             tri_store temp_tri = new tri_store
@@ -58,6 +62,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 edge1_id = edge1_id,
                 edge2_id = edge2_id,
                 edge3_id = edge3_id,
+                color_id = color_id,
+                tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id)
+
             };
 
             triMap[tri_id] = temp_tri;
@@ -87,12 +94,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Define the vertex layout
             var triLayout = new VertexBufferLayout();
-            triLayout.AddFloat(2);  // Node center
+            triLayout.AddFloat(2);  // point center
+            triLayout.AddFloat(3);  // point color
             triLayout.AddFloat(1);  // Is Dynamic data
             triLayout.AddFloat(1);  // Normalized deflection scale
 
-            // Define the vertex buffer size for a point 3 * ( 2 position, 2 dynamic data)
-            int tri_vertex_count = 3 * 4 * tri_count;
+            // Define the vertex buffer size for a point 3 * ( 2 position, 3 color, 2 dynamic data)
+            int tri_vertex_count = 3 * 7 * tri_count;
             int tri_vertex_size = tri_vertex_count * sizeof(float);
 
             // Create the triangle dynamic buffers
@@ -107,8 +115,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void update_buffer()
         {
-            // Define the vertex buffer size for a point 3 * ( 2 position, 2 dynamic data)
-            int tri_vertex_count = 3 * 4 * tri_count;
+            // Define the vertex buffer size for a point 3 * ( 2 position, 3 color, 2 dynamic data)
+            int tri_vertex_count = 3 * 7 * tri_count;
             float[] tri_vertices = new float[tri_vertex_count];
 
             int tri_v_index = 0;
@@ -134,12 +142,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             tri_count = 0;
 
         }
-
-        public void set_tri_color()
-        {
-
-        }
-
 
         public void paint_static_triangles()
         {
@@ -180,12 +182,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             tri_vertices[tri_v_index + 0] = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord.X;
             tri_vertices[tri_v_index + 1] = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord.Y;
 
-            tri_vertices[tri_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            tri_vertices[tri_v_index + 2] = tri.tri_color.X;
+            tri_vertices[tri_v_index + 3] = tri.tri_color.Y;
+            tri_vertices[tri_v_index + 4] = tri.tri_color.Z;
 
-            tri_vertices[tri_v_index + 3] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].normalized_defl_scale;
+            tri_vertices[tri_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            tri_vertices[tri_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            tri_v_index = tri_v_index + 4;
+            tri_v_index = tri_v_index + 7;
 
 
             // Point 2
@@ -193,12 +200,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             tri_vertices[tri_v_index + 0] = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord.X;
             tri_vertices[tri_v_index + 1] = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord.Y;
 
-            tri_vertices[tri_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            tri_vertices[tri_v_index + 2] = tri.tri_color.X;
+            tri_vertices[tri_v_index + 3] = tri.tri_color.Y;
+            tri_vertices[tri_v_index + 4] = tri.tri_color.Z;
 
-            tri_vertices[tri_v_index + 3] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].normalized_defl_scale;
+            tri_vertices[tri_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            tri_vertices[tri_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            tri_v_index = tri_v_index + 4;
+            tri_v_index = tri_v_index + 7;
 
 
             // Point 3
@@ -206,14 +218,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             tri_vertices[tri_v_index + 0] = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord.X;
             tri_vertices[tri_v_index + 1] = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord.Y;
 
-            tri_vertices[tri_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            tri_vertices[tri_v_index + 2] = tri.tri_color.X;
+            tri_vertices[tri_v_index + 3] = tri.tri_color.Y;
+            tri_vertices[tri_v_index + 4] = tri.tri_color.Z;
 
-            tri_vertices[tri_v_index + 3] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].normalized_defl_scale;
+            tri_vertices[tri_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            tri_vertices[tri_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            tri_v_index = tri_v_index + 4;
-
-
+            tri_v_index = tri_v_index + 7;
 
         }
 

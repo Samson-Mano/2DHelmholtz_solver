@@ -55,7 +55,11 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         public void update_material(List<int> selected_element_quads, int material_id)
         {
-
+            // Update the material id of the quad element
+            foreach (int quad_id in selected_element_quads)
+            {
+                elementquadMap[quad_id].material_id = material_id;
+            }
 
         }
 

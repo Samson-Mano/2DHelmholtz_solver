@@ -1,4 +1,5 @@
-﻿using _2DHelmholtz_solver.opentk_control.opentk_buffer;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.opentk_control.opentk_buffer;
 using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using _2DHelmholtz_solver.src.opentk_control.opentk_buffer;
 // OpenTK library
@@ -19,6 +20,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public tri_store tri123 { get; set; }
         public tri_store tri341 { get; set; }
 
+        public int color_id { get; set; }   
+
+        public Vector3 quad_color { get; set; } 
     }
 
 
@@ -49,7 +53,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
 
         public void add_quad(int quad_id, int edge1_id, int edge2_id, int edge3_id, 
-            int edge4_id, int edge5_id, int edge6_id)
+            int edge4_id, int edge5_id, int edge6_id, int color_id)
         {
             // Create the Half triangle Tri123 
             tri_store temp_tri123 = new tri_store
@@ -58,6 +62,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 edge1_id = edge1_id,
                 edge2_id = edge2_id,
                 edge3_id = edge3_id,
+                color_id = color_id
             };
 
             // Create the Half triangle Tri341 
@@ -67,6 +72,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 edge1_id = edge4_id,
                 edge2_id = edge5_id,
                 edge3_id = edge6_id,
+                color_id = color_id
             };
 
             // Add the Quadrilateral to the list
@@ -74,7 +80,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             {
                 quad_id = quad_id,
                 tri123 = temp_tri123,
-                tri341 = temp_tri341
+                tri341 = temp_tri341,
+                color_id = color_id,
+                quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id)
             };
 
 
@@ -105,12 +113,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Define the vertex layout
             var quadLayout = new VertexBufferLayout();
-            quadLayout.AddFloat(2);  // Node center
+            quadLayout.AddFloat(2);  // point center
+            quadLayout.AddFloat(3);  // point color
             quadLayout.AddFloat(1);  // Is Dynamic data
             quadLayout.AddFloat(1);  // Normalized deflection scale
 
-            // Define the vertex buffer size for a point 6 * ( 2 position, 2 dynamic data)
-            int quad_vertex_count = 6 * 4 * quad_count;
+            // Define the vertex buffer size for a point 6 * ( 2 position, 3 color, 2 dynamic data)
+            int quad_vertex_count = 6 * 7 * quad_count;
             int quad_vertex_size = quad_vertex_count * sizeof(float);
 
             // Create the quadrilateral dynamic buffers
@@ -125,8 +134,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void update_buffer()
         {
-            // Define the vertex buffer size for a point 6 * ( 2 position, 2 dynamic data)
-            int quad_vertex_count = 6 * 4 * quad_count;
+            // Define the vertex buffer size for a point 6 * ( 2 position, 3 color, 2 dynamic data)
+            int quad_vertex_count = 6 * 7 * quad_count;
             float[] quad_vertices = new float[quad_vertex_count];
 
             int quad_v_index = 0;
@@ -150,12 +159,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Clear the data
             quadMap.Clear();
             quad_count = 0;
-
-        }
-
-
-        public void set_quad_color()
-        {
 
         }
 
@@ -198,12 +201,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].pt_coord.X;
             quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].pt_coord.Y;
 
-            quad_vertices[quad_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            quad_vertices[quad_v_index + 2] = quad.quad_color.X;
+            quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
+            quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 3] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].normalized_defl_scale;
+            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            quad_v_index = quad_v_index + 4;
+            quad_v_index = quad_v_index + 7;
 
 
             // Point 2
@@ -211,12 +219,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].pt_coord.X;
             quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].pt_coord.Y;
 
-            quad_vertices[quad_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            quad_vertices[quad_v_index + 2] = quad.quad_color.X;
+            quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
+            quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 3] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].normalized_defl_scale;
+            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            quad_v_index = quad_v_index + 4;
+            quad_v_index = quad_v_index + 7;
 
 
             // Point 3
@@ -224,12 +237,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].pt_coord.X;
             quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].pt_coord.Y;
 
-            quad_vertices[quad_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            quad_vertices[quad_v_index + 2] = quad.quad_color.X;
+            quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
+            quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 3] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].normalized_defl_scale;
+            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            quad_v_index = quad_v_index + 4;
+            quad_v_index = quad_v_index + 7;
 
 
             // Point 4
@@ -237,12 +255,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].pt_coord.X;
             quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].pt_coord.Y;
 
-            quad_vertices[quad_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            quad_vertices[quad_v_index + 2] = quad.quad_color.X;
+            quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
+            quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 3] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].normalized_defl_scale;
+            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            quad_v_index = quad_v_index + 4;
+            quad_v_index = quad_v_index + 7;
 
 
         }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using _2DHelmholtz_solver.global_variables;
 
 namespace _2DHelmholtz_solver.src.model_store.geom_objects
 {
@@ -27,6 +28,11 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public int tri_face_id { get; set; } // Triangle Face to the left of this half-edge
         public int quad_face_id { get; set; } // Triangle Face to the left of this half-edge
+
+
+        public int color_id { get; set; }
+
+        public Vector3 line_color { get; set; }
 
     }
 
@@ -57,7 +63,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public void add_line(int line_id, int start_pt_id, int end_pt_id)
+        public void add_line(int line_id, int start_pt_id, int end_pt_id, int color_id)
         {
             // Add the Line to the list
             line_store temp_line = new line_store
@@ -68,7 +74,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 next_line_id = -1,
                 twin_line_id = -1,
                 tri_face_id = -1,
-                quad_face_id = -1
+                quad_face_id = -1,
+                color_id = color_id,
+                line_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id)
             };
 
             lineMap[line_id] = temp_line;
@@ -98,12 +106,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Define the vertex layout
             var lineLayout = new VertexBufferLayout();
-            lineLayout.AddFloat(2);  // Node center
+            lineLayout.AddFloat(2);  // point center
+            lineLayout.AddFloat(3);  // point color
             lineLayout.AddFloat(1);  // Is Dynamic data
             lineLayout.AddFloat(1);  // Normalized deflection scale
 
-            // Define the vertex buffer size for a point 2 * ( 2 position, 2 dynamic data)
-            int line_vertex_count = 2 * 4 * line_count;
+            // Define the vertex buffer size for a point 2 * ( 2 position, 3 color, 2 dynamic data)
+            int line_vertex_count = 2 * 7 * line_count;
             int line_vertex_size = line_vertex_count * sizeof(float);
 
             // Create the line dynamic buffers
@@ -118,8 +127,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void update_buffer()
         {
-            // Define the vertex buffer size for a point 2 * ( 2 position, 2 dynamic data)
-            int line_vertex_count = 2 * 4 * line_count;
+            // Define the vertex buffer size for a point 2 * ( 2 position, 3 color, 2 dynamic data)
+            int line_vertex_count = 2 * 7 * line_count;
             float[] line_vertices = new float[line_vertex_count];
 
             int line_v_index = 0;
@@ -128,19 +137,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             foreach (var ln in lineMap)
             {
                 // Add vertex buffers
-                get_line_vertex_buffer(ln.Value,line_vertices, line_v_index);
+                get_line_vertex_buffer(ln.Value, line_vertices, line_v_index);
             }
 
             int line_vertex_size = line_vertex_count * sizeof(float); // Size of the line vertex buffer
 
             // Update the buffer
             line_buffer.UpdateDynamicVertexBuffer(line_vertices, line_vertex_size);
-
-        }
-
-
-        public void set_line_color()
-        {
 
         }
 
@@ -184,24 +187,34 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             line_vertices[line_v_index + 0] = _allPts.pointMap[ln.start_pt_id].pt_coord.X;
             line_vertices[line_v_index + 1] = _allPts.pointMap[ln.start_pt_id].pt_coord.Y;
 
-            line_vertices[line_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            line_vertices[line_v_index + 2] = ln.line_color.X;
+            line_vertices[line_v_index + 3] = ln.line_color.Y;
+            line_vertices[line_v_index + 4] = ln.line_color.Z;
 
-            line_vertices[line_v_index + 3] = (float)_allPts.pointMap[ln.start_pt_id].normalized_defl_scale;
+            line_vertices[line_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            line_vertices[line_v_index + 6] = (float)_allPts.pointMap[ln.start_pt_id].normalized_defl_scale;
 
             // Iterate
-            line_v_index = line_v_index + 4;
+            line_v_index = line_v_index + 7;
 
             // End Point
             // Point location
             line_vertices[line_v_index + 0] = _allPts.pointMap[ln.end_pt_id].pt_coord.X;
             line_vertices[line_v_index + 1] = _allPts.pointMap[ln.end_pt_id].pt_coord.Y;
 
-            line_vertices[line_v_index + 2] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Point color
+            line_vertices[line_v_index + 2] = ln.line_color.X;
+            line_vertices[line_v_index + 3] = ln.line_color.Y;
+            line_vertices[line_v_index + 4] = ln.line_color.Z;
 
-            line_vertices[line_v_index + 3] = (float)_allPts.pointMap[ln.end_pt_id].normalized_defl_scale;
+            line_vertices[line_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+
+            line_vertices[line_v_index + 6] = (float)_allPts.pointMap[ln.end_pt_id].normalized_defl_scale;
 
             // Iterate
-            line_v_index = line_v_index + 4;
+            line_v_index = line_v_index + 7;
 
 
         }
