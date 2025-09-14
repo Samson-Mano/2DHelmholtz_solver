@@ -2,7 +2,6 @@
 using _2DHelmholtz_solver.src.events_handler;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
 using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
-using OpenTK;
 using OpenTK.Graphics.ES11;
 using System;
 using System.Collections.Generic;
@@ -10,6 +9,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+// OpenTK library
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
+
 
 namespace _2DHelmholtz_solver.src.model_store.fe_objects
 {
@@ -42,7 +47,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public Dictionary<int, material_data> fe_materials;
 
         public meshdata_store meshdata;
-
+        bool isModelLoadSuccess = false;
 
 
         public fedata_store()
@@ -64,7 +69,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public void importMesh(string fileContent)
         {
             List<Vector3> nodePtsList = new List<Vector3>();
-            bool isModelLoadSuccess = false;
+            isModelLoadSuccess = false;
 
             file_events.import_mesh(fileContent,ref fe_nodes, ref fe_tris, ref fe_quads,
                 ref fe_constraints, ref fe_loads,ref fe_materials,ref nodePtsList,ref isModelLoadSuccess);
@@ -119,24 +124,45 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Model is set
             meshdata.is_ModelSet = true;
 
-
             // Set the openTK buffer
             meshdata.set_buffer();
 
             // Update the openGL uniform
             meshdata.update_openTK_uniforms(true, true, true);
 
-
         }
 
         public void paint_model()
         {
+            if (isModelLoadSuccess == false)
+                return;
 
 
-
-
-            // Paint the model
+            // Paint the mesh quad & mesh tris
             if(gvariables_static.is_paint_mesh == true)
+            {
+                meshdata.paint_static_mesh();
+
+            }
+
+            // Paint the mesh boundaries
+            if (gvariables_static.is_paint_mesh_boundaries == true)
+            {
+                meshdata.paint_static_mesh_boundaries();
+
+
+            }
+
+            // Paint the loads
+            if (gvariables_static.is_paint_loads == true)
+            {
+
+
+            }
+
+
+            // Paint the constraints
+            if (gvariables_static.is_paint_constraints == true)
             {
 
 

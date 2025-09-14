@@ -61,7 +61,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             // Primary scale
             this._boundary_scale = this._drawing_area_details.bound_scale;
-            global_variables.gvariables_static.boundary_scale = this._boundary_scale;
+            // global_variables.gvariables_static.boundary_scale = this._boundary_scale;
 
             scale_Transform(1.0f);
         }

@@ -123,9 +123,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             int quad_vertex_size = quad_vertex_count * sizeof(float);
 
             // Create the quadrilateral dynamic buffers
-            is_DynamicDraw = true;
             quad_buffer = new graphicBuffers(null, quad_vertex_size, quad_vertex_indices,
-                quad_indices_count, quadLayout, is_DynamicDraw);
+                quad_indices_count, quadLayout, true);
 
             // Update the buffer
             update_buffer();

@@ -33,26 +33,28 @@ namespace _2DHelmholtz_solver
 
             // Initialize the finite element model data
             fedata = new fedata_store();
+        }
 
+
+        private void main_frm_Load(object sender, EventArgs e)
+        {
+            // Initialize the GLControl in the Load event
             // Fill the gcontrol panel
             glControl_main_panel.Dock = DockStyle.Fill;
 
         }
 
 
-        private void main_frm_Load(object sender, EventArgs e)
-        {
-            
-            
-        }
-
-
-
-
-
         #region "glControl Main Panel Events"
         private void glControl_main_panel_Load(object sender, EventArgs e)
         {
+            // Paint the background
+            Color clr_bg = gvariables_static.glcontrol_background_color;
+            GL.ClearColor(((float)clr_bg.R / 255.0f),
+                ((float)clr_bg.G / 255.0f),
+                ((float)clr_bg.B / 255.0f),
+                ((float)clr_bg.A / 255.0f));
+
             // Update the size of the drawing area
             fedata.meshdata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
                 glControl_main_panel.Height);
@@ -71,8 +73,10 @@ namespace _2DHelmholtz_solver
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(0, BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
+            // Clear the background
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-
+            fedata.paint_model();
 
             // OpenTK windows are what's known as "double-buffered". In essence, the window manages two buffers.
             // One is rendered to while the other is currently displayed by the window.
@@ -84,6 +88,10 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_SizeChanged(object sender, EventArgs e)
         {
+            // Note: SizeChanged can fire before the OpenGL context exists (e.g., during form initialization, Load etc).
+            //if (glControl_main_panel.Context.IsDisposed)
+            //    return;
+
             // Update the size of the drawing area
             fedata.meshdata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
                 glControl_main_panel.Height);
@@ -91,6 +99,7 @@ namespace _2DHelmholtz_solver
             toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(1.0f * 100))).ToString() + "%";
 
             // Refresh the painting area
+            glControl_main_panel.Refresh();
             glControl_main_panel.Invalidate();
         }
 
@@ -103,16 +112,24 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            bool isRefresh = false;
             if (e.Button == MouseButtons.Left)
             {
                 // Left button down
-                fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(true, e.X, e.Y);
+                isRefresh = fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(true, e.X, e.Y);
 
             }
-            else if(e.Button == MouseButtons.Right)
+            else if (e.Button == MouseButtons.Right)
             {
                 // Right button down
-                fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(true, e.X, e.Y);
+                isRefresh = fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(true, e.X, e.Y);
+
+            }
+
+            if (isRefresh == true)
+            {
+                glControl_main_panel.Refresh();
+                glControl_main_panel.Invalidate();
 
             }
 
@@ -121,44 +138,86 @@ namespace _2DHelmholtz_solver
         private void glControl_main_panel_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // Mouse wheel
-            fedata.meshdata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
+            bool isRefresh = fedata.meshdata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
+
+
+            if (isRefresh == true)
+            {
+                glControl_main_panel.Refresh();
+                glControl_main_panel.Invalidate();
+
+            }
 
         }
 
         private void glControl_main_panel_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // Mouse move 
-            fedata.meshdata.graphic_events_control.handleMouseMove(e.X, e.Y);
+            bool isRefresh = fedata.meshdata.graphic_events_control.handleMouseMove(e.X, e.Y);
+
+
+            if (isRefresh == true)
+            {
+                glControl_main_panel.Refresh();
+                glControl_main_panel.Invalidate();
+
+            }
 
         }
 
         private void glControl_main_panel_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            bool isRefresh = false;
             if (e.Button == MouseButtons.Left)
             {
                 // Left button up
-                fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(false, e.X, e.Y);
+                isRefresh = fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(false, e.X, e.Y);
 
             }
             else if (e.Button == MouseButtons.Right)
             {
                 // Right button up
-                fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(false, e.X, e.Y);
+                isRefresh = fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(false, e.X, e.Y);
 
             }
+
+
+            if (isRefresh == true)
+            {
+                glControl_main_panel.Refresh();
+                glControl_main_panel.Invalidate();
+
+            }
+
         }
 
         private void glControl_main_panel_KeyDown(object sender, KeyEventArgs e)
         {
             // Keyboard Key Down
-            fedata.meshdata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
+            bool isRefresh = fedata.meshdata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
+
+
+            if (isRefresh == true)
+            {
+                glControl_main_panel.Refresh();
+                glControl_main_panel.Invalidate();
+
+            }
 
         }
 
         private void glControl_main_panel_KeyUp(object sender, KeyEventArgs e)
         {
             // Keyboard Key Up
-            fedata.meshdata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
+            bool isRefresh = fedata.meshdata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
+
+
+            if (isRefresh == true)
+            {
+                glControl_main_panel.Refresh();
+                glControl_main_panel.Invalidate();
+
+            }
 
         }
 
@@ -174,7 +233,7 @@ namespace _2DHelmholtz_solver
             {
                 Title = "Import Model File",
                 Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                // InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -195,6 +254,11 @@ namespace _2DHelmholtz_solver
                     MessageBox.Show($"Error reading file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+
+            glControl_main_panel_SizeChanged(sender, e);
+
+            glControl_main_panel.Refresh();
+            glControl_main_panel.Invalidate();
 
         }
 

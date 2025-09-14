@@ -116,9 +116,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             int line_vertex_size = line_vertex_count * sizeof(float);
 
             // Create the line dynamic buffers
-            is_DynamicDraw = true;
             line_buffer = new graphicBuffers(null, line_vertex_size, line_vertex_indices,
-                line_indices_count, lineLayout, is_DynamicDraw);
+                line_indices_count, lineLayout, true);
 
             // Update the buffer
             update_buffer();

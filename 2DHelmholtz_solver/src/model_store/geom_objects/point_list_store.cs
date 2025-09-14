@@ -115,9 +115,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             int point_vertex_size = point_vertex_count * sizeof(float);
 
             // Create the point dynamic buffers
-            is_DynamicDraw = true;
             point_buffer = new graphicBuffers(null, point_vertex_size, point_vertex_indices,
-                point_indices_count, pointLayout, is_DynamicDraw);
+                point_indices_count, pointLayout, true);
 
             // Update the buffer
             update_buffer();

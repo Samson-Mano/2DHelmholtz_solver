@@ -1,5 +1,4 @@
 ﻿using _2DHelmholtz_solver.src.model_store.geom_objects;
-using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Printing;
@@ -7,6 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+// OpenTK library
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
 
 namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 {
@@ -66,7 +70,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
 
         #region "Handle Mouse Events"
-        public void handleMouseLeftButtonClick(bool isDown, float e_X, float e_Y)
+        public bool handleMouseLeftButtonClick(bool isDown, float e_X, float e_Y)
         {
             if(isDown == true)
             {
@@ -80,6 +84,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                     // Select operation starts (Left drag)
                     select_operation_start(new Vector2(e_X, e_Y), false);
+                    return true;
                 }
             }
             else
@@ -87,12 +92,14 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 // Left mouse button release
 
                 select_operation_end(new Vector2(e_X, e_Y));
-
+                return true;
             }
+
+            return false;
 
         }
 
-        public void handleMouseRightButtonClick(bool isDown, float e_X, float e_Y)
+        public bool handleMouseRightButtonClick(bool isDown, float e_X, float e_Y)
         {
             if (isDown == true)
             {
@@ -102,13 +109,14 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                     // Pan operation
                     pan_operation_start(new Vector2(e_X, e_Y));
-
+                    return true;
                 }
 
                 if (isShiftDown == true)
                 {
                     // Select operation starts (Right drag)
                     select_operation_start(new Vector2(e_X, e_Y), true);
+                    return true;
                 }
 
             }
@@ -117,34 +125,40 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 // Right mouse button release
                 pan_operation_end();
                 select_operation_end(new Vector2(e_X, e_Y));
-
+                return true;
             }
+            return false;
 
         }
 
 
-        public void handleMouseMove(float e_X, float e_Y)
+        public bool handleMouseMove(float e_X, float e_Y)
         {
             if(isCtrlDown == true || isShiftDown == true)
             {
                 // Perform the mouse move operation
                 Vector2 loc = new Vector2(e_X, e_Y);
                 mouse_location(loc);
+                return true;
             }
+            return false;
 
         }
 
-        public void handleMouseScroll(double e_Delta, float e_X, float e_Y)
+        public bool handleMouseScroll(double e_Delta, float e_X, float e_Y)
         {
             if (isCtrlDown == true)
             {
                 // Perform zoom operation
                 zoom_operation(e_Delta, e_X, e_Y);  
 
+                return true;
             }
+            return false;
+
         }
 
-        public void handleKeyboardAction(bool isDown, int key)
+        public bool handleKeyboardAction(bool isDown, int key)
         {
             if (isDown == true)
             {
@@ -160,7 +174,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                     // Perform zoom to fit
                     zoom_to_fit();
-
+                    return true;
                 }
             }
             else
@@ -168,8 +182,9 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 // key released
                 isCtrlDown = false;
                 isShiftDown = false;
-
+                return true;
             }
+            return false;
 
         }
 
@@ -204,6 +219,18 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             this.window_width = window_width;
             this.window_height = window_height;
 
+            // Drawing area size
+            int max_drawing_area_size = Math.Max(window_width, window_height);
+
+            int drawing_area_center_x = (int)((window_width - max_drawing_area_size) * 0.5f);
+            int drawing_area_center_y = (int)((window_height - max_drawing_area_size) * 0.5f);
+
+
+            // Update the graphics drawing area
+            GL.Viewport(drawing_area_center_x, drawing_area_center_y,
+                max_drawing_area_size, max_drawing_area_size);
+
+            //_____________________________________________________________________________________________
             // 1. Determine max dimension
             int maxDim = Math.Max(window_width, window_height);
 
@@ -233,6 +260,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             this.modelMatrix = translationMatrix * scaleMatrix;
 
             this.meshdata.update_openTK_uniforms(true, false, false);
+
         }
 
 
@@ -265,7 +293,6 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             Vector2 g_tranl = -0.5f * (float)zoom_val * (screen_pt_b4_scale - screen_pt_a4_scale);
 
             // Set the zoom
-
 
 
 

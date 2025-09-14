@@ -104,9 +104,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             int tri_vertex_size = tri_vertex_count * sizeof(float);
 
             // Create the triangle dynamic buffers
-            is_DynamicDraw = true;
             tri_buffer = new graphicBuffers(null, tri_vertex_size, tri_vertex_indices,
-                tri_indices_count, triLayout, is_DynamicDraw);
+                tri_indices_count, triLayout, true);
 
             // Update the buffer
             update_buffer();

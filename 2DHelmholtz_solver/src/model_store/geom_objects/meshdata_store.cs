@@ -1,12 +1,17 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
-using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+
+// OpenTK library
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
+
 
 namespace _2DHelmholtz_solver.src.model_store.geom_objects
 {
@@ -345,6 +350,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Set the buffer
             // mesh points
             mesh_points.set_buffer();
+            selected_mesh_points.set_buffer();
 
             // mesh boundaries
             mesh_boundaries.set_buffer();
@@ -352,6 +358,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // mesh tris and quads
             mesh_tris.set_buffer();
             mesh_quads.set_buffer();
+            selected_mesh_tris.set_buffer();
+            selected_mesh_quads.set_buffer();
 
         }
 

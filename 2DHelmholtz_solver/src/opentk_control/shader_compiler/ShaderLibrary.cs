@@ -164,7 +164,7 @@ void main()
 
     vec3 vertexColor = v_Color;
     
-    if (v_is_dynamic == true)
+    if (v_is_dynamic == 1.0f)
     {
         vertexColor = jetHeatmap(v_deflscale);
     }
