@@ -89,7 +89,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Set the tri index buffers
             foreach (var tri in triMap)
             {
-                get_tri_index_buffer(tri_vertex_indices, tri_i_index);
+                get_tri_index_buffer(ref tri_vertex_indices, ref tri_i_index);
             }
 
             // Define the vertex layout
@@ -124,7 +124,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             foreach (var tri in triMap)
             {
                 // Add vertex buffers
-                get_tri_vertex_buffer(tri.Value, tri_vertices, tri_v_index);
+                get_tri_vertex_buffer(tri.Value, ref tri_vertices, ref tri_v_index);
             }
 
             int tri_vertex_size = tri_vertex_count * sizeof(float); // Size of the triangle vertex buffer
@@ -173,7 +173,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_tri_vertex_buffer(tri_store tri, float[] tri_vertices, int tri_v_index)
+        private void get_tri_vertex_buffer(tri_store tri, ref float[] tri_vertices, ref int tri_v_index)
         {
             // Get the node buffer for the shader
             // Point 1
@@ -232,7 +232,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_tri_index_buffer(int[] tri_vertex_indices, int tri_i_index)
+        private void get_tri_index_buffer(ref int[] tri_vertex_indices, ref int tri_i_index)
         {
             // Add the indices
             // Index 1

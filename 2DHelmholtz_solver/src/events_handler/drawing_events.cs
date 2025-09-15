@@ -1,16 +1,16 @@
 ﻿using _2DHelmholtz_solver.src.model_store.geom_objects;
+// OpenTK library
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-// OpenTK library
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
 
 namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 {
@@ -219,30 +219,25 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             this.window_width = window_width;
             this.window_height = window_height;
 
-            // Drawing area size
+            // 1. Determine max dimension
             int max_drawing_area_size = Math.Max(window_width, window_height);
 
             int drawing_area_center_x = (int)((window_width - max_drawing_area_size) * 0.5f);
             int drawing_area_center_y = (int)((window_height - max_drawing_area_size) * 0.5f);
 
-
+            // 1A. Set the viewport
             // Update the graphics drawing area
             GL.Viewport(drawing_area_center_x, drawing_area_center_y,
                 max_drawing_area_size, max_drawing_area_size);
 
-            //_____________________________________________________________________________________________
-            // 1. Determine max dimension
-            int maxDim = Math.Max(window_width, window_height);
-
+       
             // 2. Normalize screen dimensions
-            double normalizedScreenWidth = 1.8 * ((double)window_width / maxDim);
-            double normalizedScreenHeight = 1.8 * ((double)window_height / maxDim);
-
+            double normalizedScreenWidth = 1.8d * ((double)window_width / (double)max_drawing_area_size);
+            double normalizedScreenHeight = 1.8d * ((double)window_height / (double)max_drawing_area_size);
 
             // 3. Compute scale factor
             double geom_scale = Math.Min(normalizedScreenWidth / meshdata.geom_bounds.X,
                 normalizedScreenHeight / meshdata.geom_bounds.Y);
-
 
             // 4. Compute translation to center geometry
             Vector3 geomTranslation = new Vector3(
@@ -251,10 +246,9 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 0.0f
             );
 
-
             // 5. Build model matrix
-            Matrix4 translationMatrix = Matrix4.CreateTranslation(geomTranslation);
-            Matrix4 scaleMatrix = Matrix4.CreateScale((float)geom_scale);
+            Matrix4 translationMatrix =Matrix4.Transpose(Matrix4.CreateTranslation(geomTranslation));
+            Matrix4 scaleMatrix = Matrix4.CreateScale((float)geom_scale, (float)geom_scale, 1.0f);
 
             // 6. Combine into model matrix
             this.modelMatrix = translationMatrix * scaleMatrix;

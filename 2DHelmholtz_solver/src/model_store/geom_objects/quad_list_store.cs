@@ -108,7 +108,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Set the quad index buffers
             foreach (var quad in quadMap)
             {
-                get_quad_index_buffer(quad_vertex_indices, quad_i_index);
+                get_quad_index_buffer(ref quad_vertex_indices, ref quad_i_index);
             }
 
             // Define the vertex layout
@@ -143,7 +143,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             foreach (var quad in quadMap)
             {
                 // Add vertex buffers
-                get_quad_vertex_buffer(quad.Value, quad_vertices, quad_v_index);
+                get_quad_vertex_buffer(quad.Value, ref quad_vertices, ref quad_v_index);
             }
 
             int quad_vertex_size = quad_vertex_count * sizeof(float); // Size of the quadrilateral vertex buffer
@@ -192,7 +192,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_quad_vertex_buffer(quad_store quad, float[] quad_vertices, int quad_v_index)
+        private void get_quad_vertex_buffer(quad_store quad, ref float[] quad_vertices, ref int quad_v_index)
         {
             // Get the node buffer for the shader
             // Point 1
@@ -270,7 +270,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_quad_index_buffer(int[] quad_vertex_indices, int quad_i_index)
+        private void get_quad_index_buffer(ref int[] quad_vertex_indices, ref int quad_i_index)
         {
             // Add the indices
             // Index 0 1 2 

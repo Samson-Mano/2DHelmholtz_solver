@@ -29,6 +29,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private int half_edge_count = 0;
 
         // To control the drawing events
+        private point_list_store drawing_boundary_points { get; }
+        private line_list_store drawing_boundary_lines {  get; }
+
         public drawing_events graphic_events_control { get; private set; }
 
         // Drawing bound data
@@ -56,11 +59,39 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Geometry bounds
             this.min_bounds = min_bounds;
             this.max_bounds = max_bounds;
-            this.geom_bounds = geom_bounds; 
+            this.geom_bounds = geom_bounds;
+
+            // Create the boundary lines
+            drawing_boundary_points = new point_list_store();
+            drawing_boundary_lines = new line_list_store(drawing_boundary_points);
 
             is_ModelSet = false;
 
         }
+
+        public void create_drawing_boundary()
+        {
+            // Create drawing boundary
+            drawing_boundary_points.add_point(0, this.min_bounds.X,this.min_bounds.Y,0.0,-1);
+            drawing_boundary_points.add_point(1, this.min_bounds.X, this.max_bounds.Y, 0.0, -1);
+            drawing_boundary_points.add_point(2, this.max_bounds.X, this.max_bounds.Y, 0.0, -1);
+            drawing_boundary_points.add_point(3, this.max_bounds.X, this.min_bounds.Y, 0.0, -1);
+
+            drawing_boundary_lines.add_line(0, 0, 1, -1);
+            drawing_boundary_lines.add_line(1, 1, 2, -1);
+            drawing_boundary_lines.add_line(2, 2, 3, -1);
+            drawing_boundary_lines.add_line(3, 3, 0, -1);
+
+            drawing_boundary_lines.set_buffer();
+            drawing_boundary_lines.update_buffer();
+
+            Matrix4 iMatrix = Matrix4.Identity;
+            drawing_boundary_lines.line_shader.SetMatrix4("projectionMatrix", iMatrix);
+            drawing_boundary_lines.line_shader.SetMatrix4("viewMatrix", iMatrix);
+            drawing_boundary_lines.line_shader.SetFloat("vertexTransparency", 1.0f);
+
+        }
+
 
 
         public void add_mesh_point(int point_id, double x_coord, double y_coord, double z_coord, int color_id)
@@ -290,26 +321,40 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_mesh_wireframe()
         {
+            HashSet<int> unique_edge_ids = new HashSet<int>();    
 
-            HashSet<(int, int)> uniqueEdges = new HashSet<(int, int)>();
-
-
-            foreach (var kvp in mesh_half_edges.lineMap)
+            // Get the unique edge Ids of Triangle Mesh
+            foreach (var tri_m in mesh_tris.triMap)
             {
-                int start = kvp.Value.start_pt_id;
-                int end = kvp.Value.end_pt_id;
+                // get the value of tri mesh
+                tri_store tri = tri_m.Value;
 
-                // Store edge as an unordered pair
-                (int, int) edge = (Math.Min(start, end), Math.Max(start, end));
+                unique_edge_ids.Add( tri.edge1_id);
+                unique_edge_ids.Add( tri.edge2_id);
+                unique_edge_ids.Add( tri.edge3_id);
 
-                if (!uniqueEdges.Contains(edge))
-                {
-                    uniqueEdges.Add(edge);
+            }
 
-                    // Add to wireframe rendering or storage
-                    mesh_boundaries.add_line(kvp.Key, edge.Item1, edge.Item2, -1);
+            // Get the unique edge Ids of Quadrilateral Mesh
+            foreach (var quad_m in mesh_quads.quadMap)
+            {
+                // get the value of quad mesh
+                quad_store quad = quad_m.Value;
 
-                }
+                unique_edge_ids.Add(quad.tri123.edge1_id);
+                unique_edge_ids.Add(quad.tri123.edge2_id);
+                unique_edge_ids.Add(quad.tri341.edge1_id);
+                unique_edge_ids.Add(quad.tri341.edge2_id);
+
+            }
+
+            // Create the mesh wire frame
+            foreach (int edge_id in  unique_edge_ids)
+            {
+                // Add to wireframe rendering or storage
+                mesh_boundaries.add_line(edge_id, mesh_half_edges.lineMap[edge_id].start_pt_id,
+                     mesh_half_edges.lineMap[edge_id].end_pt_id, -1);
+
             }
 
         }
@@ -364,6 +409,14 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
+        public void paint_drawing_boundary()
+        {
+            // Paint the boundary of the model
+            drawing_boundary_lines.paint_static_lines();
+
+        }
+
+
         public void paint_static_mesh()
         {
             // Paint the static mesh (mesh which are fixed)
@@ -378,7 +431,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             // Paint the mesh boundaries
             mesh_boundaries.paint_static_lines();
-
+  
         }
 
 
@@ -462,6 +515,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
                 mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
 
+                drawing_boundary_lines.line_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+
                 // Set the projection matrix
                 mesh_quads.quad_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
                 mesh_tris.tri_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
@@ -498,7 +553,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
                 selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
 
-                mesh_boundaries.line_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                mesh_boundaries.line_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency * 0.5f);
 
                 selected_mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
                 mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);

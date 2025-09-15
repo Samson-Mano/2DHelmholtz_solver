@@ -100,7 +100,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Set the point index buffers
             foreach (var pt in pointMap)
             {
-                get_point_index_buffer(point_vertex_indices, point_i_index);
+                get_point_index_buffer(ref point_vertex_indices, ref point_i_index);
             }
 
             // Define the vertex layout
@@ -135,7 +135,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             foreach (var pt in pointMap)
             {
                 // Add vertex buffers
-                get_point_vertex_buffer(pt.Value, point_vertices, point_v_index);
+                get_point_vertex_buffer(pt.Value, ref point_vertices, ref point_v_index);
             }
 
             int point_vertex_size = point_vertex_count * sizeof(float); // Size of the point vertex buffer
@@ -185,7 +185,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_point_vertex_buffer(point_store pt, float[] point_vertices, int point_v_index)
+        private void get_point_vertex_buffer(point_store pt, ref float[] point_vertices, ref int point_v_index)
         {
             // Get the node buffer for the shader
             // Point location
@@ -207,7 +207,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_point_index_buffer(int[] point_vertex_indices, int point_i_index)
+        private void get_point_index_buffer(ref int[] point_vertex_indices, ref int point_i_index)
         {
             // Add the indices
             point_vertex_indices[point_i_index] = point_i_index;

@@ -40,7 +40,7 @@ namespace _2DHelmholtz_solver
         {
             // Initialize the GLControl in the Load event
             // Fill the gcontrol panel
-            glControl_main_panel.Dock = DockStyle.Fill;
+           glControl_main_panel.Dock = DockStyle.Fill;
 
         }
 
@@ -70,6 +70,7 @@ namespace _2DHelmholtz_solver
             // Tell OpenGL to use MyGLControl
             glControl_main_panel.MakeCurrent();
 
+            // GL.Enable(EnableCap.Multisample);
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(0, BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 

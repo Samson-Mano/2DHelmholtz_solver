@@ -101,7 +101,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Set the line index buffers
             foreach (var ln in lineMap)
             {
-                get_line_index_buffer(line_vertex_indices, line_i_index);
+                get_line_index_buffer(ref line_vertex_indices, ref line_i_index);
             }
 
             // Define the vertex layout
@@ -136,7 +136,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             foreach (var ln in lineMap)
             {
                 // Add vertex buffers
-                get_line_vertex_buffer(ln.Value, line_vertices, line_v_index);
+                get_line_vertex_buffer(ln.Value, ref line_vertices, ref line_v_index);
             }
 
             int line_vertex_size = line_vertex_count * sizeof(float); // Size of the line vertex buffer
@@ -178,7 +178,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_line_vertex_buffer(line_store ln, float[] line_vertices, int line_v_index)
+        private void get_line_vertex_buffer(line_store ln, ref float[] line_vertices, ref int line_v_index)
         {
             // Get the node buffer for the shader
             // Start Point
@@ -219,7 +219,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        private void get_line_index_buffer(int[] line_vertex_indices, int line_i_index)
+        private void get_line_index_buffer(ref int[] line_vertex_indices, ref int line_i_index)
         {
             // Add the indices
             // Index 1

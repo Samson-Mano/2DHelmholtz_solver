@@ -120,6 +120,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             // Create the mesh boundaries
             meshdata.set_mesh_wireframe();
+            meshdata.create_drawing_boundary();
 
             // Model is set
             meshdata.is_ModelSet = true;
@@ -137,9 +138,10 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             if (isModelLoadSuccess == false)
                 return;
 
+            meshdata.paint_drawing_boundary();
 
             // Paint the mesh quad & mesh tris
-            if(gvariables_static.is_paint_mesh == true)
+            if (gvariables_static.is_paint_mesh == true)
             {
                 meshdata.paint_static_mesh();
 
