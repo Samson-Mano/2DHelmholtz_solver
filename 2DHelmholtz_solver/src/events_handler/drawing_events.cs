@@ -43,6 +43,13 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
         public float geom_transparency = 1.0f;
 
+        // Temporary variables to initiate the zoom to fit animation
+        public bool isZoomToFitInProgress = false;
+        private double param_t = 0.0f;
+        private double temp_zm = 1.0f;
+        private Vector2 temp_transl = new Vector2(0);
+
+        private Timer myTimer = new Timer();
 
         public drawing_events(meshdata_store meshdata)
         {
@@ -289,7 +296,6 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             // Set the zoom
 
 
-
             // Perform Translation for Intelli Zoom
             pan_operation(g_tranl);
             pan_operation_end();
@@ -347,9 +353,52 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
         public void zoom_to_fit()
         {
-            // Perform zoom to fit operation
+            // Save the current zoom and translation values to temporary variables (for the animation)
+            param_t = 0.0f;
+            temp_zm = zoom_val;
+            temp_transl = prev_translation;
 
+
+            myTimer = new Timer();
+            myTimer.Enabled = true;
+            myTimer.Tick += new EventHandler(TimerEventProcessor);
+            myTimer.Interval = 10;
+            myTimer.Start();
         }
+
+
+        private void TimerEventProcessor(Object myObject, EventArgs myEventArgs)
+        {
+            param_t = param_t + 0.05f;
+
+            if (param_t > 1.0f)
+            {
+                // Set the zoom value to 1.0f
+                this.zoom_val = 1.0;
+                pan_operation(-temp_transl);
+                pan_operation_end();
+
+                // Refresh the painting area
+                isZoomToFitInProgress = false;   
+                // this_Gcntrl.Invalidate();
+
+                // End the animation
+                myTimer.Stop();
+                return;
+            }
+            else
+            {
+                // Animate the translation & zoom value
+                this.zoom_val = temp_zm * (1 - param_t) + (1.0f * param_t);
+                pan_operation(-(float)param_t * temp_transl);
+
+                // Refresh the painting area
+                isZoomToFitInProgress = true;
+                // this_Gcntrl.Invalidate();
+            }
+        }
+
+
 
 
         public Vector2 intellizoom_normalized_screen_pt(float e_X, float e_Y)
@@ -379,10 +428,10 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
             // Apply translation
             panTranslation.M41 = -1.0f * total_translation.X; // X translation (negated)
-            panTranslation.M42 = total_translation.Y;         // Y translation
+            panTranslation.M42 = total_translation.Y;         // Y translation 
 
 
-            Matrix4 scalingMatrix = Matrix4.Identity * (float)zoom_val;
+            Matrix4 scalingMatrix = Matrix4.CreateScale((float)zoom_val, (float)zoom_val, 1.0f);
 
             this.viewMatrix = Matrix4.Transpose(panTranslation) * scalingMatrix;
 

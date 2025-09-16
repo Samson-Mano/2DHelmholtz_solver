@@ -9,12 +9,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
 
 
 
@@ -25,6 +26,13 @@ namespace _2DHelmholtz_solver
         // main finite element data store
         public fedata_store fedata { get; }
 
+        // Zoom To Fit 
+        private Timer zoomToFitTimer;
+
+        // Refreh and FPS Tracking variables
+        private Timer refreshStatusResetTimer;
+        private Stopwatch fpsStopwatch = new Stopwatch();
+
 
         public main_frm()
         {
@@ -33,6 +41,17 @@ namespace _2DHelmholtz_solver
 
             // Initialize the finite element model data
             fedata = new fedata_store();
+
+            // Initialize the timer
+            zoomToFitTimer = new Timer();
+            zoomToFitTimer.Interval = 10; // ~60 FPS refresh (16 ms)
+            zoomToFitTimer.Tick += ZoomToFitTimer_Tick;
+
+
+            refreshStatusResetTimer = new Timer();
+            refreshStatusResetTimer.Interval = 500; // milliseconds before resetting status
+            refreshStatusResetTimer.Tick += RefreshStatusResetTimer_Tick;
+
         }
 
 
@@ -58,6 +77,8 @@ namespace _2DHelmholtz_solver
             // Update the size of the drawing area
             fedata.meshdata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
                 glControl_main_panel.Height);
+
+            fpsStopwatch.Start();
 
             // Refresh the controller (doesnt do much.. nothing to draw)
             glControl_main_panel.Invalidate();
@@ -85,6 +106,19 @@ namespace _2DHelmholtz_solver
             // After drawing, call this function to swap the buffers. If you don't, it won't display what you've rendered.
             glControl_main_panel.SwapBuffers();
 
+            // Update the zoom value
+            double zm_val = fedata.meshdata.graphic_events_control.zoom_val;
+            toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(zm_val * 100))).ToString() + "%";
+            toolStripStatusLabel_IsRefresh.Invalidate();
+
+            // Update FPS every second
+            if (fpsStopwatch.ElapsedMilliseconds >= 1000)
+            {
+                fpsStopwatch.Restart();
+
+                SetRefreshStatus(true); // Update status bar
+            }
+
         }
 
         private void glControl_main_panel_SizeChanged(object sender, EventArgs e)
@@ -100,7 +134,6 @@ namespace _2DHelmholtz_solver
             toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(1.0f * 100))).ToString() + "%";
 
             // Refresh the painting area
-            glControl_main_panel.Refresh();
             glControl_main_panel.Invalidate();
         }
 
@@ -129,7 +162,6 @@ namespace _2DHelmholtz_solver
 
             if (isRefresh == true)
             {
-                glControl_main_panel.Refresh();
                 glControl_main_panel.Invalidate();
 
             }
@@ -141,10 +173,8 @@ namespace _2DHelmholtz_solver
             // Mouse wheel
             bool isRefresh = fedata.meshdata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
 
-
             if (isRefresh == true)
             {
-                glControl_main_panel.Refresh();
                 glControl_main_panel.Invalidate();
 
             }
@@ -156,10 +186,8 @@ namespace _2DHelmholtz_solver
             // Mouse move 
             bool isRefresh = fedata.meshdata.graphic_events_control.handleMouseMove(e.X, e.Y);
 
-
             if (isRefresh == true)
             {
-                glControl_main_panel.Refresh();
                 glControl_main_panel.Invalidate();
 
             }
@@ -182,10 +210,8 @@ namespace _2DHelmholtz_solver
 
             }
 
-
             if (isRefresh == true)
             {
-                glControl_main_panel.Refresh();
                 glControl_main_panel.Invalidate();
 
             }
@@ -197,10 +223,8 @@ namespace _2DHelmholtz_solver
             // Keyboard Key Down
             bool isRefresh = fedata.meshdata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
 
-
             if (isRefresh == true)
             {
-                glControl_main_panel.Refresh();
                 glControl_main_panel.Invalidate();
 
             }
@@ -212,11 +236,75 @@ namespace _2DHelmholtz_solver
             // Keyboard Key Up
             bool isRefresh = fedata.meshdata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
 
-
             if (isRefresh == true)
             {
-                glControl_main_panel.Refresh();
                 glControl_main_panel.Invalidate();
+
+            }
+
+            // If zoom-to-fit started, start the timer
+            if (fedata.meshdata.graphic_events_control.isZoomToFitInProgress == true)
+            {
+                // Start the zoomToFit timer
+                if (!zoomToFitTimer.Enabled)
+                    zoomToFitTimer.Start();
+
+            }
+
+
+        }
+
+        private void ZoomToFitTimer_Tick(object sender, EventArgs e)
+        {
+            glControl_ZoomToFitOperation();
+
+        }
+
+
+        private void glControl_ZoomToFitOperation()
+        {
+            // Refresh the glControl_main_panel as the zoom to fit operation in progress
+            glControl_main_panel.Invalidate();
+
+            if(fedata.meshdata.graphic_events_control.isZoomToFitInProgress == false)
+            {
+                // End the zoom to fit operation
+                // Stop zoom-to-fit operation once done
+                zoomToFitTimer.Stop();
+
+            }    
+
+        }
+
+
+        private void RefreshStatusResetTimer_Tick(object sender, EventArgs e)
+        {
+            refreshStatusResetTimer.Stop();
+            SetRefreshStatus(false);
+
+        }
+
+
+        // Utility function for status updates
+        private void SetRefreshStatus(bool isRefreshing)
+        {
+
+            if (isRefreshing)
+            {
+                toolStripStatusLabel_IsRefresh.Text = "REFRESH";
+                toolStripStatusLabel_IsRefresh.ForeColor = Color.Green;
+                toolStripStatusLabel_IsRefresh.Invalidate();
+
+                // Start timer to reset status
+                refreshStatusResetTimer.Stop(); // restart if already running
+                refreshStatusResetTimer.Start();
+
+            }
+            else
+            {
+                toolStripStatusLabel_IsRefresh.Text = "";
+                toolStripStatusLabel_IsRefresh.ForeColor = SystemColors.Control;
+                toolStripStatusLabel_IsRefresh.Invalidate();
 
             }
 
@@ -275,6 +363,33 @@ namespace _2DHelmholtz_solver
 
         }
 
+
+
+
+
         #endregion
+
+
+        #region "Load Events"
+        private void addLoadsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void addConstraintsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void materialPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        #endregion
+
+
+
+
     }
 }

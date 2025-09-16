@@ -20,7 +20,6 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
         private readonly Dictionary<string, int> _uniformLocations;
 
-        public ShaderControl update_shader = new ShaderControl();
 
         // This is how you create a simple shader.
         // Shaders are written in GLSL, which is a language very similar to C in its semantics.

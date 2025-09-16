@@ -42,6 +42,9 @@
             this.glControl_main_panel = new OpenTK.GLControl();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_zoom_value = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabel_IsRefresh = new System.Windows.Forms.ToolStripStatusLabel();
+            this.addConstraintsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.materialPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -94,7 +97,9 @@
             // loadsToolStripMenuItem
             // 
             this.loadsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addLoadsToolStripMenuItem});
+            this.addLoadsToolStripMenuItem,
+            this.addConstraintsToolStripMenuItem,
+            this.materialPropertiesToolStripMenuItem});
             this.loadsToolStripMenuItem.Name = "loadsToolStripMenuItem";
             this.loadsToolStripMenuItem.Size = new System.Drawing.Size(50, 22);
             this.loadsToolStripMenuItem.Text = "Loads";
@@ -102,8 +107,9 @@
             // addLoadsToolStripMenuItem
             // 
             this.addLoadsToolStripMenuItem.Name = "addLoadsToolStripMenuItem";
-            this.addLoadsToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.addLoadsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addLoadsToolStripMenuItem.Text = "Add Loads";
+            this.addLoadsToolStripMenuItem.Click += new System.EventHandler(this.addLoadsToolStripMenuItem_Click);
             // 
             // solverToolStripMenuItem
             // 
@@ -154,7 +160,8 @@
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel_zoom_value});
+            this.toolStripStatusLabel_zoom_value,
+            this.toolStripStatusLabel_IsRefresh});
             this.statusStrip1.Location = new System.Drawing.Point(0, 362);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(714, 22);
@@ -167,6 +174,26 @@
             this.toolStripStatusLabel_zoom_value.Size = new System.Drawing.Size(73, 17);
             this.toolStripStatusLabel_zoom_value.Text = "Zoom: 100%";
             // 
+            // toolStripStatusLabel_IsRefresh
+            // 
+            this.toolStripStatusLabel_IsRefresh.Name = "toolStripStatusLabel_IsRefresh";
+            this.toolStripStatusLabel_IsRefresh.Size = new System.Drawing.Size(10, 17);
+            this.toolStripStatusLabel_IsRefresh.Text = " ";
+            // 
+            // addConstraintsToolStripMenuItem
+            // 
+            this.addConstraintsToolStripMenuItem.Name = "addConstraintsToolStripMenuItem";
+            this.addConstraintsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addConstraintsToolStripMenuItem.Text = "Add Constraints";
+            this.addConstraintsToolStripMenuItem.Click += new System.EventHandler(this.addConstraintsToolStripMenuItem_Click);
+            // 
+            // materialPropertiesToolStripMenuItem
+            // 
+            this.materialPropertiesToolStripMenuItem.Name = "materialPropertiesToolStripMenuItem";
+            this.materialPropertiesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.materialPropertiesToolStripMenuItem.Text = "Material Properties";
+            this.materialPropertiesToolStripMenuItem.Click += new System.EventHandler(this.materialPropertiesToolStripMenuItem_Click);
+            // 
             // main_frm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -177,7 +204,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "main_frm";
             this.Text = "2D Helmholtz Solver";
             this.Load += new System.EventHandler(this.main_frm_Load);
@@ -205,6 +232,9 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_zoom_value;
         private System.Windows.Forms.ToolStripMenuItem exportModelToolStripMenuItem;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_IsRefresh;
+        private System.Windows.Forms.ToolStripMenuItem addConstraintsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem materialPropertiesToolStripMenuItem;
     }
 }
 

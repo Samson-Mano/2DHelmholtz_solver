@@ -29,8 +29,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private int half_edge_count = 0;
 
         // To control the drawing events
-        private point_list_store drawing_boundary_points { get; }
-        private line_list_store drawing_boundary_lines {  get; }
+        //private point_list_store drawing_boundary_points { get; }
+        //private line_list_store drawing_boundary_lines {  get; }
 
         public drawing_events graphic_events_control { get; private set; }
 
@@ -61,9 +61,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             this.max_bounds = max_bounds;
             this.geom_bounds = geom_bounds;
 
-            // Create the boundary lines
-            drawing_boundary_points = new point_list_store();
-            drawing_boundary_lines = new line_list_store(drawing_boundary_points);
+            //// Create the boundary lines
+            //drawing_boundary_points = new point_list_store();
+            //drawing_boundary_lines = new line_list_store(drawing_boundary_points);
 
             is_ModelSet = false;
 
@@ -71,24 +71,24 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void create_drawing_boundary()
         {
-            // Create drawing boundary
-            drawing_boundary_points.add_point(0, this.min_bounds.X,this.min_bounds.Y,0.0,-1);
-            drawing_boundary_points.add_point(1, this.min_bounds.X, this.max_bounds.Y, 0.0, -1);
-            drawing_boundary_points.add_point(2, this.max_bounds.X, this.max_bounds.Y, 0.0, -1);
-            drawing_boundary_points.add_point(3, this.max_bounds.X, this.min_bounds.Y, 0.0, -1);
+            //// Create drawing boundary
+            //drawing_boundary_points.add_point(0, this.min_bounds.X,this.min_bounds.Y,0.0,-1);
+            //drawing_boundary_points.add_point(1, this.min_bounds.X, this.max_bounds.Y, 0.0, -1);
+            //drawing_boundary_points.add_point(2, this.max_bounds.X, this.max_bounds.Y, 0.0, -1);
+            //drawing_boundary_points.add_point(3, this.max_bounds.X, this.min_bounds.Y, 0.0, -1);
 
-            drawing_boundary_lines.add_line(0, 0, 1, -1);
-            drawing_boundary_lines.add_line(1, 1, 2, -1);
-            drawing_boundary_lines.add_line(2, 2, 3, -1);
-            drawing_boundary_lines.add_line(3, 3, 0, -1);
+            //drawing_boundary_lines.add_line(0, 0, 1, -1);
+            //drawing_boundary_lines.add_line(1, 1, 2, -1);
+            //drawing_boundary_lines.add_line(2, 2, 3, -1);
+            //drawing_boundary_lines.add_line(3, 3, 0, -1);
 
-            drawing_boundary_lines.set_buffer();
-            drawing_boundary_lines.update_buffer();
+            //drawing_boundary_lines.set_buffer();
+            //drawing_boundary_lines.update_buffer();
 
-            Matrix4 iMatrix = Matrix4.Identity;
-            drawing_boundary_lines.line_shader.SetMatrix4("projectionMatrix", iMatrix);
-            drawing_boundary_lines.line_shader.SetMatrix4("viewMatrix", iMatrix);
-            drawing_boundary_lines.line_shader.SetFloat("vertexTransparency", 1.0f);
+            //Matrix4 iMatrix = Matrix4.Identity;
+            //drawing_boundary_lines.line_shader.SetMatrix4("projectionMatrix", iMatrix);
+            //drawing_boundary_lines.line_shader.SetMatrix4("viewMatrix", iMatrix);
+            //drawing_boundary_lines.line_shader.SetFloat("vertexTransparency", 1.0f);
 
         }
 
@@ -411,8 +411,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void paint_drawing_boundary()
         {
-            // Paint the boundary of the model
-            drawing_boundary_lines.paint_static_lines();
+            // // Paint the boundary of the model
+            // drawing_boundary_lines.paint_static_lines();
 
         }
 
@@ -515,7 +515,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
                 mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
 
-                drawing_boundary_lines.line_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                // drawing_boundary_lines.line_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
 
                 // Set the projection matrix
                 mesh_quads.quad_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
@@ -553,7 +553,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
                 selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
 
-                mesh_boundaries.line_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency * 0.5f);
+                mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f);
 
                 selected_mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
                 mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
