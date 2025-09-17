@@ -31,26 +31,26 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(matprop_frm));
             this.dataGridView_MaterialList = new System.Windows.Forms.DataGridView();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBox_materialname = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.textBox_permittivity = new System.Windows.Forms.TextBox();
-            this.textBox_permeability = new System.Windows.Forms.TextBox();
+            this.button_delete = new System.Windows.Forms.Button();
+            this.button_update = new System.Windows.Forms.Button();
+            this.button_create = new System.Windows.Forms.Button();
             this.textBox_conductivity = new System.Windows.Forms.TextBox();
+            this.textBox_permeability = new System.Windows.Forms.TextBox();
+            this.textBox_permittivity = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.textBox_materialname = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.button_assignmaterial = new System.Windows.Forms.Button();
+            this.textBox_selectedelements = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.Column1_materialid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column2_materialname = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column3_permittivity = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column4_Permeability = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column5_Conductivity = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.button_create = new System.Windows.Forms.Button();
-            this.button_update = new System.Windows.Forms.Button();
-            this.button_delete = new System.Windows.Forms.Button();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.textBox_selectedelements = new System.Windows.Forms.TextBox();
-            this.button_assignmaterial = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_MaterialList)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -71,10 +71,14 @@
             this.Column5_Conductivity});
             this.dataGridView_MaterialList.Location = new System.Drawing.Point(14, 14);
             this.dataGridView_MaterialList.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.dataGridView_MaterialList.MultiSelect = false;
             this.dataGridView_MaterialList.Name = "dataGridView_MaterialList";
             this.dataGridView_MaterialList.ReadOnly = true;
-            this.dataGridView_MaterialList.Size = new System.Drawing.Size(717, 140);
+            this.dataGridView_MaterialList.RowHeadersWidth = 62;
+            this.dataGridView_MaterialList.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dataGridView_MaterialList.Size = new System.Drawing.Size(727, 140);
             this.dataGridView_MaterialList.TabIndex = 0;
+            this.dataGridView_MaterialList.SelectionChanged += new System.EventHandler(this.dataGridView_MaterialList_SelectionChanged);
             // 
             // groupBox1
             // 
@@ -96,116 +100,15 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Material Data: ";
             // 
-            // label1
+            // button_delete
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(52, 34);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(94, 15);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Material Name: ";
-            // 
-            // textBox_materialname
-            // 
-            this.textBox_materialname.Location = new System.Drawing.Point(152, 31);
-            this.textBox_materialname.Name = "textBox_materialname";
-            this.textBox_materialname.Size = new System.Drawing.Size(100, 23);
-            this.textBox_materialname.TabIndex = 1;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(50, 63);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(96, 15);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Permittivity (ϵ):";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(42, 92);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(104, 15);
-            this.label3.TabIndex = 3;
-            this.label3.Text = "Permeability (μ): ";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(42, 121);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(104, 15);
-            this.label4.TabIndex = 4;
-            this.label4.Text = "Conductivity (σ): ";
-            // 
-            // textBox_permittivity
-            // 
-            this.textBox_permittivity.Location = new System.Drawing.Point(152, 60);
-            this.textBox_permittivity.Name = "textBox_permittivity";
-            this.textBox_permittivity.Size = new System.Drawing.Size(100, 23);
-            this.textBox_permittivity.TabIndex = 5;
-            // 
-            // textBox_permeability
-            // 
-            this.textBox_permeability.Location = new System.Drawing.Point(152, 89);
-            this.textBox_permeability.Name = "textBox_permeability";
-            this.textBox_permeability.Size = new System.Drawing.Size(100, 23);
-            this.textBox_permeability.TabIndex = 6;
-            // 
-            // textBox_conductivity
-            // 
-            this.textBox_conductivity.Location = new System.Drawing.Point(152, 118);
-            this.textBox_conductivity.Name = "textBox_conductivity";
-            this.textBox_conductivity.Size = new System.Drawing.Size(100, 23);
-            this.textBox_conductivity.TabIndex = 7;
-            // 
-            // Column1_materialid
-            // 
-            this.Column1_materialid.HeaderText = "Material ID";
-            this.Column1_materialid.Name = "Column1_materialid";
-            this.Column1_materialid.ReadOnly = true;
-            // 
-            // Column2_materialname
-            // 
-            this.Column2_materialname.FillWeight = 180F;
-            this.Column2_materialname.HeaderText = "Material Name";
-            this.Column2_materialname.Name = "Column2_materialname";
-            this.Column2_materialname.ReadOnly = true;
-            this.Column2_materialname.Width = 180;
-            // 
-            // Column3_permittivity
-            // 
-            this.Column3_permittivity.FillWeight = 130F;
-            this.Column3_permittivity.HeaderText = "Permittivity (ϵ)";
-            this.Column3_permittivity.Name = "Column3_permittivity";
-            this.Column3_permittivity.ReadOnly = true;
-            this.Column3_permittivity.Width = 130;
-            // 
-            // Column4_Permeability
-            // 
-            this.Column4_Permeability.FillWeight = 130F;
-            this.Column4_Permeability.HeaderText = "Permeability (μ)";
-            this.Column4_Permeability.Name = "Column4_Permeability";
-            this.Column4_Permeability.ReadOnly = true;
-            this.Column4_Permeability.Width = 130;
-            // 
-            // Column5_Conductivity
-            // 
-            this.Column5_Conductivity.FillWeight = 130F;
-            this.Column5_Conductivity.HeaderText = "Conductivity (σ)";
-            this.Column5_Conductivity.Name = "Column5_Conductivity";
-            this.Column5_Conductivity.ReadOnly = true;
-            this.Column5_Conductivity.Width = 130;
-            // 
-            // button_create
-            // 
-            this.button_create.Location = new System.Drawing.Point(13, 163);
-            this.button_create.Name = "button_create";
-            this.button_create.Size = new System.Drawing.Size(93, 28);
-            this.button_create.TabIndex = 8;
-            this.button_create.Text = "Create";
-            this.button_create.UseVisualStyleBackColor = true;
+            this.button_delete.Location = new System.Drawing.Point(211, 163);
+            this.button_delete.Name = "button_delete";
+            this.button_delete.Size = new System.Drawing.Size(93, 28);
+            this.button_delete.TabIndex = 10;
+            this.button_delete.Text = "Delete";
+            this.button_delete.UseVisualStyleBackColor = true;
+            this.button_delete.Click += new System.EventHandler(this.button_delete_Click);
             // 
             // button_update
             // 
@@ -215,15 +118,81 @@
             this.button_update.TabIndex = 9;
             this.button_update.Text = "Update";
             this.button_update.UseVisualStyleBackColor = true;
+            this.button_update.Click += new System.EventHandler(this.button_update_Click);
             // 
-            // button_delete
+            // button_create
             // 
-            this.button_delete.Location = new System.Drawing.Point(211, 163);
-            this.button_delete.Name = "button_delete";
-            this.button_delete.Size = new System.Drawing.Size(93, 28);
-            this.button_delete.TabIndex = 10;
-            this.button_delete.Text = "Delete";
-            this.button_delete.UseVisualStyleBackColor = true;
+            this.button_create.Location = new System.Drawing.Point(13, 163);
+            this.button_create.Name = "button_create";
+            this.button_create.Size = new System.Drawing.Size(93, 28);
+            this.button_create.TabIndex = 8;
+            this.button_create.Text = "Create";
+            this.button_create.UseVisualStyleBackColor = true;
+            this.button_create.Click += new System.EventHandler(this.button_create_Click);
+            // 
+            // textBox_conductivity
+            // 
+            this.textBox_conductivity.Location = new System.Drawing.Point(152, 118);
+            this.textBox_conductivity.Name = "textBox_conductivity";
+            this.textBox_conductivity.Size = new System.Drawing.Size(100, 30);
+            this.textBox_conductivity.TabIndex = 7;
+            // 
+            // textBox_permeability
+            // 
+            this.textBox_permeability.Location = new System.Drawing.Point(152, 89);
+            this.textBox_permeability.Name = "textBox_permeability";
+            this.textBox_permeability.Size = new System.Drawing.Size(100, 30);
+            this.textBox_permeability.TabIndex = 6;
+            // 
+            // textBox_permittivity
+            // 
+            this.textBox_permittivity.Location = new System.Drawing.Point(152, 60);
+            this.textBox_permittivity.Name = "textBox_permittivity";
+            this.textBox_permittivity.Size = new System.Drawing.Size(100, 30);
+            this.textBox_permittivity.TabIndex = 5;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(42, 121);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(160, 23);
+            this.label4.TabIndex = 4;
+            this.label4.Text = "Conductivity (σ): ";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(42, 92);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(161, 23);
+            this.label3.TabIndex = 3;
+            this.label3.Text = "Permeability (μ): ";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(50, 63);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(149, 23);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "Permittivity (ϵ):";
+            // 
+            // textBox_materialname
+            // 
+            this.textBox_materialname.Location = new System.Drawing.Point(152, 31);
+            this.textBox_materialname.Name = "textBox_materialname";
+            this.textBox_materialname.Size = new System.Drawing.Size(100, 30);
+            this.textBox_materialname.TabIndex = 1;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(52, 34);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(146, 23);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Material Name: ";
             // 
             // groupBox2
             // 
@@ -237,23 +206,6 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Assign Material:";
             // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(6, 31);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(112, 15);
-            this.label5.TabIndex = 1;
-            this.label5.Text = "Selected Elements: ";
-            // 
-            // textBox_selectedelements
-            // 
-            this.textBox_selectedelements.Location = new System.Drawing.Point(9, 49);
-            this.textBox_selectedelements.Multiline = true;
-            this.textBox_selectedelements.Name = "textBox_selectedelements";
-            this.textBox_selectedelements.Size = new System.Drawing.Size(382, 108);
-            this.textBox_selectedelements.TabIndex = 2;
-            // 
             // button_assignmaterial
             // 
             this.button_assignmaterial.Location = new System.Drawing.Point(131, 163);
@@ -263,18 +215,79 @@
             this.button_assignmaterial.Text = "Assign Material";
             this.button_assignmaterial.UseVisualStyleBackColor = true;
             // 
+            // textBox_selectedelements
+            // 
+            this.textBox_selectedelements.Location = new System.Drawing.Point(9, 49);
+            this.textBox_selectedelements.Multiline = true;
+            this.textBox_selectedelements.Name = "textBox_selectedelements";
+            this.textBox_selectedelements.Size = new System.Drawing.Size(382, 108);
+            this.textBox_selectedelements.TabIndex = 2;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(6, 31);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(176, 23);
+            this.label5.TabIndex = 1;
+            this.label5.Text = "Selected Elements: ";
+            // 
+            // Column1_materialid
+            // 
+            this.Column1_materialid.HeaderText = "Material ID";
+            this.Column1_materialid.MinimumWidth = 8;
+            this.Column1_materialid.Name = "Column1_materialid";
+            this.Column1_materialid.ReadOnly = true;
+            // 
+            // Column2_materialname
+            // 
+            this.Column2_materialname.FillWeight = 160F;
+            this.Column2_materialname.HeaderText = "Material Name";
+            this.Column2_materialname.MinimumWidth = 8;
+            this.Column2_materialname.Name = "Column2_materialname";
+            this.Column2_materialname.ReadOnly = true;
+            this.Column2_materialname.Width = 160;
+            // 
+            // Column3_permittivity
+            // 
+            this.Column3_permittivity.FillWeight = 130F;
+            this.Column3_permittivity.HeaderText = "Permittivity (ϵ)";
+            this.Column3_permittivity.MinimumWidth = 8;
+            this.Column3_permittivity.Name = "Column3_permittivity";
+            this.Column3_permittivity.ReadOnly = true;
+            this.Column3_permittivity.Width = 130;
+            // 
+            // Column4_Permeability
+            // 
+            this.Column4_Permeability.FillWeight = 130F;
+            this.Column4_Permeability.HeaderText = "Permeability (μ)";
+            this.Column4_Permeability.MinimumWidth = 8;
+            this.Column4_Permeability.Name = "Column4_Permeability";
+            this.Column4_Permeability.ReadOnly = true;
+            this.Column4_Permeability.Width = 130;
+            // 
+            // Column5_Conductivity
+            // 
+            this.Column5_Conductivity.FillWeight = 130F;
+            this.Column5_Conductivity.HeaderText = "Conductivity (σ)";
+            this.Column5_Conductivity.MinimumWidth = 8;
+            this.Column5_Conductivity.Name = "Column5_Conductivity";
+            this.Column5_Conductivity.ReadOnly = true;
+            this.Column5_Conductivity.Width = 130;
+            // 
             // matprop_frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 23F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(744, 381);
+            this.ClientSize = new System.Drawing.Size(748, 364);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.dataGridView_MaterialList);
             this.Font = new System.Drawing.Font("Cambria", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.MaximumSize = new System.Drawing.Size(760, 420);
+            this.MaximumSize = new System.Drawing.Size(770, 420);
+            this.MinimumSize = new System.Drawing.Size(760, 420);
             this.Name = "matprop_frm";
             this.Text = "Material Properties";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_MaterialList)).EndInit();
@@ -295,11 +308,6 @@
         private System.Windows.Forms.TextBox textBox_materialname;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column1_materialid;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column2_materialname;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column3_permittivity;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column4_Permeability;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column5_Conductivity;
         private System.Windows.Forms.TextBox textBox_conductivity;
         private System.Windows.Forms.TextBox textBox_permeability;
         private System.Windows.Forms.TextBox textBox_permittivity;
@@ -310,5 +318,10 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button button_assignmaterial;
         private System.Windows.Forms.TextBox textBox_selectedelements;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1_materialid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column2_materialname;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column3_permittivity;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column4_Permeability;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column5_Conductivity;
     }
 }

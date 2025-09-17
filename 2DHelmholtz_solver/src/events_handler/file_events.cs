@@ -177,11 +177,9 @@ namespace _2DHelmholtz_solver.src.events_handler
                             {
                                 material_id = int.Parse(splitValues[0]),
                                 material_name = splitValues[1].Trim(),
-                                material_youngsmodulus = double.Parse(splitValues[2]),
-                                material_shearmodulus = double.Parse(splitValues[3]),
-                                material_density = double.Parse(splitValues[4]),
-                                shell_thickness = double.Parse(splitValues[5]),
-                                poissons_ratio = double.Parse(splitValues[6])
+                                material_permittivity = double.Parse(splitValues[2]),
+                                material_permeability = double.Parse(splitValues[3]),
+                                material_conductivity = double.Parse(splitValues[4])
                             };
 
                             // Add to material list
@@ -349,12 +347,10 @@ namespace _2DHelmholtz_solver.src.events_handler
                 var tempMaterial = new material_data
                 {
                     material_id = 0, // material id
-                    material_name = "Default material", // Default material name
-                    material_youngsmodulus = 2.07 * Math.Pow(10, 5), //  MPa
-                    material_shearmodulus = 0.80 * Math.Pow(10, 5), //  MPa
-                    material_density = 7.83 * Math.Pow(10, -9), // tons/mm3
-                    shell_thickness = 10.0, // mm
-                    poissons_ratio = 0.3
+                    material_name = "Default medium", // Default material name
+                    material_permeability = 2.07 * Math.Pow(10, 5), //  MPa
+                    material_permittivity = 0.80 * Math.Pow(10, 5), //  MPa
+                    material_conductivity = 7.83 * Math.Pow(10, -9)
                 };
 
                 // Add to the material list

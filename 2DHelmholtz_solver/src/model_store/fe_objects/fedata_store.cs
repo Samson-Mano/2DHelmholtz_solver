@@ -24,11 +24,9 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public int material_id = 0;
         public string material_name = "";
 
-        public double material_density = 0.0;
-        public double material_youngsmodulus = 0.0; // E
-        public double material_shearmodulus = 0.0; // G
-        public double shell_thickness = 0.0; // t
-        public double poissons_ratio = 0.0; // mu
+        public double material_permittivity = 0.0;
+        public double material_permeability = 0.0; // E
+        public double material_conductivity = 0.0; // G
 
     }
 

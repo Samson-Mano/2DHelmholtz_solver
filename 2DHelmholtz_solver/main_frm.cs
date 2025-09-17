@@ -1,4 +1,5 @@
 ﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.other_windows;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
 // OpenTK library
 using OpenTK;
@@ -16,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 
 
@@ -32,6 +34,10 @@ namespace _2DHelmholtz_solver
         // Refreh and FPS Tracking variables
         private Timer refreshStatusResetTimer;
         private Stopwatch fpsStopwatch = new Stopwatch();
+
+
+        // Forms
+        private matprop_frm matprop_Form;
 
 
         public main_frm()
@@ -139,8 +145,8 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_MouseEnter(object sender, EventArgs e)
         {
-            // set the focus to enable zoom/ pan & zoom to fit
-            glControl_main_panel.Focus();
+           // set the focus to enable zoom/ pan & zoom to fit
+           glControl_main_panel.Focus();
 
         }
 
@@ -383,6 +389,33 @@ namespace _2DHelmholtz_solver
 
         private void materialPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (fedata.meshdata.is_ModelSet== false)
+                return;
+
+            // Check if matprop_Form is null or dispose
+
+            // Check if matprop_Form is null or disposed
+            if (matprop_Form == null || matprop_Form.IsDisposed)
+            {
+                matprop_Form = new matprop_frm();
+
+                // Make it behave like a tool window
+                matprop_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                matprop_Form.ShowInTaskbar = false;
+                matprop_Form.TopLevel = true;
+                matprop_Form.Owner = this;
+
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - matprop_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - matprop_Form.Height) / 2;
+                matprop_Form.StartPosition = FormStartPosition.Manual;
+                matprop_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+            }
+
+            // Show the form
+            matprop_Form.update_material_data(fedata.fe_materials.Values.ToList());
+            matprop_Form.Show();
+            matprop_Form.BringToFront();
 
         }
 
