@@ -93,7 +93,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
             // Define the vertex layout
-            var triLayout = new VertexBufferLayout();
+            VertexBufferLayout triLayout = new VertexBufferLayout();
             triLayout.AddFloat(2);  // point center
             triLayout.AddFloat(3);  // point color
             triLayout.AddFloat(1);  // Is Dynamic data

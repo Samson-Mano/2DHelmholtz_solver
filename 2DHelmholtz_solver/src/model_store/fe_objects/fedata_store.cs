@@ -43,9 +43,17 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public nodeload_list_store fe_loads;
 
         public Dictionary<int, material_data> fe_materials;
+        public List<int> materialids;
 
         public meshdata_store meshdata;
         bool isModelLoadSuccess = false;
+
+
+        // Update of model properties
+        public bool isConstraintUpdateInProgress = false;
+        public bool isLoadUpdateInProgress = false;
+        public bool isMaterialUpdateInProgress = false;
+
 
 
         public fedata_store()
@@ -59,6 +67,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             fe_loads = new nodeload_list_store();
 
             fe_materials = new Dictionary<int, material_data>();
+            materialids = new List<int>(); 
 
             meshdata = new meshdata_store(new Vector3(-1), new Vector3(1), new Vector3(2));
 
@@ -69,8 +78,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             List<Vector3> nodePtsList = new List<Vector3>();
             isModelLoadSuccess = false;
 
-            file_events.import_mesh(fileContent,ref fe_nodes, ref fe_tris, ref fe_quads,
-                ref fe_constraints, ref fe_loads,ref fe_materials,ref nodePtsList,ref isModelLoadSuccess);
+            file_events.import_mesh(fileContent, ref fe_nodes, ref fe_tris, ref fe_quads,
+                ref fe_constraints, ref fe_loads, ref fe_materials, ref materialids, ref nodePtsList, ref isModelLoadSuccess);
 
 
             if (isModelLoadSuccess == false)
@@ -167,6 +176,15 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
             }
+
+
+            if(isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
+            {
+                // Paint the selection rectangle
+                meshdata.paint_selection_rectangle();
+
+            }
+
 
 
         }

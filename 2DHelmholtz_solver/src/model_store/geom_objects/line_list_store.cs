@@ -105,7 +105,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
             // Define the vertex layout
-            var lineLayout = new VertexBufferLayout();
+            VertexBufferLayout lineLayout = new VertexBufferLayout();
             lineLayout.AddFloat(2);  // point center
             lineLayout.AddFloat(3);  // point color
             lineLayout.AddFloat(1);  // Is Dynamic data

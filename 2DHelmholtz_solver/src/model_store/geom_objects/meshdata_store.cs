@@ -34,6 +34,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public drawing_events graphic_events_control { get; private set; }
 
+        public selectrectangle_store selection_rectangle { get; }
+
         // Drawing bound data
         public Vector3 min_bounds { get; } = new Vector3(-1);
         public Vector3 max_bounds { get; } = new Vector3(1);
@@ -55,6 +57,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
+
+            // Set the selection rectangle
+            selection_rectangle = new selectrectangle_store();
 
             // Geometry bounds
             this.min_bounds = min_bounds;
@@ -392,6 +397,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_buffer()
         {
+            // Set the buffer of selection rectangle
+            selection_rectangle.set_buffer();
+
             // Set the buffer
             // mesh points
             mesh_points.set_buffer();
@@ -489,6 +497,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
+
+        public void paint_selection_rectangle()
+        {
+            // Paint the selection rectangle
+            selection_rectangle.paint_selection_rectangle();
+
+        }
 
         public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency)
         {

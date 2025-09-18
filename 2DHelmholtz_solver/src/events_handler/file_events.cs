@@ -22,6 +22,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                     ref nodecnst_list_store fe_constraints,
                     ref nodeload_list_store fe_loads,
                     ref Dictionary<int, material_data> fe_materials,
+                    ref List<int> materialids,
                     ref List<Vector3> nodePtsList,
                     ref bool isModelLoadSuccess)
         {
@@ -160,6 +161,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                 {
                     is_material_inpt_exists = true;
                     fe_materials.Clear(); // Clear existing materials
+                    materialids.Clear(); // Clear the material ids
 
                     var triMaterialMap = new Dictionary<int, List<int>>();
                     var quadMaterialMap = new Dictionary<int, List<int>>();
@@ -173,8 +175,10 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                         if (numValues == 7)
                         {
+                            // Create a temporary materials
                             var tempMaterial = new material_data
                             {
+
                                 material_id = int.Parse(splitValues[0]),
                                 material_name = splitValues[1].Trim(),
                                 material_permittivity = double.Parse(splitValues[2]),
@@ -185,7 +189,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                             // Add to material list
                             if (!fe_materials.ContainsKey(tempMaterial.material_id))
                             {
-                                fe_materials[tempMaterial.material_id] = tempMaterial;
+                                fe_materials[tempMaterial.material_id] = tempMaterial; // Add the material to the list
+                                materialids.Add(tempMaterial.material_id); // Add the material id to the list
                             }
                         }
                         else if (numValues == 3)
@@ -355,8 +360,10 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                 // Add to the material list
                 fe_materials.Clear();
-                fe_materials[tempMaterial.material_id] = tempMaterial;
+                materialids.Clear();
 
+                fe_materials[tempMaterial.material_id] = tempMaterial; // Add the material to the list
+                materialids.Add(tempMaterial.material_id); // Add the material id to the list
 
                 // Add default material id to all the elements
                 List<int> selected_tri_elm_ids = new List<int>();

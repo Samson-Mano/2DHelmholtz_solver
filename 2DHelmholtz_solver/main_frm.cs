@@ -26,7 +26,7 @@ namespace _2DHelmholtz_solver
     public partial class main_frm : Form
     {
         // main finite element data store
-        public fedata_store fedata { get; }
+        public fedata_store fedata;
 
         // Zoom To Fit 
         private Timer zoomToFitTimer;
@@ -397,7 +397,7 @@ namespace _2DHelmholtz_solver
             // Check if matprop_Form is null or disposed
             if (matprop_Form == null || matprop_Form.IsDisposed)
             {
-                matprop_Form = new matprop_frm();
+                matprop_Form = new matprop_frm(ref fedata);
 
                 // Make it behave like a tool window
                 matprop_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
@@ -412,8 +412,11 @@ namespace _2DHelmholtz_solver
                 matprop_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
             }
 
+            // Turn on Flag Material update form is open
+            fedata.isMaterialUpdateInProgress = true;
+
             // Show the form
-            matprop_Form.update_material_data(fedata.fe_materials.Values.ToList());
+            matprop_Form.update_material_data();
             matprop_Form.Show();
             matprop_Form.BringToFront();
 

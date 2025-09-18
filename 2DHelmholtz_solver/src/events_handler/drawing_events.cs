@@ -337,13 +337,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
         private void select_operation_end(Vector2 current_loc)
         {
             // Location when the selection rectangle ends
-
-
-            // End the pan operation saving translate transformation
-            // Pan operation complete
-            bool is_paint_selctionrectangle = false;
-
-
+            meshdata.selection_rectangle.update_selection_rectangle(new Vector2(0), new Vector2(0), false);
 
             is_select = false;
         }
@@ -441,7 +435,21 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
         private void select_operation(Vector2 click_loc, Vector2 current_loc)
         {
+            // Convert the point to screen coordinates
+            // Set the parameters
+            int max_dim = window_width > window_height ? window_width : window_height;
 
+            // Transform the mouse location to openGL screen coordinates
+            float screen_opt_x = 2.0f * ((click_loc.X - (window_width * 0.5f)) / max_dim);
+            float screen_opt_y = 2.0f * (((window_height * 0.5f) - click_loc.Y) / max_dim);
+
+            float screen_cpt_x = 2.0f * ((current_loc.X - (window_width * 0.5f)) / max_dim);
+            float screen_cpt_y = 2.0f * (((window_height * 0.5f) - current_loc.Y) / max_dim);
+
+            Vector2 o_pt = new Vector2(screen_opt_x, screen_opt_y);
+            Vector2 c_pt = new Vector2(screen_cpt_x, screen_cpt_y);
+
+            this.meshdata.selection_rectangle.update_selection_rectangle(o_pt, c_pt, true);
 
         }
 
