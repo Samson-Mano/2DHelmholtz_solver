@@ -86,6 +86,7 @@
             this.Column1_materialid.MinimumWidth = 8;
             this.Column1_materialid.Name = "Column1_materialid";
             this.Column1_materialid.ReadOnly = true;
+            this.Column1_materialid.Width = 150;
             // 
             // Column2_materialname
             // 
@@ -177,21 +178,21 @@
             // 
             this.textBox_conductivity.Location = new System.Drawing.Point(152, 118);
             this.textBox_conductivity.Name = "textBox_conductivity";
-            this.textBox_conductivity.Size = new System.Drawing.Size(100, 23);
+            this.textBox_conductivity.Size = new System.Drawing.Size(100, 30);
             this.textBox_conductivity.TabIndex = 7;
             // 
             // textBox_permeability
             // 
             this.textBox_permeability.Location = new System.Drawing.Point(152, 89);
             this.textBox_permeability.Name = "textBox_permeability";
-            this.textBox_permeability.Size = new System.Drawing.Size(100, 23);
+            this.textBox_permeability.Size = new System.Drawing.Size(100, 30);
             this.textBox_permeability.TabIndex = 6;
             // 
             // textBox_permittivity
             // 
             this.textBox_permittivity.Location = new System.Drawing.Point(152, 60);
             this.textBox_permittivity.Name = "textBox_permittivity";
-            this.textBox_permittivity.Size = new System.Drawing.Size(100, 23);
+            this.textBox_permittivity.Size = new System.Drawing.Size(100, 30);
             this.textBox_permittivity.TabIndex = 5;
             // 
             // label4
@@ -199,7 +200,7 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(42, 121);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(104, 15);
+            this.label4.Size = new System.Drawing.Size(160, 23);
             this.label4.TabIndex = 4;
             this.label4.Text = "Conductivity (σ): ";
             // 
@@ -208,7 +209,7 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(42, 92);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(104, 15);
+            this.label3.Size = new System.Drawing.Size(161, 23);
             this.label3.TabIndex = 3;
             this.label3.Text = "Permeability (μ): ";
             // 
@@ -217,7 +218,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(50, 63);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(96, 15);
+            this.label2.Size = new System.Drawing.Size(149, 23);
             this.label2.TabIndex = 2;
             this.label2.Text = "Permittivity (ϵ):";
             // 
@@ -225,7 +226,7 @@
             // 
             this.textBox_materialname.Location = new System.Drawing.Point(152, 31);
             this.textBox_materialname.Name = "textBox_materialname";
-            this.textBox_materialname.Size = new System.Drawing.Size(100, 23);
+            this.textBox_materialname.Size = new System.Drawing.Size(100, 30);
             this.textBox_materialname.TabIndex = 1;
             // 
             // label1
@@ -233,7 +234,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(52, 34);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(94, 15);
+            this.label1.Size = new System.Drawing.Size(146, 23);
             this.label1.TabIndex = 0;
             this.label1.Text = "Material Name: ";
             // 
@@ -264,6 +265,7 @@
             this.textBox_selectedelements.Location = new System.Drawing.Point(6, 49);
             this.textBox_selectedelements.Multiline = true;
             this.textBox_selectedelements.Name = "textBox_selectedelements";
+            this.textBox_selectedelements.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textBox_selectedelements.Size = new System.Drawing.Size(403, 108);
             this.textBox_selectedelements.TabIndex = 2;
             // 
@@ -272,15 +274,15 @@
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(6, 31);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(112, 15);
+            this.label5.Size = new System.Drawing.Size(176, 23);
             this.label5.TabIndex = 1;
             this.label5.Text = "Selected Elements: ";
             // 
             // matprop_frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 23F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(764, 421);
+            this.ClientSize = new System.Drawing.Size(758, 404);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.dataGridView_MaterialList);

@@ -220,6 +220,13 @@ namespace _2DHelmholtz_solver
             {
                 glControl_main_panel.Invalidate();
 
+                // Update the Form data
+                if(fedata.meshdata.isMaterialUpdateInProgress == true)
+                {
+                    matprop_Form.update_selected_element_list();
+
+                }
+
             }
 
         }
@@ -403,6 +410,7 @@ namespace _2DHelmholtz_solver
                 matprop_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
                 matprop_Form.ShowInTaskbar = false;
                 matprop_Form.TopLevel = true;
+                // matprop_Form.MdiParent = this;
                 matprop_Form.Owner = this;
 
                 // Manually center the form on the parent
@@ -410,17 +418,23 @@ namespace _2DHelmholtz_solver
                 int y = this.Location.Y + (this.Height - matprop_Form.Height) / 2;
                 matprop_Form.StartPosition = FormStartPosition.Manual;
                 matprop_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // matprop_Form.StartPosition = FormStartPosition.CenterParent;
+
             }
 
             // Turn on Flag Material update form is open
-            fedata.isMaterialUpdateInProgress = true;
+            fedata.meshdata.isMaterialUpdateInProgress = true;
 
             // Show the form
             matprop_Form.update_material_data();
-            matprop_Form.Show();
+            matprop_Form.Show(this);
             matprop_Form.BringToFront();
 
         }
+
+
+
 
         #endregion
 

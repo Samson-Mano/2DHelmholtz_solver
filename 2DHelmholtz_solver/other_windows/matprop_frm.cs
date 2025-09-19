@@ -206,6 +206,29 @@ namespace _2DHelmholtz_solver.other_windows
 
         }
 
+        public void update_selected_element_list()
+        {
+            // Clear the text box
+            textBox_selectedelements.Clear();
+
+            List<int> all_selected_ids = new List<int>();
+
+            all_selected_ids.AddRange(fe_data.meshdata.selected_tri_ids);
+            all_selected_ids.AddRange(fe_data.meshdata.selected_quad_ids);
+
+            textBox_selectedelements.Text = string.Join(", ", all_selected_ids);
+
+            //foreach (int id in all_selected_ids)
+            //{
+            //    textBox_selectedelements.Text += $"{id} ,";
+
+            //}
+
+            textBox_selectedelements.Invalidate();
+
+        }
+
+
         private void button_assignmaterial_Click(object sender, EventArgs e)
         {
 
@@ -214,7 +237,7 @@ namespace _2DHelmholtz_solver.other_windows
         private void matprop_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Control the flag
-            fe_data.isMaterialUpdateInProgress = false;
+            fe_data.meshdata.isMaterialUpdateInProgress = false;
 
         }
 

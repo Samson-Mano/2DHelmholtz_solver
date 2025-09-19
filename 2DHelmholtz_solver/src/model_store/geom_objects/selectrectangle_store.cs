@@ -35,14 +35,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-
-        public void set_buffer()
+        public void set_shader()
         {
             // Create Shader
             selrect_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.SelectionShader),
                 ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.SelectionShader));
 
+        }
 
+
+        public void set_buffer()
+        {
             // Set the buffer
             set_boundaryline_buffer();
             set_shadedtriangle_buffer();

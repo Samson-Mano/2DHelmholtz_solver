@@ -79,15 +79,15 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
         #region "Handle Mouse Events"
         public bool handleMouseLeftButtonClick(bool isDown, float e_X, float e_Y)
         {
-            if(isDown == true)
+            if (isDown == true)
             {
                 // Left mouse button press
-                if(isCtrlDown == true)
+                if (isCtrlDown == true)
                 {
                     // Rotate operation
                 }
-                
-                if(isShiftDown == true)
+
+                if (isShiftDown == true)
                 {
                     // Select operation starts (Left drag)
                     select_operation_start(new Vector2(e_X, e_Y), false);
@@ -97,8 +97,13 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             else
             {
                 // Left mouse button release
+                isCtrlDown = false;
+                isShiftDown = false;
 
-                select_operation_end(new Vector2(e_X, e_Y));
+                if (is_select == true)
+                {
+                    select_operation_end(new Vector2(e_X, e_Y));
+                }
                 return true;
             }
 
@@ -110,7 +115,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
         {
             if (isDown == true)
             {
-             
+
                 // Right mouse button press
                 if (isCtrlDown == true)
                 {
@@ -130,8 +135,19 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             else
             {
                 // Right mouse button release
-                pan_operation_end();
-                select_operation_end(new Vector2(e_X, e_Y));
+                isCtrlDown = false;
+                isShiftDown = false;
+
+                // Right mouse button release
+                if (is_pan == true)
+                {
+                    pan_operation_end();
+                }
+
+                if (is_select == true)
+                {
+                       select_operation_end(new Vector2(e_X, e_Y));
+                }
                 return true;
             }
             return false;
@@ -141,7 +157,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
         public bool handleMouseMove(float e_X, float e_Y)
         {
-            if(isCtrlDown == true || isShiftDown == true)
+            if (isCtrlDown == true || isShiftDown == true)
             {
                 // Perform the mouse move operation
                 Vector2 loc = new Vector2(e_X, e_Y);
@@ -152,12 +168,12 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
         }
 
-        public bool handleMouseScroll(double e_Delta, float e_X, float e_Y)
+        public bool handleMouseScroll(int e_Delta, float e_X, float e_Y)
         {
             if (isCtrlDown == true)
             {
                 // Perform zoom operation
-                zoom_operation(e_Delta, e_X, e_Y);  
+                zoom_operation(e_Delta, e_X, e_Y);
 
                 return true;
             }
@@ -214,7 +230,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             // Select operation in progress
             if (is_select == true)
             {
-                select_operation(click_pt, loc);
+                select_operation(loc);
             }
 
         }
@@ -237,7 +253,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             GL.Viewport(drawing_area_center_x, drawing_area_center_y,
                 max_drawing_area_size, max_drawing_area_size);
 
-       
+
             // 2. Normalize screen dimensions
             double normalizedScreenWidth = 1.8d * ((double)window_width / (double)max_drawing_area_size);
             double normalizedScreenHeight = 1.8d * ((double)window_height / (double)max_drawing_area_size);
@@ -254,7 +270,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             );
 
             // 5. Build model matrix
-            Matrix4 translationMatrix =Matrix4.Transpose(Matrix4.CreateTranslation(geomTranslation));
+            Matrix4 translationMatrix = Matrix4.Transpose(Matrix4.CreateTranslation(geomTranslation));
             Matrix4 scaleMatrix = Matrix4.CreateScale((float)geom_scale, (float)geom_scale, 1.0f);
 
             // 6. Combine into model matrix
@@ -265,29 +281,31 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
         }
 
 
-        private void zoom_operation(double e_Delta, float e_X, float e_Y)
+        private void zoom_operation(int e_Delta, float e_X, float e_Y)
         {
             // Perform intelli zoom operation
             // Screen point before zoom
             Vector2 screen_pt_b4_scale = intellizoom_normalized_screen_pt(e_X, e_Y);
 
-            // Zoom operation
-            if ((e_Delta) > 0)
-            {
-                // Scroll Up
-                if (zoom_val < 1000)
-                {
-                    zoom_val = zoom_val + 0.1f;
-                }
-            }
-            else if ((e_Delta) < 0)
-            {
-                // Scroll Down
-                if (zoom_val > 0.101)
-                {
-                    zoom_val = zoom_val - 0.1f;
-                }
-            }
+            //// Zoom operation
+            //if ((e_Delta) > 0)
+            //{
+            //    // Scroll Up
+            //    if (zoom_val < 1000)
+            //    {
+            //        zoom_val = zoom_val + 0.1f;
+            //    }
+            //}
+            //else if ((e_Delta) < 0)
+            //{
+            //    // Scroll Down
+            //    if (zoom_val > 0.101)
+            //    {
+            //        zoom_val = zoom_val - 0.1f;
+            //    }
+            //}
+
+            zoom_val = global_variables.gvariables_static.UpdateZoom(zoom_val, e_Delta);
 
             // Transformed Hypothetical Screen point after zoom
             Vector2 screen_pt_a4_scale = intellizoom_normalized_screen_pt(e_X, e_Y);
@@ -339,6 +357,22 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             // Location when the selection rectangle ends
             meshdata.selection_rectangle.update_selection_rectangle(new Vector2(0), new Vector2(0), false);
 
+
+
+            int max_dim = window_width > window_height ? window_width : window_height;
+
+            // Transform the mouse location to openGL screen coordinates
+            float screen_opt_x = 2.0f * ((click_pt.X - (window_width * 0.5f)) / max_dim);
+            float screen_opt_y = 2.0f * (((window_height * 0.5f) - click_pt.Y) / max_dim);
+
+            float screen_cpt_x = 2.0f * ((current_loc.X - (window_width * 0.5f)) / max_dim);
+            float screen_cpt_y = 2.0f * (((window_height * 0.5f) - current_loc.Y) / max_dim);
+
+            Vector2 o_pt = new Vector2(screen_opt_x, screen_opt_y);
+            Vector2 c_pt = new Vector2(screen_cpt_x, screen_cpt_y);
+
+            meshdata.select_mesh_objects(o_pt, c_pt, is_rightbutton);
+
             is_select = false;
         }
 
@@ -373,23 +407,25 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 pan_operation_end();
 
                 // Refresh the painting area
-                isZoomToFitInProgress = false;   
+                isZoomToFitInProgress = false;
                 // this_Gcntrl.Invalidate();
 
                 // End the animation
                 myTimer.Stop();
                 return;
             }
-            else
-            {
-                // Animate the translation & zoom value
-                this.zoom_val = temp_zm * (1 - param_t) + (1.0f * param_t);
-                pan_operation(-(float)param_t * temp_transl);
 
-                // Refresh the painting area
-                isZoomToFitInProgress = true;
-                // this_Gcntrl.Invalidate();
-            }
+            // map param_t through easing
+            double easedT = global_variables.gvariables_static.EaseInOut(param_t);
+
+            // Animate the translation & zoom value
+            this.zoom_val = temp_zm * (1 - easedT) + (1.0f * easedT);
+            pan_operation(-(float)easedT * temp_transl);
+
+            // Refresh the painting area
+            isZoomToFitInProgress = true;
+            // this_Gcntrl.Invalidate();
+
         }
 
 
@@ -433,15 +469,15 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
         }
 
 
-        private void select_operation(Vector2 click_loc, Vector2 current_loc)
+        private void select_operation(Vector2 current_loc)
         {
             // Convert the point to screen coordinates
             // Set the parameters
             int max_dim = window_width > window_height ? window_width : window_height;
 
             // Transform the mouse location to openGL screen coordinates
-            float screen_opt_x = 2.0f * ((click_loc.X - (window_width * 0.5f)) / max_dim);
-            float screen_opt_y = 2.0f * (((window_height * 0.5f) - click_loc.Y) / max_dim);
+            float screen_opt_x = 2.0f * ((click_pt.X - (window_width * 0.5f)) / max_dim);
+            float screen_opt_y = 2.0f * (((window_height * 0.5f) - click_pt.Y) / max_dim);
 
             float screen_cpt_x = 2.0f * ((current_loc.X - (window_width * 0.5f)) / max_dim);
             float screen_cpt_y = 2.0f * (((window_height * 0.5f) - current_loc.Y) / max_dim);

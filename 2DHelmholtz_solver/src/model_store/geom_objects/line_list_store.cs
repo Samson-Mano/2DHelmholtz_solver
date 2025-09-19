@@ -84,13 +84,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-
-        public void set_buffer()
+        public void set_shader()
         {
 
             // Create Shader
             line_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
                 ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
+
+        }
+
+        public void set_buffer()
+        {
 
             // Set the buffer for index
             int line_indices_count = 2 * line_count; // 2 indices to form a line

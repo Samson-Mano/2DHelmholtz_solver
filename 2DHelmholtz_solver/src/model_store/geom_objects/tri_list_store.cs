@@ -1,6 +1,7 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.opentk_control.opentk_buffer;
 using _2DHelmholtz_solver.opentk_control.shader_compiler;
+using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
 using _2DHelmholtz_solver.src.opentk_control.opentk_buffer;
 // OpenTK library
 using OpenTK;
@@ -72,13 +73,18 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-
-        public void set_buffer()
+        public void set_shader()
         {
 
             // Create Shader
             tri_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
                 ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
+
+        }
+
+
+        public void set_buffer()
+        {
 
             // Set the buffer for index
             int tri_indices_count = 3 * tri_count; // 3 indices to form a triangle
@@ -130,7 +136,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             int tri_vertex_size = tri_vertex_count * sizeof(float); // Size of the triangle vertex buffer
 
             // Update the buffer
-           tri_buffer.UpdateDynamicVertexBuffer(tri_vertices, tri_vertex_size);
+            tri_buffer.UpdateDynamicVertexBuffer(tri_vertices, tri_vertex_size);
 
         }
 
@@ -145,8 +151,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void paint_static_triangles()
         {
             // Paint all the static triangles
-           tri_shader.Bind();
-           tri_buffer.Bind();
+            tri_shader.Bind();
+            tri_buffer.Bind();
             is_DynamicDraw = false;
 
             GL.DrawElements(PrimitiveType.Triangles, 3 * tri_count, DrawElementsType.UnsignedInt, 0);
@@ -169,6 +175,67 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             GL.DrawElements(PrimitiveType.Triangles, 3 * tri_count, DrawElementsType.UnsignedInt, 0);
             tri_buffer.UnBind();
             tri_shader.UnBind();
+
+        }
+
+
+        public List<int> is_tri_selected(Vector2 corner_pt1, Vector2 corner_pt2, drawing_events graphic_events_control)
+        {
+            // Selected triangle list index;
+            List<int> selected_tri_index = new List<int>();
+
+            // Loop through all triangle in map
+            foreach (var tri_m in triMap)
+            {
+                tri_store tri = tri_m.Value;
+
+                // End points
+                Vector3 node_pt1 = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord;
+                Vector3 node_pt2 = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord;
+                Vector3 node_pt3 = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord;
+
+                // Mid points
+                Vector3 md_pt_12 = gvariables_static.linear_interpolation3d(node_pt1, node_pt2, 0.50);
+                Vector3 md_pt_23 = gvariables_static.linear_interpolation3d(node_pt2, node_pt3, 0.50);
+                Vector3 md_pt_31 = gvariables_static.linear_interpolation3d(node_pt3, node_pt1, 0.50);
+                Vector3 tri_midpt = new Vector3((node_pt1.X + node_pt2.X + node_pt3.X) * 0.33f,
+                    (node_pt1.Y + node_pt2.Y + node_pt3.Y) * 0.33f,
+                    (node_pt1.Z + node_pt2.Z + node_pt3.Z) * 0.33f);
+
+
+                //______________________________
+                Vector4 node_pt1_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_pt1.X, node_pt1.Y, node_pt1.Z, 1.0f);
+                Vector4 node_pt2_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_pt2.X, node_pt2.Y, node_pt2.Z, 1.0f);
+                Vector4 node_pt3_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_pt3.X, node_pt3.Y, node_pt3.Z, 1.0f);
+                Vector4 md_pt_12_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_12.X, md_pt_12.Y, md_pt_12.Z, 1.0f);
+                Vector4 md_pt_23_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_23.X, md_pt_23.Y, md_pt_23.Z, 1.0f);
+                Vector4 md_pt_31_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_31.X, md_pt_31.Y, md_pt_31.Z, 1.0f);
+                Vector4 tri_midpt_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(tri_midpt.X, tri_midpt.Y, tri_midpt.Z, 1.0f);
+
+
+                // Check whether the point inside a rectangle
+                if (gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_31_fp.X, md_pt_31_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(tri_midpt_fp.X, tri_midpt_fp.Y)) == true)
+                {
+                    selected_tri_index.Add(tri_m.Key);
+
+                }
+
+            }
+
+            return selected_tri_index;
 
         }
 

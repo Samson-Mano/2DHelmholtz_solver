@@ -79,7 +79,7 @@ namespace _2DHelmholtz_solver.global_variables
                         break;
                     case -2:
                         // Selection color 1
-                        color = Color.White;
+                        color = Color.Red;
                         break;
                     default:
                         color = GetRandomColor(colorId);
@@ -111,7 +111,7 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static double triangle_shrink_factor = 0.88f;
 
-         public static int RoundOff(this int i)
+        public static int RoundOff(this int i)
         {
             // Roundoff to nearest 10 (used to display zoom value)
             return ((int)Math.Round(i / 10.0)) * 10;
@@ -214,8 +214,59 @@ namespace _2DHelmholtz_solver.global_variables
             return Tuple.Create(minXY, maxXY);
         }
 
+        public static double Clamp(double value, double min, double max)
+        {
+            // Perform .Net Core 2.0s Math.Clamp
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        public static double UpdateZoom(double zoomVal, int eDelta, double zoomStep = 1.1f,
+            double minZoom = 1e-3d, double maxZoom = 1e6d)
+        {
+            if (eDelta == 0)
+                return zoomVal;
+
+            // Normalize: Windows wheel delta is usually multiples of 120
+            float steps = eDelta / 120.0f;
+
+            // Exponential zoom scaling
+            zoomVal *= Math.Pow(zoomStep, steps);
+
+            // Clamp to reasonable soft limits
+            zoomVal = Clamp(zoomVal, minZoom, maxZoom);
+
+            return zoomVal;
+        }
 
 
+
+        public static Vector3 linear_interpolation3d(Vector3 pt1, Vector3 pt2, double param_t)
+        {
+            return new Vector3((float)(pt1.X * (1.0 - param_t) + (pt2.X * param_t)),
+                             (float)(pt1.Y * (1.0 - param_t) + (pt2.Y * param_t)),
+                             (float)(pt1.Z * (1.0 - param_t) + (pt2.Z * param_t)));
+
+        }
+
+
+        public static bool isPointInsideRectangle(Vector2 rectCpt1, Vector2 rectCpt2, Vector2 pt)
+        {
+            return pt.X >= Math.Min(rectCpt1.X, rectCpt2.X) &&
+                   pt.X <= Math.Max(rectCpt1.X, rectCpt2.X) &&
+                   pt.Y >= Math.Min(rectCpt1.Y, rectCpt2.Y) &&
+                   pt.Y <= Math.Max(rectCpt1.Y, rectCpt2.Y);
+        }
+
+
+        public static double EaseInOut(double t)
+        {
+            // Ease In-Out (Smooth start and stop)
+            // Starts slow => speeds up => slows down near the end.
+
+            return t * t * (3 - 2 * t); // smoothstep
+        }
 
 
         public static double get_angle_ABX(PointF A_pt, PointF B_pt, bool is_deg = false)

@@ -11,12 +11,15 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using _2DHelmholtz_solver.src.model_store.fe_objects;
+using System.Windows.Forms;
 
 
 namespace _2DHelmholtz_solver.src.model_store.geom_objects
 {
     public class meshdata_store
     {
+
         private point_list_store mesh_points { get; }
         private point_list_store selected_mesh_points { get; }
         private line_list_store mesh_half_edges { get; }
@@ -43,12 +46,25 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public bool is_ModelSet = false;
 
+
+        // Update of mesh properties
+        public bool isConstraintUpdateInProgress = false;
+        public bool isLoadUpdateInProgress = false;
+        public bool isMaterialUpdateInProgress = false;
+
+
+        public List<int> selected_tri_ids { get; } = new List<int>();
+        public List<int> selected_quad_ids { get; } = new List<int>();
+        public List<int> selected_node_ids { get; } = new List<int>();
+
+
         public meshdata_store(Vector3 min_bounds, Vector3 max_bounds, Vector3 geom_bounds)
         {
+
             // Initialize the mesh points, lines, triangles and quadrilateral
             mesh_points = new point_list_store();
             selected_mesh_points = new point_list_store();
-            mesh_half_edges = new line_list_store(mesh_points); 
+            mesh_half_edges = new line_list_store(mesh_points);
             mesh_boundaries = new line_list_store(mesh_points);
             mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
             selected_mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
@@ -102,70 +118,144 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void add_mesh_point(int point_id, double x_coord, double y_coord, double z_coord, int color_id)
         {
             // Add the mesh point
-            mesh_points.add_point(point_id, x_coord, y_coord, z_coord, color_id); 
+            mesh_points.add_point(point_id, x_coord, y_coord, z_coord, color_id);
 
         }
 
-	    public void add_selected_points(List<int> selected_point_id)
+        public void add_selected_points(List<int> selected_point_ids)
         {
             // Add the selected points
             selected_mesh_points.clear_points();
 
             // Selected points id
-            foreach (int pt_id in selected_point_id)
+            foreach (int pt_id in selected_point_ids)
             {
                 // get the point
                 point_store pt = mesh_points.pointMap[pt_id];
 
                 selected_mesh_points.add_point(pt_id, pt.x_coord, pt.y_coord, pt.z_coord, -2);
-                
+
             }
 
             selected_mesh_points.set_buffer();
 
         }
 
-        public void add_selected_tris(List<int> selected_tri_id)
+        public void add_selected_tris(List<int> selected_tri_ids, bool isRemove)
         {
-            // Add the selected triangles
-            selected_mesh_tris.clear_triangles();
+            bool is_selection_changed = false;
 
-            // Selected triangles id
-            foreach (int tri_id in selected_tri_id)
+            if(isRemove == false)
             {
-                // get the triangle
-                tri_store tri = mesh_tris.triMap[tri_id];
+                // Add to the selected tri elements list
+                foreach (int tri_id in selected_tri_ids)
+                {
+                    // Check whether the element is already in the list
+                    if (!this.selected_tri_ids.Contains(tri_id))
+                    {
+                        // Add to selected elements
+                        this.selected_tri_ids.Add(tri_id);
 
-                selected_mesh_tris.add_tri(tri_id, tri.edge1_id, tri.edge2_id, tri.edge3_id, -2);
+                        // Selection changed flag
+                        is_selection_changed = true;
+                    }
+
+                }
+            }
+            else
+            {
+                // Remove from the selected tri elements list
+                foreach (int tri_id in selected_tri_ids)
+                {
+                    // Remove the elements which is found in the list
+                    this.selected_tri_ids.Remove(tri_id);
+
+                    // Selection changed flag
+                    is_selection_changed = true;
+                }
 
             }
 
-            selected_mesh_tris.set_buffer();
+
+            if(is_selection_changed == true)
+            {
+                // Add the selected triangles
+                selected_mesh_tris.clear_triangles();
+
+                // Selected triangles id
+                foreach (int tri_id in this.selected_tri_ids)
+                {
+                    // get the triangle
+                    tri_store tri = mesh_tris.triMap[tri_id];
+
+                    selected_mesh_tris.add_tri(tri_id, tri.edge1_id, tri.edge2_id, tri.edge3_id, -2);
+
+                }
+
+                selected_mesh_tris.set_buffer();
+            }
 
         }
 
-        public void add_selected_quads(List<int> selected_quad_id)
+        public void add_selected_quads(List<int> selected_quad_ids, bool isRemove)
         {
-            // Add the selected quadrilaterals
-            selected_mesh_quads.clear_quadrilaterals();
+            bool is_selection_changed = false;
 
-            // Selected quadrilaterals id
-            foreach (int quad_id in selected_quad_id)
+            if (isRemove == false)
             {
-                // get the quadrilateral
-                tri_store tri123 = mesh_quads.quadMap[quad_id].tri123;
-                tri_store tri341 = mesh_quads.quadMap[quad_id].tri341;
+                // Add to the selected quad elements list
+                foreach (int quad_id in selected_quad_ids)
+                {
+                    // Check whether the element is already in the list
+                    if (!this.selected_quad_ids.Contains(quad_id))
+                    {
+                        // Add to selected elements
+                        this.selected_quad_ids.Add(quad_id);
 
-                selected_mesh_quads.add_quad(quad_id, tri123.edge1_id, tri123.edge2_id, tri123.edge3_id,
-                    tri341.edge1_id, tri341.edge2_id, tri341.edge3_id, -2);
+                        // Selection changed flag
+                        is_selection_changed = true;
+                    }
+
+                }
+            }
+            else
+            {
+                // Remove from the selected quad elements list
+                foreach (int quad_id in selected_quad_ids)
+                {
+                    // Remove the elements which is found in the list
+                    this.selected_quad_ids.Remove(quad_id);
+
+                    // Selection changed flag
+                    is_selection_changed = true;
+                }
 
             }
 
-            selected_mesh_quads.set_buffer();
+
+            if (is_selection_changed == true)
+            {
+                // Add the selected quadrilaterals
+                selected_mesh_quads.clear_quadrilaterals();
+
+                // Selected quadrilaterals id
+                foreach (int quad_id in this.selected_quad_ids)
+                {
+                    // get the quadrilateral
+                    tri_store tri123 = mesh_quads.quadMap[quad_id].tri123;
+                    tri_store tri341 = mesh_quads.quadMap[quad_id].tri341;
+
+                    selected_mesh_quads.add_quad(quad_id, tri123.edge1_id, tri123.edge2_id, tri123.edge3_id,
+                        tri341.edge1_id, tri341.edge2_id, tri341.edge3_id, -2);
+
+                }
+                selected_mesh_quads.set_buffer();
+
+            }
 
         }
 
-        public void add_mesh_tris(int tri_id,int  point_id1, int point_id2, int point_id3, int color_id)
+        public void add_mesh_tris(int tri_id, int point_id1, int point_id2, int point_id3, int color_id)
         {
             //    2____3 
             //    |   /  
@@ -282,7 +372,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             //________________________________________
             // Add the mesh quadrilaterals
-            mesh_quads.add_quad(quad_id, line_id1, line_id2, line_id3, 
+            mesh_quads.add_quad(quad_id, line_id1, line_id2, line_id3,
                 line_id4, line_id5, line_id6, color_id);
 
             // Set the half edge face data 1st Half triangle of the quadrilateral
@@ -326,7 +416,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_mesh_wireframe()
         {
-            HashSet<int> unique_edge_ids = new HashSet<int>();    
+            HashSet<int> unique_edge_ids = new HashSet<int>();
 
             // Get the unique edge Ids of Triangle Mesh
             foreach (var tri_m in mesh_tris.triMap)
@@ -334,9 +424,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 // get the value of tri mesh
                 tri_store tri = tri_m.Value;
 
-                unique_edge_ids.Add( tri.edge1_id);
-                unique_edge_ids.Add( tri.edge2_id);
-                unique_edge_ids.Add( tri.edge3_id);
+                unique_edge_ids.Add(tri.edge1_id);
+                unique_edge_ids.Add(tri.edge2_id);
+                unique_edge_ids.Add(tri.edge3_id);
 
             }
 
@@ -354,7 +444,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
             // Create the mesh wire frame
-            foreach (int edge_id in  unique_edge_ids)
+            foreach (int edge_id in unique_edge_ids)
             {
                 // Add to wireframe rendering or storage
                 mesh_boundaries.add_line(edge_id, mesh_half_edges.lineMap[edge_id].start_pt_id,
@@ -368,7 +458,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void update_tri_material_ids(List<int> selected_tri_id, int material_id)
         {
             // Update the material id of the Triangle element
-            foreach (int  tri_id in selected_tri_id)
+            foreach (int tri_id in selected_tri_id)
             {
                 mesh_tris.triMap[tri_id].color_id = material_id;
                 mesh_tris.triMap[tri_id].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
@@ -391,6 +481,28 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Update the buffer to change the color based on new material id
             mesh_quads.update_buffer();
+
+        }
+
+
+        public void set_shader()
+        {
+            // Set the buffer of selection rectangle
+            selection_rectangle.set_shader();
+
+            // Set the shader
+            // mesh points
+            mesh_points.set_shader();
+            selected_mesh_points.set_shader();
+
+            // mesh boundaries
+            mesh_boundaries.set_shader();
+
+            // mesh tris and quads
+            mesh_tris.set_shader();
+            mesh_quads.set_shader();
+            selected_mesh_tris.set_shader();
+            selected_mesh_quads.set_shader();
 
         }
 
@@ -439,7 +551,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             // Paint the mesh boundaries
             mesh_boundaries.paint_static_lines();
-  
+
         }
 
 
@@ -475,17 +587,23 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void paint_selected_points()
         {
-            // Paint the selected points
-            selected_mesh_points.paint_static_points();
+            if (isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
+            {
+                // Paint the selected points
+                selected_mesh_points.paint_static_points();
+            }
 
         }
 
         public void paint_selected_mesh()
         {
-            // Paint the selected tris and quds
-            selected_mesh_tris.paint_static_triangles();
-            selected_mesh_quads.paint_static_quadrilaterals();
-
+            if (isMaterialUpdateInProgress == true)
+            {
+                // Paint the selected tris and quds
+                selected_mesh_tris.paint_static_triangles();
+                selected_mesh_quads.paint_static_quadrilaterals();
+            }
+            
         }
 
 
@@ -500,10 +618,45 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void paint_selection_rectangle()
         {
-            // Paint the selection rectangle
-            selection_rectangle.paint_selection_rectangle();
+
+            if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
+            {
+                // Paint the selection rectangle
+                selection_rectangle.paint_selection_rectangle();
+            }
 
         }
+
+        public void select_mesh_objects(Vector2 o_pt, Vector2 c_pt, bool isRightButton)
+        {
+            // Perform the select option
+            if (isMaterialUpdateInProgress == true)
+            {
+                // Select the elements for material property update
+                List<int> selected_tri_ids = mesh_tris.is_tri_selected(o_pt, c_pt, graphic_events_control);
+                List<int> selected_quad_ids = mesh_quads.is_quad_selected(o_pt, c_pt, graphic_events_control);
+
+                add_selected_tris(selected_tri_ids, isRightButton);
+                add_selected_quads(selected_quad_ids, isRightButton);
+
+            }
+
+            if(isConstraintUpdateInProgress == true)
+            {
+                // Select the nodes for constraint update
+
+
+            }
+
+            if(isLoadUpdateInProgress == true)
+            {
+                // Select the nodes for load update
+
+
+            }
+
+        }
+
 
         public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency)
         {

@@ -49,12 +49,6 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         bool isModelLoadSuccess = false;
 
 
-        // Update of model properties
-        public bool isConstraintUpdateInProgress = false;
-        public bool isLoadUpdateInProgress = false;
-        public bool isMaterialUpdateInProgress = false;
-
-
 
         public fedata_store()
         {
@@ -133,6 +127,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             meshdata.is_ModelSet = true;
 
             // Set the openTK buffer
+            meshdata.set_shader();
             meshdata.set_buffer();
 
             // Update the openGL uniform
@@ -177,14 +172,12 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             }
 
+            // Paint the selected meshes and point
+            meshdata.paint_selected_mesh();
+            meshdata.paint_selected_points();
 
-            if(isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
-            {
-                // Paint the selection rectangle
-                meshdata.paint_selection_rectangle();
-
-            }
-
+            // Paint the selection rectangle
+            meshdata.paint_selection_rectangle();
 
 
         }

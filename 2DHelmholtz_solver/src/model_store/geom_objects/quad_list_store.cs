@@ -1,6 +1,7 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.opentk_control.opentk_buffer;
 using _2DHelmholtz_solver.opentk_control.shader_compiler;
+using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
 using _2DHelmholtz_solver.src.opentk_control.opentk_buffer;
 // OpenTK library
 using OpenTK;
@@ -91,13 +92,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-
-        public void set_buffer()
+        public void set_shader()
         {
 
             // Create Shader
             quad_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
                 ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
+
+        }
+
+        public void set_buffer()
+        {
 
             // Set the buffer for index
             int quad_indices_count = 6 * quad_count; // 6 indices to form a quadrilateral ( 3 + 3 triangles)
@@ -188,6 +193,75 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             GL.DrawElements(PrimitiveType.Triangles, 6 * quad_count, DrawElementsType.UnsignedInt, 0);
             quad_buffer.UnBind();
             quad_shader.UnBind();
+
+        }
+
+
+        public List<int> is_quad_selected(Vector2 corner_pt1, Vector2 corner_pt2, drawing_events graphic_events_control)
+        {
+            // Selected quadrilateral list index;
+            List<int> selected_quad_index = new List<int>();
+
+            // Loop through all quadrilateral in map
+            foreach (var quad_m in quadMap)
+            {
+                quad_store quad = quad_m.Value;
+
+                // End points
+                Vector3 node_pt1 = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].pt_coord;
+                Vector3 node_pt2 = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].pt_coord;
+                Vector3 node_pt3 = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].pt_coord;
+                Vector3 node_pt4 = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].pt_coord;
+
+                // Mid points
+                Vector3 md_pt_12 = gvariables_static.linear_interpolation3d(node_pt1, node_pt2, 0.50);
+                Vector3 md_pt_23 = gvariables_static.linear_interpolation3d(node_pt2, node_pt3, 0.50);
+                Vector3 md_pt_34 = gvariables_static.linear_interpolation3d(node_pt3, node_pt4, 0.50);
+                Vector3 md_pt_41 = gvariables_static.linear_interpolation3d(node_pt4, node_pt1, 0.50);
+                Vector3 quad_midpt = new Vector3((node_pt1.X + node_pt2.X + node_pt3.X + node_pt4.X) * 0.25f,
+                    (node_pt1.Y + node_pt2.Y + node_pt3.Y + node_pt4.Y) * 0.25f,
+                    (node_pt1.Z + node_pt2.Z + node_pt3.Z + node_pt4.Z) * 0.25f);
+
+
+                //______________________________
+                Vector4 node_pt1_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_pt1.X, node_pt1.Y, node_pt1.Z, 1.0f);
+                Vector4 node_pt2_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_pt2.X, node_pt2.Y, node_pt2.Z, 1.0f);
+                Vector4 node_pt3_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_pt3.X, node_pt3.Y, node_pt3.Z, 1.0f);
+                Vector4 node_pt4_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_pt4.X, node_pt4.Y, node_pt4.Z, 1.0f);
+                Vector4 md_pt_12_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_12.X, md_pt_12.Y, md_pt_12.Z, 1.0f);
+                Vector4 md_pt_23_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_23.X, md_pt_23.Y, md_pt_23.Z, 1.0f);
+                Vector4 md_pt_34_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_34.X, md_pt_34.Y, md_pt_34.Z, 1.0f);
+                Vector4 md_pt_41_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_41.X, md_pt_41.Y, md_pt_41.Z, 1.0f);
+                Vector4 quad_midpt_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(quad_midpt.X, quad_midpt.Y, quad_midpt.Z, 1.0f);
+
+
+                // Check whether the point inside a rectangle
+                if (gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt4_fp.X, node_pt4_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_34_fp.X, md_pt_34_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_41_fp.X, md_pt_41_fp.Y)) == true ||
+                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(quad_midpt_fp.X, quad_midpt_fp.Y)) == true)
+                {
+                    selected_quad_index.Add(quad_m.Key);
+
+                }
+
+            }
+
+            return selected_quad_index;
 
         }
 
