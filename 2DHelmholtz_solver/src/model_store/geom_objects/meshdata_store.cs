@@ -82,6 +82,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             this.max_bounds = max_bounds;
             this.geom_bounds = geom_bounds;
 
+            // Selected mesh is drawn as shrunk triangle
+            selected_mesh_tris.is_ShrinkTriangle = true;
+            selected_mesh_quads.is_ShrinkTriangle = true;
+
             //// Create the boundary lines
             //drawing_boundary_points = new point_list_store();
             //drawing_boundary_lines = new line_list_store(drawing_boundary_points);
@@ -254,6 +258,21 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
         }
+
+        public void clear_selected_mesh()
+        {
+            // Clear the selected triangles
+            selected_tri_ids.Clear();   
+            selected_mesh_tris.clear_triangles();
+            selected_mesh_tris.set_buffer();
+
+            // Clear the selected quadrilaterals
+            selected_quad_ids.Clear();
+            selected_mesh_quads.clear_quadrilaterals();
+            selected_mesh_quads.set_buffer();
+
+        }
+
 
         public void add_mesh_tris(int tri_id, int point_id1, int point_id2, int point_id3, int color_id)
         {
@@ -656,6 +675,19 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
         }
+
+
+        public void update_mesh_shrinkage()
+        {
+            // Perform the shrinkage of mesh
+            mesh_tris.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
+            mesh_tris.update_buffer();
+
+            mesh_quads.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
+            mesh_quads.update_buffer();
+
+        }
+
 
 
         public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency)

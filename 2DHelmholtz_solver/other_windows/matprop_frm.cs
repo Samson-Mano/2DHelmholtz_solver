@@ -232,12 +232,23 @@ namespace _2DHelmholtz_solver.other_windows
         private void button_assignmaterial_Click(object sender, EventArgs e)
         {
 
+            // Call the main form
+            if (this.Owner is main_frm mainForm)
+            {
+                mainForm.CallFrom_matprop_frm();
+            }
         }
 
         private void matprop_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Control the flag
             fe_data.meshdata.isMaterialUpdateInProgress = false;
+
+            // Call the main form
+            if (this.Owner is main_frm mainForm)
+            {
+                mainForm.CallFrom_matprop_frm(); 
+            }
 
         }
 

@@ -37,6 +37,7 @@ namespace _2DHelmholtz_solver
 
 
         // Forms
+        private option_frm option_Form;
         private matprop_frm matprop_Form;
 
 
@@ -65,7 +66,7 @@ namespace _2DHelmholtz_solver
         {
             // Initialize the GLControl in the Load event
             // Fill the gcontrol panel
-           glControl_main_panel.Dock = DockStyle.Fill;
+            glControl_main_panel.Dock = DockStyle.Fill;
 
         }
 
@@ -145,8 +146,8 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_MouseEnter(object sender, EventArgs e)
         {
-           // set the focus to enable zoom/ pan & zoom to fit
-           glControl_main_panel.Focus();
+            // set the focus to enable zoom/ pan & zoom to fit
+            glControl_main_panel.Focus();
 
         }
 
@@ -221,7 +222,7 @@ namespace _2DHelmholtz_solver
                 glControl_main_panel.Invalidate();
 
                 // Update the Form data
-                if(fedata.meshdata.isMaterialUpdateInProgress == true)
+                if (fedata.meshdata.isMaterialUpdateInProgress == true)
                 {
                     matprop_Form.update_selected_element_list();
 
@@ -279,13 +280,13 @@ namespace _2DHelmholtz_solver
             // Refresh the glControl_main_panel as the zoom to fit operation in progress
             glControl_main_panel.Invalidate();
 
-            if(fedata.meshdata.graphic_events_control.isZoomToFitInProgress == false)
+            if (fedata.meshdata.graphic_events_control.isZoomToFitInProgress == false)
             {
                 // End the zoom to fit operation
                 // Stop zoom-to-fit operation once done
                 zoomToFitTimer.Stop();
 
-            }    
+            }
 
         }
 
@@ -369,6 +370,44 @@ namespace _2DHelmholtz_solver
 
         }
 
+
+        private void optionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fedata.meshdata.is_ModelSet == false)
+                return;
+
+            // Check if option_Form is null or disposed
+            if (option_Form == null || option_Form.IsDisposed)
+            {
+                option_Form = new option_frm();
+
+                // Make it behave like a tool window
+                option_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                option_Form.ShowInTaskbar = false;
+                option_Form.TopLevel = true;
+                option_Form.Owner = this;
+
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - option_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - option_Form.Height) / 2;
+                option_Form.StartPosition = FormStartPosition.Manual;
+                option_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+              }
+
+            //// Turn on Flag Material update form is open
+            //fedata.meshdata.isMaterialUpdateInProgress = true;
+            //fedata.meshdata.clear_selected_mesh();
+
+            // Show the form
+            option_Form.Show(this);
+            option_Form.BringToFront();
+
+            glControl_main_panel.Invalidate();
+
+        }
+
+
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Exit application
@@ -376,11 +415,8 @@ namespace _2DHelmholtz_solver
 
         }
 
-
-
-
-
         #endregion
+
 
 
         #region "Load Events"
@@ -396,10 +432,8 @@ namespace _2DHelmholtz_solver
 
         private void materialPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (fedata.meshdata.is_ModelSet== false)
+            if (fedata.meshdata.is_ModelSet == false)
                 return;
-
-            // Check if matprop_Form is null or dispose
 
             // Check if matprop_Form is null or disposed
             if (matprop_Form == null || matprop_Form.IsDisposed)
@@ -425,21 +459,44 @@ namespace _2DHelmholtz_solver
 
             // Turn on Flag Material update form is open
             fedata.meshdata.isMaterialUpdateInProgress = true;
+            fedata.meshdata.clear_selected_mesh();
 
             // Show the form
             matprop_Form.update_material_data();
+            matprop_Form.update_selected_element_list();
             matprop_Form.Show(this);
             matprop_Form.BringToFront();
+
+            glControl_main_panel.Invalidate();
+
+        }
+
+        public void CallFrom_matprop_frm()
+        {
+            // Refresh 
+            glControl_main_panel.Invalidate();
+
+        }
+
+        public void CallFrom_option_frm()
+        {
+            // Refresh 
+            glControl_main_panel.Invalidate();
 
         }
 
 
+        public void CallFrom_option_frm_shrinkMesh()
+        {
+            // Perform the shrinkage of the mesh
+            fedata.meshdata.update_mesh_shrinkage();
+            
+            // Refresh 
+            glControl_main_panel.Invalidate();
 
+        }
 
         #endregion
-
-
-
 
     }
 }

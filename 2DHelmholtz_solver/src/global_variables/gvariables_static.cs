@@ -109,7 +109,8 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static bool is_paint_shrunk_triangle = false;
 
-        public static double triangle_shrink_factor = 0.88f;
+        public static double mesh_shrink_factor = 0.8f;
+        public static double selectedmesh_shrink_factor = 0.8f;
 
         public static int RoundOff(this int i)
         {

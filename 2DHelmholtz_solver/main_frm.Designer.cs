@@ -36,6 +36,8 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addLoadsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addConstraintsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.materialPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.solverToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.modalAnalysisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.responseAnalysisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,8 +45,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_zoom_value = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_IsRefresh = new System.Windows.Forms.ToolStripStatusLabel();
-            this.addConstraintsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.materialPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.optionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -68,6 +69,7 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importModelToolStripMenuItem,
             this.exportModelToolStripMenuItem,
+            this.optionToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 22);
@@ -76,21 +78,21 @@
             // importModelToolStripMenuItem
             // 
             this.importModelToolStripMenuItem.Name = "importModelToolStripMenuItem";
-            this.importModelToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.importModelToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.importModelToolStripMenuItem.Text = "Import Model";
             this.importModelToolStripMenuItem.Click += new System.EventHandler(this.importModelToolStripMenuItem_Click);
             // 
             // exportModelToolStripMenuItem
             // 
             this.exportModelToolStripMenuItem.Name = "exportModelToolStripMenuItem";
-            this.exportModelToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.exportModelToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exportModelToolStripMenuItem.Text = "Export Model";
             this.exportModelToolStripMenuItem.Click += new System.EventHandler(this.exportModelToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -107,9 +109,23 @@
             // addLoadsToolStripMenuItem
             // 
             this.addLoadsToolStripMenuItem.Name = "addLoadsToolStripMenuItem";
-            this.addLoadsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addLoadsToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
             this.addLoadsToolStripMenuItem.Text = "Add Loads";
             this.addLoadsToolStripMenuItem.Click += new System.EventHandler(this.addLoadsToolStripMenuItem_Click);
+            // 
+            // addConstraintsToolStripMenuItem
+            // 
+            this.addConstraintsToolStripMenuItem.Name = "addConstraintsToolStripMenuItem";
+            this.addConstraintsToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.addConstraintsToolStripMenuItem.Text = "Add Constraints";
+            this.addConstraintsToolStripMenuItem.Click += new System.EventHandler(this.addConstraintsToolStripMenuItem_Click);
+            // 
+            // materialPropertiesToolStripMenuItem
+            // 
+            this.materialPropertiesToolStripMenuItem.Name = "materialPropertiesToolStripMenuItem";
+            this.materialPropertiesToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.materialPropertiesToolStripMenuItem.Text = "Material Properties";
+            this.materialPropertiesToolStripMenuItem.Click += new System.EventHandler(this.materialPropertiesToolStripMenuItem_Click);
             // 
             // solverToolStripMenuItem
             // 
@@ -180,19 +196,12 @@
             this.toolStripStatusLabel_IsRefresh.Size = new System.Drawing.Size(10, 17);
             this.toolStripStatusLabel_IsRefresh.Text = " ";
             // 
-            // addConstraintsToolStripMenuItem
+            // optionToolStripMenuItem
             // 
-            this.addConstraintsToolStripMenuItem.Name = "addConstraintsToolStripMenuItem";
-            this.addConstraintsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.addConstraintsToolStripMenuItem.Text = "Add Constraints";
-            this.addConstraintsToolStripMenuItem.Click += new System.EventHandler(this.addConstraintsToolStripMenuItem_Click);
-            // 
-            // materialPropertiesToolStripMenuItem
-            // 
-            this.materialPropertiesToolStripMenuItem.Name = "materialPropertiesToolStripMenuItem";
-            this.materialPropertiesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.materialPropertiesToolStripMenuItem.Text = "Material Properties";
-            this.materialPropertiesToolStripMenuItem.Click += new System.EventHandler(this.materialPropertiesToolStripMenuItem_Click);
+            this.optionToolStripMenuItem.Name = "optionToolStripMenuItem";
+            this.optionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.optionToolStripMenuItem.Text = "Option";
+            this.optionToolStripMenuItem.Click += new System.EventHandler(this.optionToolStripMenuItem_Click);
             // 
             // main_frm
             // 
@@ -235,6 +244,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_IsRefresh;
         private System.Windows.Forms.ToolStripMenuItem addConstraintsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem materialPropertiesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem optionToolStripMenuItem;
     }
 }
 

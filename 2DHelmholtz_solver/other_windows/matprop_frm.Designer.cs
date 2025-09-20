@@ -292,7 +292,7 @@
             this.MaximumSize = new System.Drawing.Size(780, 460);
             this.MinimumSize = new System.Drawing.Size(780, 460);
             this.Name = "matprop_frm";
-            this.Opacity = 0.8D;
+            this.Opacity = 0.85D;
             this.Text = "Material Properties";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.matprop_frm_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_MaterialList)).EndInit();

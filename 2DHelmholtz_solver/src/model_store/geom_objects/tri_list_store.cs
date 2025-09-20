@@ -33,6 +33,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public Dictionary<int, tri_store> triMap { get; } = new Dictionary<int, tri_store>();
         public int tri_count = 0;
         private bool is_DynamicDraw = false;
+        public bool is_ShrinkTriangle = false;
 
         private graphicBuffers tri_buffer;
         public Shader tri_shader;
@@ -242,11 +243,32 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         private void get_tri_vertex_buffer(tri_store tri, ref float[] tri_vertices, ref int tri_v_index)
         {
+            // Get the quad points
+            Vector3 pt1 = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord;
+            Vector3 pt2 = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord;
+            Vector3 pt3 = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord;
+
+            if (is_ShrinkTriangle == true)
+            {
+                // Shrink the triangle
+                Vector3 midPt = new Vector3((pt1.X + pt2.X + pt3.X) * 0.33f,
+                    (pt1.Y + pt2.Y + pt3.Y) * 0.33f,
+                    (pt1.Z + pt2.Z + pt3.Z) * 0.33f);
+
+                float shrink_factor = (float)gvariables_static.mesh_shrink_factor;
+
+                pt1 = gvariables_static.linear_interpolation3d(midPt, pt1, shrink_factor);
+                pt2 = gvariables_static.linear_interpolation3d(midPt, pt2, shrink_factor);
+                pt3 = gvariables_static.linear_interpolation3d(midPt, pt3, shrink_factor);
+
+            }
+
+
             // Get the node buffer for the shader
             // Point 1
             // Point location
-            tri_vertices[tri_v_index + 0] = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord.X;
-            tri_vertices[tri_v_index + 1] = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord.Y;
+            tri_vertices[tri_v_index + 0] = pt1.X;
+            tri_vertices[tri_v_index + 1] = pt1.Y;
 
             // Point color
             tri_vertices[tri_v_index + 2] = tri.tri_color.X;
@@ -263,8 +285,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Point 2
             // Point location
-            tri_vertices[tri_v_index + 0] = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord.X;
-            tri_vertices[tri_v_index + 1] = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord.Y;
+            tri_vertices[tri_v_index + 0] = pt2.X;
+            tri_vertices[tri_v_index + 1] = pt2.Y;
 
             // Point color
             tri_vertices[tri_v_index + 2] = tri.tri_color.X;
@@ -281,8 +303,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Point 3
             // Point location
-            tri_vertices[tri_v_index + 0] = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord.X;
-            tri_vertices[tri_v_index + 1] = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord.Y;
+            tri_vertices[tri_v_index + 0] = pt3.X;
+            tri_vertices[tri_v_index + 1] = pt3.Y;
 
             // Point color
             tri_vertices[tri_v_index + 2] = tri.tri_color.X;

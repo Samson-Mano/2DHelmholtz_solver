@@ -32,6 +32,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public Dictionary<int, quad_store> quadMap { get; } = new Dictionary<int, quad_store>();
         public int quad_count = 0;
         private bool is_DynamicDraw = false;
+        public bool is_ShrinkTriangle = false;
 
         private graphicBuffers quad_buffer;
         public Shader quad_shader;
@@ -268,11 +269,34 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         private void get_quad_vertex_buffer(quad_store quad, ref float[] quad_vertices, ref int quad_v_index)
         {
+            // Get the quad points
+            Vector3 pt1 = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].pt_coord;
+            Vector3 pt2 = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].pt_coord;
+            Vector3 pt3 = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].pt_coord;
+            Vector3 pt4 = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].pt_coord;
+
+            if(is_ShrinkTriangle == true)
+            {
+                // Shrink the triangle
+                Vector3 midPt = new Vector3((pt1.X + pt2.X + pt3.X + pt4.X) * 0.25f,
+                    (pt1.Y + pt2.Y + pt3.Y + pt4.Y) * 0.25f,
+                    (pt1.Z + pt2.Z + pt3.Z + pt4.Z) * 0.25f);
+
+                float shrink_factor = (float)gvariables_static.mesh_shrink_factor;
+
+                pt1 = gvariables_static.linear_interpolation3d(midPt, pt1, shrink_factor);
+                pt2 = gvariables_static.linear_interpolation3d(midPt, pt2, shrink_factor);
+                pt3 = gvariables_static.linear_interpolation3d(midPt, pt3, shrink_factor);
+                pt4 = gvariables_static.linear_interpolation3d(midPt, pt4, shrink_factor);
+
+            }
+
+
             // Get the node buffer for the shader
             // Point 1
             // Point location
-            quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].pt_coord.X;
-            quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].pt_coord.Y;
+            quad_vertices[quad_v_index + 0] = pt1.X;
+            quad_vertices[quad_v_index + 1] = pt1.Y;
 
             // Point color
             quad_vertices[quad_v_index + 2] = quad.quad_color.X;
@@ -289,8 +313,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Point 2
             // Point location
-            quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].pt_coord.X;
-            quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].pt_coord.Y;
+            quad_vertices[quad_v_index + 0] = pt2.X;
+            quad_vertices[quad_v_index + 1] = pt2.Y;
 
             // Point color
             quad_vertices[quad_v_index + 2] = quad.quad_color.X;
@@ -307,8 +331,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Point 3
             // Point location
-            quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].pt_coord.X;
-            quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].pt_coord.Y;
+            quad_vertices[quad_v_index + 0] = pt3.X;
+            quad_vertices[quad_v_index + 1] = pt3.Y;
 
             // Point color
             quad_vertices[quad_v_index + 2] = quad.quad_color.X;
@@ -325,8 +349,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Point 4
             // Point location
-            quad_vertices[quad_v_index + 0] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].pt_coord.X;
-            quad_vertices[quad_v_index + 1] = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].pt_coord.Y;
+            quad_vertices[quad_v_index + 0] = pt4.X;
+            quad_vertices[quad_v_index + 1] = pt4.Y;
 
             // Point color
             quad_vertices[quad_v_index + 2] = quad.quad_color.X;
