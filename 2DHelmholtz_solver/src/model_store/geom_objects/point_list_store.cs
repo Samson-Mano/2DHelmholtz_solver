@@ -1,4 +1,5 @@
-﻿using _2DHelmholtz_solver.opentk_control.opentk_buffer;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.opentk_control.opentk_buffer;
 using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
 using _2DHelmholtz_solver.src.opentk_control.opentk_buffer;
@@ -12,7 +13,8 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+
 
 namespace _2DHelmholtz_solver.src.model_store.geom_objects
 {
@@ -189,6 +191,36 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             point_shader.UnBind();
 
         }
+
+
+
+        public List<int> is_point_selected(Vector2 corner_pt1, Vector2 corner_pt2, drawing_events graphic_events_control)
+        {
+            // Selected point list index;
+            List<int> selected_point_index = new List<int>();
+
+            // Loop through all point in map
+            foreach (var pt_m in pointMap)
+            {
+                point_store pt = pt_m.Value;
+
+                //______________________________
+                Vector4 node_pt = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(pt.pt_coord.X, pt.pt_coord.Y, pt.pt_coord.Z, 1.0f);
+
+
+                // Check whether the point inside a rectangle
+                if (gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt.X, node_pt.Y)) == true)
+                {
+                    selected_point_index.Add(pt_m.Key);
+
+                }
+
+            }
+            return selected_point_index;
+
+        }
+
 
 
         private void get_point_vertex_buffer(point_store pt, ref float[] point_vertices, ref int point_v_index)

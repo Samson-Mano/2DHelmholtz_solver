@@ -55,7 +55,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public List<int> selected_tri_ids { get; } = new List<int>();
         public List<int> selected_quad_ids { get; } = new List<int>();
-        public List<int> selected_node_ids { get; } = new List<int>();
+        public List<int> selected_point_ids { get; } = new List<int>();
 
 
         public meshdata_store(Vector3 min_bounds, Vector3 max_bounds, Vector3 geom_bounds)
@@ -126,22 +126,59 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void add_selected_points(List<int> selected_point_ids)
+        public void add_selected_points(List<int> selected_point_ids, bool isRemove)
         {
-            // Add the selected points
-            selected_mesh_points.clear_points();
+            bool is_selection_changed = false;
 
-            // Selected points id
-            foreach (int pt_id in selected_point_ids)
+            if (isRemove == false)
             {
-                // get the point
-                point_store pt = mesh_points.pointMap[pt_id];
+                // Add to the selected point list
+                foreach (int pt_id in selected_point_ids)
+                {
+                    // Check whether the element is already in the list
+                    if (!this.selected_point_ids.Contains(pt_id))
+                    {
+                        // Add to selected elements
+                        this.selected_point_ids.Add(pt_id);
 
-                selected_mesh_points.add_point(pt_id, pt.x_coord, pt.y_coord, pt.z_coord, -2);
+                        // Selection changed flag
+                        is_selection_changed = true;
+                    }
+
+                }
+            }
+            else
+            {
+                // Remove from the selected point list
+                foreach (int pt_id in selected_point_ids)
+                {
+                    // Remove the elements which is found in the list
+                    this.selected_point_ids.Remove(pt_id);
+
+                    // Selection changed flag
+                    is_selection_changed = true;
+                }
 
             }
 
-            selected_mesh_points.set_buffer();
+
+            if (is_selection_changed == true)
+            {
+                // Add the selected points
+                selected_mesh_points.clear_points();
+
+                // Selected points id
+                foreach (int pt_id in this.selected_point_ids)
+                {
+                    // get the point
+                    point_store pt = mesh_points.pointMap[pt_id];
+
+                    selected_mesh_points.add_point(pt_id, pt.x_coord, pt.y_coord, pt.z_coord, -2);
+
+                }
+
+                selected_mesh_points.set_buffer();
+            }
 
         }
 
@@ -270,6 +307,16 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             selected_quad_ids.Clear();
             selected_mesh_quads.clear_quadrilaterals();
             selected_mesh_quads.set_buffer();
+
+        }
+
+
+        public void clear_selected_nodes()
+        {
+            // Clear the selected mesh points
+            selected_point_ids.Clear();
+            selected_mesh_points.clear_points();
+            selected_mesh_points.set_buffer();
 
         }
 
@@ -609,7 +656,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             if (isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
             {
                 // Paint the selected points
+                GL.PointSize(4.0f);
                 selected_mesh_points.paint_static_points();
+                GL.PointSize(1.0f);
             }
 
         }
@@ -660,19 +709,21 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             }
 
-            if(isConstraintUpdateInProgress == true)
+            if(isConstraintUpdateInProgress == true || isLoadUpdateInProgress == true)
             {
                 // Select the nodes for constraint update
+                List<int> selected_point_index = mesh_points.is_point_selected(o_pt, c_pt, graphic_events_control);
 
-
-            }
-
-            if(isLoadUpdateInProgress == true)
-            {
-                // Select the nodes for load update
-
+                add_selected_points(selected_point_index, isRightButton);
 
             }
+
+            //if(isLoadUpdateInProgress == true)
+            //{
+            //    // Select the nodes for load update
+
+
+            //}
 
         }
 

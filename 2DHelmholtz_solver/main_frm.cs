@@ -39,6 +39,8 @@ namespace _2DHelmholtz_solver
         // Forms
         private option_frm option_Form;
         private matprop_frm matprop_Form;
+        private load_frm load_Form;
+        private constraint_frm constraint_Form;
 
 
         public main_frm()
@@ -393,7 +395,7 @@ namespace _2DHelmholtz_solver
                 option_Form.StartPosition = FormStartPosition.Manual;
                 option_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
 
-              }
+            }
 
             //// Turn on Flag Material update form is open
             //fedata.meshdata.isMaterialUpdateInProgress = true;
@@ -422,11 +424,77 @@ namespace _2DHelmholtz_solver
         #region "Load Events"
         private void addLoadsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (fedata.meshdata.is_ModelSet == false)
+                return;
+
+            // Check if load_Form is null or disposed
+            if (load_Form == null || load_Form.IsDisposed)
+            {
+                load_Form = new load_frm(ref fedata);
+
+                // Make it behave like a tool window
+                load_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                load_Form.ShowInTaskbar = false;
+                load_Form.TopLevel = true;
+                load_Form.Owner = this;
+
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - load_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - load_Form.Height) / 2;
+                load_Form.StartPosition = FormStartPosition.Manual;
+                load_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+            }
+
+            // Turn on Flag Loads update form is open
+            fedata.meshdata.isLoadUpdateInProgress = true;
+            fedata.meshdata.clear_selected_nodes();
+
+            //// Show the form
+            // matprop_Form.update_material_data();
+            // matprop_Form.update_selected_element_list();
+            load_Form.Show(this);
+            load_Form.BringToFront();
+
+            glControl_main_panel.Invalidate();
 
         }
 
         private void addConstraintsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (fedata.meshdata.is_ModelSet == false)
+                return;
+
+            // Check if constraint_Form is null or disposed
+            if (constraint_Form == null || constraint_Form.IsDisposed)
+            {
+                constraint_Form = new constraint_frm(ref fedata);
+
+                // Make it behave like a tool window
+                constraint_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                constraint_Form.ShowInTaskbar = false;
+                constraint_Form.TopLevel = true;
+                constraint_Form.Owner = this;
+
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - constraint_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - constraint_Form.Height) / 2;
+                constraint_Form.StartPosition = FormStartPosition.Manual;
+                constraint_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+            }
+
+            // Turn on Flag Constraint update form is open
+            fedata.meshdata.isConstraintUpdateInProgress = true;
+            fedata.meshdata.clear_selected_nodes();
+
+            // Show the form
+            // matprop_Form.update_material_data();
+            // matprop_Form.update_selected_element_list();
+            constraint_Form.Show(this);
+            constraint_Form.BringToFront();
+
+            glControl_main_panel.Invalidate();
 
         }
 
@@ -471,6 +539,23 @@ namespace _2DHelmholtz_solver
 
         }
 
+
+        public void CallFrom_load_frm()
+        {
+            // Refresh 
+            glControl_main_panel.Invalidate();
+
+        }
+
+
+        public void CallFrom_constraint_frm()
+        {
+            // Refresh 
+            glControl_main_panel.Invalidate();
+
+        }
+
+
         public void CallFrom_matprop_frm()
         {
             // Refresh 
@@ -490,7 +575,7 @@ namespace _2DHelmholtz_solver
         {
             // Perform the shrinkage of the mesh
             fedata.meshdata.update_mesh_shrinkage();
-            
+
             // Refresh 
             glControl_main_panel.Invalidate();
 
