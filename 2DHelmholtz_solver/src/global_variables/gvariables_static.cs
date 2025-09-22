@@ -111,6 +111,7 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static double mesh_shrink_factor = 0.8f;
         public static double selectedmesh_shrink_factor = 0.8f;
+        public static bool is_RectangleSelection = false; // true = Rectangle selection, false = Circle Selection
 
         public static int RoundOff(this int i)
         {
@@ -252,12 +253,38 @@ namespace _2DHelmholtz_solver.global_variables
         }
 
 
-        public static bool isPointInsideRectangle(Vector2 rectCpt1, Vector2 rectCpt2, Vector2 pt)
+        public static bool isPointSelected(Vector2 rectCpt1, Vector2 rectCpt2, Vector2 pt)
+        {
+            if(is_RectangleSelection == true)
+            {
+                return isPointInsideRectangle(rectCpt1, rectCpt2, pt);
+            }
+            else
+            {
+                return isPointInsideCircle(rectCpt1, rectCpt2, pt);
+            }
+
+        }
+
+
+        private static bool isPointInsideRectangle(Vector2 rectCpt1, Vector2 rectCpt2, Vector2 pt)
         {
             return pt.X >= Math.Min(rectCpt1.X, rectCpt2.X) &&
                    pt.X <= Math.Max(rectCpt1.X, rectCpt2.X) &&
                    pt.Y >= Math.Min(rectCpt1.Y, rectCpt2.Y) &&
                    pt.Y <= Math.Max(rectCpt1.Y, rectCpt2.Y);
+        }
+
+
+        private static bool isPointInsideCircle(Vector2 rectCpt1, Vector2 rectCpt2, Vector2 pt)
+        {
+            // Calculate center and radius
+            Vector2 center = new Vector2((rectCpt1.X + rectCpt2.X) * 0.5f, (rectCpt1.Y + rectCpt2.Y) * 0.5f);
+            float radius = Vector2.Distance(rectCpt1, rectCpt2) * 0.5f;
+
+            // Check if point is within radius
+            return Vector2.Distance(pt, center) < radius;
+
         }
 
 

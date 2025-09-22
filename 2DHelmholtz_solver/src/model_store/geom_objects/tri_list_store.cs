@@ -222,13 +222,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
 
                 // Check whether the point inside a rectangle
-                if (gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_31_fp.X, md_pt_31_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(tri_midpt_fp.X, tri_midpt_fp.Y)) == true)
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_31_fp.X, md_pt_31_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(tri_midpt_fp.X, tri_midpt_fp.Y)) == true)
                 {
                     selected_tri_index.Add(tri_m.Key);
 

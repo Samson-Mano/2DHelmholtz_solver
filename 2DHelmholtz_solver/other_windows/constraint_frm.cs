@@ -1,4 +1,5 @@
-﻿using _2DHelmholtz_solver.src.model_store.fe_objects;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.model_store.fe_objects;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,6 +24,36 @@ namespace _2DHelmholtz_solver.other_windows
 
         }
 
+
+
+        private void button_applyconstraint_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button_deleteconstraint_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+
+        public void update_selected_node_list()
+        {
+            // Clear the text box
+            textBox_selectednodes.Clear();
+
+            List<int> all_selected_nodes = new List<int>();
+
+            all_selected_nodes.AddRange(fe_data.meshdata.selected_point_ids);
+
+            textBox_selectednodes.Text = string.Join(", ", all_selected_nodes);
+
+            textBox_selectednodes.Invalidate();
+
+        }
+
+
         private void constraint_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Control the flag
@@ -35,5 +66,45 @@ namespace _2DHelmholtz_solver.other_windows
             }
 
         }
+
+
+        private void rectangleSelectionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Toggle to Rectangle selection
+            SetSelectionMode(true);
+
+        }
+
+
+        private void circleSelectionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Toggle to Circle selection
+            SetSelectionMode(false);
+
+        }
+
+
+        private void constraint_frm_Load(object sender, EventArgs e)
+        {
+            // Initialize selection state from global variable
+            SetSelectionMode(gvariables_static.is_RectangleSelection);
+
+        }
+
+
+        private void SetSelectionMode(bool isRectangle)
+        {
+
+            gvariables_static.is_RectangleSelection = isRectangle;
+
+            rectangleSelectionToolStripMenuItem.Checked = isRectangle;
+            circleSelectionToolStripMenuItem.Checked = !isRectangle;
+
+
+            rectangleSelectionToolStripMenuItem.BackColor = isRectangle ? Color.LightBlue : SystemColors.Control;
+            circleSelectionToolStripMenuItem.BackColor = !isRectangle ? Color.LightBlue : SystemColors.Control;
+
+        }
+
     }
 }

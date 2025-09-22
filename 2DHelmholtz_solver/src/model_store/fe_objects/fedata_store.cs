@@ -176,8 +176,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             meshdata.paint_selected_mesh();
             meshdata.paint_selected_points();
 
-            // Paint the selection rectangle
-            meshdata.paint_selection_rectangle();
+            // Paint the selection rectangle or circle
+            meshdata.paint_selection_boundaries();
 
 
         }

@@ -210,7 +210,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
 
                 // Check whether the point inside a rectangle
-                if (gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt.X, node_pt.Y)) == true)
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt.X, node_pt.Y)) == true)
                 {
                     selected_point_index.Add(pt_m.Key);
 

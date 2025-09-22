@@ -112,6 +112,7 @@
     <Compile Include="src\model_store\geom_objects\meshdata_store.cs" />
     <Compile Include="src\model_store\geom_objects\point_list_store.cs" />
     <Compile Include="src\model_store\geom_objects\quad_list_store.cs" />
+    <Compile Include="src\model_store\geom_objects\selectcircle_store.cs" />
     <Compile Include="src\model_store\geom_objects\selectrectangle_store.cs" />
     <Compile Include="src\model_store\geom_objects\tri_list_store.cs" />
     <Compile Include="src\events_handler\drawing_events.cs" />

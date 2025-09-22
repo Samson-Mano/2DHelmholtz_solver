@@ -246,15 +246,15 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
 
                 // Check whether the point inside a rectangle
-                if (gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(node_pt4_fp.X, node_pt4_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_34_fp.X, md_pt_34_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(md_pt_41_fp.X, md_pt_41_fp.Y)) == true ||
-                    gvariables_static.isPointInsideRectangle(corner_pt1, corner_pt2, new Vector2(quad_midpt_fp.X, quad_midpt_fp.Y)) == true)
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt4_fp.X, node_pt4_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_34_fp.X, md_pt_34_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_41_fp.X, md_pt_41_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(quad_midpt_fp.X, quad_midpt_fp.Y)) == true)
                 {
                     selected_quad_index.Add(quad_m.Key);
 

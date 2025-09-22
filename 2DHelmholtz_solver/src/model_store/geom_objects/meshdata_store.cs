@@ -38,6 +38,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public drawing_events graphic_events_control { get; private set; }
 
         public selectrectangle_store selection_rectangle { get; }
+        public selectcircle_store selection_circle { get; }
+
 
         // Drawing bound data
         public Vector3 min_bounds { get; } = new Vector3(-1);
@@ -74,8 +76,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
 
-            // Set the selection rectangle
+            // Set the selection rectangle  & selection circle
             selection_rectangle = new selectrectangle_store();
+            selection_circle = new selectcircle_store();
 
             // Geometry bounds
             this.min_bounds = min_bounds;
@@ -555,6 +558,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             // Set the buffer of selection rectangle
             selection_rectangle.set_shader();
+            selection_circle.set_shader();
 
             // Set the shader
             // mesh points
@@ -577,6 +581,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             // Set the buffer of selection rectangle
             selection_rectangle.set_buffer();
+            selection_circle.set_buffer();
 
             // Set the buffer
             // mesh points
@@ -684,13 +689,22 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public void paint_selection_rectangle()
+        public void paint_selection_boundaries()
         {
 
             if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
             {
-                // Paint the selection rectangle
-                selection_rectangle.paint_selection_rectangle();
+                if(gvariables_static.is_RectangleSelection == true)
+                {
+                    // Paint the selection rectangle
+                    selection_rectangle.paint_selection_rectangle();
+                }
+                else
+                {
+                    // Paint the selection circle
+                    selection_circle.paint_selection_circle();
+                }
+                
             }
 
         }

@@ -1,4 +1,5 @@
-﻿using _2DHelmholtz_solver.src.model_store.geom_objects;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.model_store.geom_objects;
 // OpenTK library
 using OpenTK;
 using OpenTK.Graphics;
@@ -356,7 +357,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
         {
             // Location when the selection rectangle ends
             meshdata.selection_rectangle.update_selection_rectangle(new Vector2(0), new Vector2(0), false);
-
+            meshdata.selection_circle.update_selection_circle(new Vector2(0), new Vector2(0), false);
 
 
             int max_dim = window_width > window_height ? window_width : window_height;
@@ -485,8 +486,17 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             Vector2 o_pt = new Vector2(screen_opt_x, screen_opt_y);
             Vector2 c_pt = new Vector2(screen_cpt_x, screen_cpt_y);
 
-            this.meshdata.selection_rectangle.update_selection_rectangle(o_pt, c_pt, true);
-
+            if(gvariables_static.is_RectangleSelection == true)
+            {
+                // Update the selection rectangle points
+                this.meshdata.selection_rectangle.update_selection_rectangle(o_pt, c_pt, true);
+            }
+            else
+            {
+                // Update the selection circle points
+                this.meshdata.selection_circle.update_selection_circle(o_pt, c_pt, true);
+            }
+            
         }
 
     }

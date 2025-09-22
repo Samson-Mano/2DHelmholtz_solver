@@ -1,10 +1,12 @@
-﻿using _2DHelmholtz_solver.src.model_store.fe_objects;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.model_store.fe_objects;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -251,6 +253,44 @@ namespace _2DHelmholtz_solver.other_windows
             }
 
         }
+
+        private void rectangleSelectionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            // Toggle to Rectangle selection
+            SetSelectionMode(true);
+
+        }
+
+        private void circleSelectionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Toggle to Circle selection
+            SetSelectionMode(false);
+
+        }
+
+        private void matprop_frm_Load(object sender, EventArgs e)
+        {
+            // Initialize selection state from global variable
+            SetSelectionMode(gvariables_static.is_RectangleSelection);
+
+        }
+
+
+        private void SetSelectionMode(bool isRectangle)
+        {
+
+            gvariables_static.is_RectangleSelection = isRectangle;
+
+            rectangleSelectionToolStripMenuItem.Checked = isRectangle;
+            circleSelectionToolStripMenuItem.Checked = !isRectangle;
+
+
+            rectangleSelectionToolStripMenuItem.BackColor = isRectangle ? Color.LightBlue : SystemColors.Control;
+            circleSelectionToolStripMenuItem.BackColor = !isRectangle ? Color.LightBlue : SystemColors.Control;
+
+        }
+
 
     }
 }

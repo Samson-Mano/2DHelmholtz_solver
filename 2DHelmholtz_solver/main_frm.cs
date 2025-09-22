@@ -223,10 +223,24 @@ namespace _2DHelmholtz_solver
             {
                 glControl_main_panel.Invalidate();
 
-                // Update the Form data
+                // Update the Material Property Form data
                 if (fedata.meshdata.isMaterialUpdateInProgress == true)
                 {
                     matprop_Form.update_selected_element_list();
+
+                }
+
+                // Update the Load Form data
+                if(fedata.meshdata.isLoadUpdateInProgress  == true)
+                {
+                    load_Form.update_selected_node_list();
+
+                }
+
+                // Update the Constraint Form data
+                if(fedata.meshdata.isConstraintUpdateInProgress == true)
+                {
+                    constraint_Form.update_selected_node_list();
 
                 }
 
@@ -452,7 +466,7 @@ namespace _2DHelmholtz_solver
 
             //// Show the form
             // matprop_Form.update_material_data();
-            // matprop_Form.update_selected_element_list();
+            load_Form.update_selected_node_list();
             load_Form.Show(this);
             load_Form.BringToFront();
 
@@ -490,7 +504,7 @@ namespace _2DHelmholtz_solver
 
             // Show the form
             // matprop_Form.update_material_data();
-            // matprop_Form.update_selected_element_list();
+            constraint_Form.update_selected_node_list();
             constraint_Form.Show(this);
             constraint_Form.BringToFront();
 
