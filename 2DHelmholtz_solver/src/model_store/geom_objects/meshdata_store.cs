@@ -524,34 +524,114 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public void update_tri_material_ids(List<int> selected_tri_id, int material_id)
+        public void update_mesh_tris_color_id(int tri_id, int color_id)
         {
-            // Update the material id of the Triangle element
-            foreach (int tri_id in selected_tri_id)
-            {
-                mesh_tris.triMap[tri_id].color_id = material_id;
-                mesh_tris.triMap[tri_id].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
-            }
-
-            // Update the buffer to change the color based on new material id
-            mesh_tris.update_buffer();
+            // Update the triangle element color id
+            mesh_tris.triMap[tri_id].color_id = color_id;
+            mesh_tris.triMap[tri_id].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id);
 
         }
 
 
-        public void update_quad_material_ids(List<int> selected_quad_id, int material_id)
+        public void update_mesh_quads_color_id(int quad_id, int color_id)
         {
-            // Update the material id of the Quadrilateral element
-            foreach (int quad_id in selected_quad_id)
-            {
-                mesh_quads.quadMap[quad_id].color_id = material_id;
-                mesh_quads.quadMap[quad_id].quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
-            }
+            // Update the quadrilateral element color id
+            mesh_quads.quadMap[quad_id].color_id = color_id;
+            mesh_quads.quadMap[quad_id].quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id);
 
-            // Update the buffer to change the color based on new material id
+        }
+
+        public void update_mesh_color_buffer()
+        {
+            // Update the buffer
+            mesh_tris.update_buffer();
             mesh_quads.update_buffer();
 
         }
+
+
+        //public void update_material_id(int material_id, bool isMaterialDelete)
+        //{
+
+
+
+        //    //if(isMaterialDelete == false)
+        //    //{
+        //    //    if (this.selected_tri_ids.Count > 0)
+        //    //    {
+        //    //        // Update the material id of the Triangle element
+        //    //        foreach (int tri_id in this.selected_tri_ids)
+        //    //        {
+        //    //            mesh_tris.triMap[tri_id].color_id = material_id;
+        //    //            mesh_tris.triMap[tri_id].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
+        //    //        }
+
+        //    //        // Update the buffer to change the color based on new material id
+        //    //        mesh_tris.update_buffer();
+        //    //    }
+
+        //    //    if(this.selected_quad_ids.Count > 0)
+        //    //    {
+        //    //        // Update the material id of the Quadrilateral element
+        //    //        foreach (int quad_id in this.selected_quad_ids)
+        //    //        {
+        //    //            mesh_quads.quadMap[quad_id].color_id = material_id;
+        //    //            mesh_quads.quadMap[quad_id].quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
+        //    //        }
+
+        //    //        // Update the buffer to change the color based on new material id
+        //    //        mesh_quads.update_buffer();
+
+        //    //    }
+
+        //    //}
+        //    //else
+        //    //{
+        //    //    // Material is deleted so assign the default material
+        //    //    bool isMaterialUpdate = false;
+
+        //    //    // Update the material id of the Triangle element
+        //    //    foreach (var tri in mesh_tris.triMap)
+        //    //    {
+        //    //        if(mesh_tris.triMap[tri.Key].color_id == material_id)
+        //    //        {
+        //    //            mesh_tris.triMap[tri.Key].color_id = 0;
+        //    //            mesh_tris.triMap[tri.Key].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(0);
+
+        //    //            isMaterialUpdate = true;
+        //    //        }
+        //    //    }
+
+        //    //    if(isMaterialUpdate == true)
+        //    //    {
+        //    //        // Update the buffer to change the color based on new material id
+        //    //        mesh_tris.set_buffer();
+        //    //    }
+
+        //    //    // Check the quad material id
+        //    //    isMaterialUpdate = false;
+
+        //    //    // Update the material id of the Quadrilateral element
+        //    //    foreach (var quad in mesh_quads.quadMap)
+        //    //    {
+        //    //        if (mesh_quads.quadMap[quad.Key].color_id == material_id)
+        //    //        {
+        //    //            mesh_quads.quadMap[quad.Key].color_id = 0;
+        //    //            mesh_quads.quadMap[quad.Key].quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(0);
+
+        //    //            isMaterialUpdate = true;
+        //    //        }
+        //    //    }
+        //    //    if (isMaterialUpdate == true)
+        //    //    {
+        //    //        // Update the buffer to change the color based on new material id
+        //    //        mesh_quads.set_buffer();
+        //    //    }
+
+        //    //}
+
+        //}
+
 
 
         public void set_shader()

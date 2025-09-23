@@ -196,6 +196,13 @@ namespace _2DHelmholtz_solver.other_windows
                     return;
                 }
 
+                // Call the main form
+                if (this.Owner is main_frm mainForm)
+                {
+                    mainForm.CallFrom_matprop_frm(material_id, false, true);
+                }
+
+
                 // Remove from the dictionary
                 fe_data.fe_materials.Remove(material_id);
                 fe_data.materialids.Remove(material_id);
@@ -234,11 +241,27 @@ namespace _2DHelmholtz_solver.other_windows
         private void button_assignmaterial_Click(object sender, EventArgs e)
         {
 
-            // Call the main form
-            if (this.Owner is main_frm mainForm)
+            if (dataGridView_MaterialList.SelectedRows.Count > 0)
             {
-                mainForm.CallFrom_matprop_frm();
+                DataGridViewRow selectedRow = dataGridView_MaterialList.SelectedRows[0];
+                // Safely Retrieve the material ID
+                string idString = selectedRow.Cells["Column1_materialid"].Value?.ToString();
+
+                if (!int.TryParse(idString, out int material_id))
+                {
+                    // MessageBox.Show("Invalid material ID.");
+                    return;
+                }
+
+                // Call the main form
+                if (this.Owner is main_frm mainForm)
+                {
+                    mainForm.CallFrom_matprop_frm(material_id, true, false);
+                }
+
+                update_selected_element_list();
             }
+
         }
 
         private void matprop_frm_FormClosing(object sender, FormClosingEventArgs e)
@@ -249,7 +272,7 @@ namespace _2DHelmholtz_solver.other_windows
             // Call the main form
             if (this.Owner is main_frm mainForm)
             {
-                mainForm.CallFrom_matprop_frm(); 
+                mainForm.CallFrom_matprop_frm(-1,false,false); 
             }
 
         }

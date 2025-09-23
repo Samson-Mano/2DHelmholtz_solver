@@ -28,6 +28,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public double material_permeability = 0.0; // E
         public double material_conductivity = 0.0; // G
 
+        public int number_of_elements_appliedto = 0;
     }
 
 
@@ -183,7 +184,83 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         }
 
 
+        public void update_material_id(int material_id, bool isMaterialDelete)
+        {
+            // Flag to make sure material update happened
+            bool isMaterialUpdate = false;
 
+            if (isMaterialDelete == false)
+            {
+                if (meshdata.selected_tri_ids.Count > 0)
+                {
+                    // Update the material id of the Triangle element
+                    fe_tris.update_material(meshdata.selected_tri_ids, material_id);
+                    isMaterialUpdate = true;   
+                }
+
+                if (meshdata.selected_quad_ids.Count > 0)
+                {
+                    // Update the material id of the Quadrilateral element
+                    fe_quads.update_material(meshdata.selected_quad_ids, material_id);
+                    isMaterialUpdate = true;
+                }
+
+            }
+            else
+            {
+                if (fe_materials[material_id].number_of_elements_appliedto > 0)
+                {
+                    // Material is deleted so assign the default material
+                    fe_tris.execute_delete_material(material_id);
+                    fe_quads.execute_delete_material(material_id);
+                    isMaterialUpdate = true;
+                }
+
+            }
+
+
+            // If Material update happened
+            if(isMaterialUpdate == true)
+            {
+                // Clear the number of elements applied to data on material
+                foreach (int mat_id in fe_materials.Keys)
+                {
+                    fe_materials[mat_id].number_of_elements_appliedto = 0;
+                }
+
+                // Update the mesh tris color id
+                foreach (var tri_m in fe_tris.elementtriMap)
+                {
+                    elementtri_store tri = tri_m.Value;
+
+                    meshdata.update_mesh_tris_color_id(tri.tri_id, tri.material_id);
+
+                    // Increment the number of elements applied to
+                    fe_materials[tri.material_id].number_of_elements_appliedto++;
+
+                }
+
+                // Update the mesh quads color id
+                foreach (var quad_m in fe_quads.elementquadMap)
+                {
+                    elementquad_store quad = quad_m.Value;
+
+                    meshdata.update_mesh_quads_color_id(quad.quad_id, quad.material_id);
+
+                    // Increment the number of elements applied to
+                    fe_materials[quad.material_id].number_of_elements_appliedto++;
+
+                }
+
+                // Clear the selected elements
+                meshdata.clear_selected_mesh();
+
+                // Update the buffer
+                meshdata.update_mesh_color_buffer();
+
+            }
+
+        }
 
 
 

@@ -173,7 +173,7 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                         int numValues = splitValues.Length;
 
-                        if (numValues == 7)
+                        if (numValues == 6)
                         {
                             // Create a temporary materials
                             var tempMaterial = new material_data
@@ -183,7 +183,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                                 material_name = splitValues[1].Trim(),
                                 material_permittivity = double.Parse(splitValues[2]),
                                 material_permeability = double.Parse(splitValues[3]),
-                                material_conductivity = double.Parse(splitValues[4])
+                                material_conductivity = double.Parse(splitValues[4]),
+                                number_of_elements_appliedto = int.Parse(splitValues[5])
                             };
 
                             // Add to material list
@@ -355,7 +356,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                     material_name = "Default medium", // Default material name
                     material_permeability = 2.07 * Math.Pow(10, 5), //  MPa
                     material_permittivity = 0.80 * Math.Pow(10, 5), //  MPa
-                    material_conductivity = 7.83 * Math.Pow(10, -9)
+                    material_conductivity = 7.83 * Math.Pow(10, -9),
+                    number_of_elements_appliedto = (fe_tris.elementtri_count + fe_quads.elementquad_count)
                 };
 
                 // Add to the material list

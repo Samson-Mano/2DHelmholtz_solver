@@ -67,7 +67,15 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         public void execute_delete_material(int del_material_id)
         {
+            // Material is deleted, update the element which has the deleted material with default material
+            foreach (int tri_id in elementtriMap.Keys)
+            {
+                if (elementtriMap[tri_id].material_id == del_material_id)
+                {
+                    elementtriMap[tri_id].material_id = 0;
+                }
 
+            }
 
         }
 

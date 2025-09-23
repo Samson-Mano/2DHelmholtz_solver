@@ -39,7 +39,7 @@ namespace _2DHelmholtz_solver.other_windows
             // Call the main form
             if (this.Owner is main_frm mainForm)
             {
-                mainForm.CallFrom_option_frm_shrinkMesh();
+                mainForm.CallFrom_option_frm(true);
             }
 
         }
@@ -63,7 +63,7 @@ namespace _2DHelmholtz_solver.other_windows
             // Call the main form
             if (this.Owner is main_frm mainForm)
             {
-                mainForm.CallFrom_option_frm();
+                mainForm.CallFrom_option_frm(false);
             }
         }
 

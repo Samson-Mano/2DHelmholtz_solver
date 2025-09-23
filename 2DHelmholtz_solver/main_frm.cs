@@ -570,30 +570,39 @@ namespace _2DHelmholtz_solver
         }
 
 
-        public void CallFrom_matprop_frm()
+        public void CallFrom_matprop_frm(int material_id, bool isAssignMaterial = false, bool isDeleteMaterial = false)
         {
+            if(isAssignMaterial == true)
+            {
+                // Assign the material to the selected elements
+                fedata.update_material_id(material_id, false);
+            }
+
+
+            if(isDeleteMaterial == true)
+            {
+                // Material is deleted, update with default material
+                fedata.update_material_id(material_id, true);
+            }
+
             // Refresh 
             glControl_main_panel.Invalidate();
 
         }
 
-        public void CallFrom_option_frm()
+        public void CallFrom_option_frm(bool isShrinkMesh = false)
         {
+            if(isShrinkMesh == true)
+            {
+                // Perform the shrinkage of the mesh
+                fedata.meshdata.update_mesh_shrinkage();
+            }
+
             // Refresh 
             glControl_main_panel.Invalidate();
 
         }
 
-
-        public void CallFrom_option_frm_shrinkMesh()
-        {
-            // Perform the shrinkage of the mesh
-            fedata.meshdata.update_mesh_shrinkage();
-
-            // Refresh 
-            glControl_main_panel.Invalidate();
-
-        }
 
         #endregion
 

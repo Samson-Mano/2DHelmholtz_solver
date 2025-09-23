@@ -64,9 +64,17 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         }
 
 
-        public void execute_delete_material()
+        public void execute_delete_material(int del_material_id)
         {
+            // Material is deleted, update the element which has the deleted material with default material
+            foreach (int quad_id in elementquadMap.Keys)
+            {
+                if (elementquadMap[quad_id].material_id == del_material_id)
+                {
+                    elementquadMap[quad_id].material_id = 0;
+                }
 
+            }
 
         }
 
