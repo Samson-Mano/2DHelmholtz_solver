@@ -57,7 +57,7 @@ namespace _2DHelmholtz_solver.other_windows
         private void load_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Control the flag
-            fe_data.meshdata.isLoadUpdateInProgress = false;
+            fe_data.isLoadUpdateInProgress = false;
 
             // Call the main form
             if (this.Owner is main_frm mainForm)

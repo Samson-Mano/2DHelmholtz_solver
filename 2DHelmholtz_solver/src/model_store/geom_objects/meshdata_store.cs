@@ -31,36 +31,13 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         private int half_edge_count = 0;
 
-        // To control the drawing events
-        //private point_list_store drawing_boundary_points { get; }
-        //private line_list_store drawing_boundary_lines {  get; }
-
-        public drawing_events graphic_events_control { get; private set; }
-
-        public selectrectangle_store selection_rectangle { get; }
-        public selectcircle_store selection_circle { get; }
-
-
-        // Drawing bound data
-        public Vector3 min_bounds { get; } = new Vector3(-1);
-        public Vector3 max_bounds { get; } = new Vector3(1);
-        public Vector3 geom_bounds { get; } = new Vector3(2);
-
-        public bool is_ModelSet = false;
-
-
-        // Update of mesh properties
-        public bool isConstraintUpdateInProgress = false;
-        public bool isLoadUpdateInProgress = false;
-        public bool isMaterialUpdateInProgress = false;
-
 
         public List<int> selected_tri_ids { get; } = new List<int>();
         public List<int> selected_quad_ids { get; } = new List<int>();
         public List<int> selected_point_ids { get; } = new List<int>();
 
 
-        public meshdata_store(Vector3 min_bounds, Vector3 max_bounds, Vector3 geom_bounds)
+        public meshdata_store()
         {
 
             // Initialize the mesh points, lines, triangles and quadrilateral
@@ -73,27 +50,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
             selected_mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
 
-            // To control the drawing graphics
-            graphic_events_control = new drawing_events(this);
-
-            // Set the selection rectangle  & selection circle
-            selection_rectangle = new selectrectangle_store();
-            selection_circle = new selectcircle_store();
-
-            // Geometry bounds
-            this.min_bounds = min_bounds;
-            this.max_bounds = max_bounds;
-            this.geom_bounds = geom_bounds;
 
             // Selected mesh is drawn as shrunk triangle
             selected_mesh_tris.is_ShrinkTriangle = true;
             selected_mesh_quads.is_ShrinkTriangle = true;
-
-            //// Create the boundary lines
-            //drawing_boundary_points = new point_list_store();
-            //drawing_boundary_lines = new line_list_store(drawing_boundary_points);
-
-            is_ModelSet = false;
 
         }
 
@@ -189,7 +149,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             bool is_selection_changed = false;
 
-            if(isRemove == false)
+            if (isRemove == false)
             {
                 // Add to the selected tri elements list
                 foreach (int tri_id in selected_tri_ids)
@@ -221,7 +181,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
 
-            if(is_selection_changed == true)
+            if (is_selection_changed == true)
             {
                 // Add the selected triangles
                 selected_mesh_tris.clear_triangles();
@@ -302,7 +262,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void clear_selected_mesh()
         {
             // Clear the selected triangles
-            selected_tri_ids.Clear();   
+            selected_tri_ids.Clear();
             selected_mesh_tris.clear_triangles();
             selected_mesh_tris.set_buffer();
 
@@ -636,9 +596,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_shader()
         {
-            // Set the buffer of selection rectangle
-            selection_rectangle.set_shader();
-            selection_circle.set_shader();
 
             // Set the shader
             // mesh points
@@ -659,9 +616,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_buffer()
         {
-            // Set the buffer of selection rectangle
-            selection_rectangle.set_buffer();
-            selection_circle.set_buffer();
 
             // Set the buffer
             // mesh points
@@ -738,25 +692,21 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void paint_selected_points()
         {
-            if (isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
-            {
-                // Paint the selected points
-                GL.PointSize(4.0f);
-                selected_mesh_points.paint_static_points();
-                GL.PointSize(1.0f);
-            }
+
+            // Paint the selected points
+            GL.PointSize(4.0f);
+            selected_mesh_points.paint_static_points();
+            GL.PointSize(1.0f);
 
         }
 
         public void paint_selected_mesh()
         {
-            if (isMaterialUpdateInProgress == true)
-            {
-                // Paint the selected tris and quds
-                selected_mesh_tris.paint_static_triangles();
-                selected_mesh_quads.paint_static_quadrilaterals();
-            }
-            
+
+            // Paint the selected tris and quds
+            selected_mesh_tris.paint_static_triangles();
+            selected_mesh_quads.paint_static_quadrilaterals();
+
         }
 
 
@@ -769,55 +719,25 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public void paint_selection_boundaries()
+        public void select_mesh_elements(Vector2 o_pt, Vector2 c_pt, bool isRightButton, drawing_events graphic_events_control)
         {
+            // Select the elements for material property update
+            List<int> selected_tri_ids = mesh_tris.is_tri_selected(o_pt, c_pt, graphic_events_control);
+            List<int> selected_quad_ids = mesh_quads.is_quad_selected(o_pt, c_pt, graphic_events_control);
 
-            if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
-            {
-                if(gvariables_static.is_RectangleSelection == true)
-                {
-                    // Paint the selection rectangle
-                    selection_rectangle.paint_selection_rectangle();
-                }
-                else
-                {
-                    // Paint the selection circle
-                    selection_circle.paint_selection_circle();
-                }
-                
-            }
+            add_selected_tris(selected_tri_ids, isRightButton);
+            add_selected_quads(selected_quad_ids, isRightButton);
 
         }
 
-        public void select_mesh_objects(Vector2 o_pt, Vector2 c_pt, bool isRightButton)
+
+        public void select_mesh_points(Vector2 o_pt, Vector2 c_pt, bool isRightButton, drawing_events graphic_events_control)
         {
-            // Perform the select option
-            if (isMaterialUpdateInProgress == true)
-            {
-                // Select the elements for material property update
-                List<int> selected_tri_ids = mesh_tris.is_tri_selected(o_pt, c_pt, graphic_events_control);
-                List<int> selected_quad_ids = mesh_quads.is_quad_selected(o_pt, c_pt, graphic_events_control);
+            // Select the points for load or constraint update
+            List<int> selected_point_index = mesh_points.is_point_selected(o_pt, c_pt, graphic_events_control);
 
-                add_selected_tris(selected_tri_ids, isRightButton);
-                add_selected_quads(selected_quad_ids, isRightButton);
+            add_selected_points(selected_point_index, isRightButton);
 
-            }
-
-            if(isConstraintUpdateInProgress == true || isLoadUpdateInProgress == true)
-            {
-                // Select the nodes for constraint update
-                List<int> selected_point_index = mesh_points.is_point_selected(o_pt, c_pt, graphic_events_control);
-
-                add_selected_points(selected_point_index, isRightButton);
-
-            }
-
-            //if(isLoadUpdateInProgress == true)
-            //{
-            //    // Select the nodes for load update
-
-
-            //}
 
         }
 
@@ -835,7 +755,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
 
 
-        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency)
+        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency,
+           Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
         {
             // Following graphics operation is performed
             // 1) Zoom to Fit (Ctrl + F)
@@ -843,65 +764,63 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // 3) Pan operation (Ctrl + Right button drag)
             // 4) Drawing Area change (Resize of drawing area)
 
-            if (is_ModelSet == false)
-                return;
 
             // Update the openGl uniform matrices
             if (set_modelmatrix == true)
             {
                 // Set the model matrix
-                mesh_quads.quad_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
-                mesh_tris.tri_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
-                selected_mesh_quads.quad_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
-                selected_mesh_tris.tri_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                mesh_quads.quad_shader.SetMatrix4("modelMatrix", modelMatrix);
+                mesh_tris.tri_shader.SetMatrix4("modelMatrix", modelMatrix);
+                selected_mesh_quads.quad_shader.SetMatrix4("modelMatrix", modelMatrix);
+                selected_mesh_tris.tri_shader.SetMatrix4("modelMatrix", modelMatrix);
 
-                mesh_boundaries.line_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                mesh_boundaries.line_shader.SetMatrix4("modelMatrix", modelMatrix);
 
-                selected_mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
-                mesh_points.point_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+                selected_mesh_points.point_shader.SetMatrix4("modelMatrix", modelMatrix);
+                mesh_points.point_shader.SetMatrix4("modelMatrix", modelMatrix);
 
                 // drawing_boundary_lines.line_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
 
                 // Set the projection matrix
-                mesh_quads.quad_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
-                mesh_tris.tri_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
-                selected_mesh_quads.quad_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
-                selected_mesh_tris.tri_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+                mesh_quads.quad_shader.SetMatrix4("projectionMatrix", projectionMatrix);
+                mesh_tris.tri_shader.SetMatrix4("projectionMatrix", projectionMatrix);
+                selected_mesh_quads.quad_shader.SetMatrix4("projectionMatrix", projectionMatrix);
+                selected_mesh_tris.tri_shader.SetMatrix4("projectionMatrix", projectionMatrix);
 
-                mesh_boundaries.line_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+                mesh_boundaries.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
 
-                selected_mesh_points.point_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
-                mesh_points.point_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+                selected_mesh_points.point_shader.SetMatrix4("projectionMatrix", projectionMatrix);
+                mesh_points.point_shader.SetMatrix4("projectionMatrix", projectionMatrix);
 
             }
 
             if (set_viewmatrix == true)
             {
                 // Set the view matrix
-                mesh_quads.quad_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
-                mesh_tris.tri_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
-                selected_mesh_quads.quad_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
-                selected_mesh_tris.tri_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+                mesh_quads.quad_shader.SetMatrix4("viewMatrix", viewMatrix);
+                mesh_tris.tri_shader.SetMatrix4("viewMatrix", viewMatrix);
+                selected_mesh_quads.quad_shader.SetMatrix4("viewMatrix", viewMatrix);
+                selected_mesh_tris.tri_shader.SetMatrix4("viewMatrix", viewMatrix);
 
-                mesh_boundaries.line_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+                mesh_boundaries.line_shader.SetMatrix4("viewMatrix", viewMatrix);
 
-                selected_mesh_points.point_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
-                mesh_points.point_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+                selected_mesh_points.point_shader.SetMatrix4("viewMatrix", viewMatrix);
+                mesh_points.point_shader.SetMatrix4("viewMatrix", viewMatrix);
 
             }
 
             if (set_transparency == true)
             {
                 // Set the transparency float
-                mesh_quads.quad_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
-                mesh_tris.tri_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
-                selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
-                selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
+                mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
+                selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
+                selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
 
                 mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f);
 
-                selected_mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
-                mesh_points.point_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                selected_mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
+                mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
 
             }
 

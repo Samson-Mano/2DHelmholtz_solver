@@ -57,7 +57,7 @@ namespace _2DHelmholtz_solver.other_windows
         private void constraint_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Control the flag
-            fe_data.meshdata.isConstraintUpdateInProgress = false;
+            fe_data.isConstraintUpdateInProgress = false;
 
             // Call the main form
             if (this.Owner is main_frm mainForm)

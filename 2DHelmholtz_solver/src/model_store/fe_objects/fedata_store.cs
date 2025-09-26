@@ -47,8 +47,25 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public List<int> materialids;
 
         public meshdata_store meshdata;
-        bool isModelLoadSuccess = false;
+        public bool isModelSet = false;
 
+
+        // Drawing bound data
+        public Vector3 min_bounds = new Vector3(-1);
+        public Vector3 max_bounds = new Vector3(1);
+        public Vector3 geom_bounds = new Vector3(2);
+
+
+        public selectrectangle_store selection_rectangle { get; }
+        public selectcircle_store selection_circle { get; }
+
+        // To control the drawing events
+        public drawing_events graphic_events_control { get; private set; }
+
+        // Update of mesh properties
+        public bool isConstraintUpdateInProgress = false;
+        public bool isLoadUpdateInProgress = false;
+        public bool isMaterialUpdateInProgress = false;
 
 
         public fedata_store()
@@ -62,36 +79,49 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             fe_loads = new nodeload_list_store();
 
             fe_materials = new Dictionary<int, material_data>();
-            materialids = new List<int>(); 
+            materialids = new List<int>();
 
-            meshdata = new meshdata_store(new Vector3(-1), new Vector3(1), new Vector3(2));
+            meshdata = new meshdata_store();
+
+            // To control the drawing graphics
+            graphic_events_control = new drawing_events(this);
+
+            // Set the selection rectangle  & selection circle
+            selection_rectangle = new selectrectangle_store();
+            selection_circle = new selectcircle_store();
+
+            // Set a default geometry bounds
+            min_bounds = new Vector3(-1);
+            max_bounds = new Vector3(1);
+            geom_bounds = new Vector3(2);
 
         }
 
         public void importMesh(string fileContent)
         {
             List<Vector3> nodePtsList = new List<Vector3>();
-            isModelLoadSuccess = false;
+            isModelSet = false;
 
             file_events.import_mesh(fileContent, ref fe_nodes, ref fe_tris, ref fe_quads,
-                ref fe_constraints, ref fe_loads, ref fe_materials, ref materialids, ref nodePtsList, ref isModelLoadSuccess);
+                ref fe_constraints, ref fe_loads, ref fe_materials, ref materialids, ref nodePtsList, ref isModelSet);
 
 
-            if (isModelLoadSuccess == false)
+            if (isModelSet == false)
                 return;
 
             // Set the mesh boundaries
             Vector3 geometry_center = gvariables_static.FindGeometricCenter(nodePtsList);
             Tuple<Vector3, Vector3> geom_extremes = gvariables_static.FindMinMaxXY(nodePtsList);
 
-            Vector3 geom_min_b = geom_extremes.Item1; // Minimum bound
-            Vector3 geom_max_b = geom_extremes.Item2; // Maximum bound
 
-            Vector3 geom_bounds = geom_max_b - geom_min_b;
+            // Set the geometry bounds
+            this.min_bounds = geom_extremes.Item1; // Minimum bound
+            this.max_bounds = geom_extremes.Item2; // Maximum bound
 
+            this.geom_bounds = max_bounds - min_bounds;
 
             // Create the mesh for drawing
-            meshdata = new meshdata_store(geom_min_b,geom_max_b, geom_bounds);
+            meshdata = new meshdata_store();
 
             // Add the mesh points
             foreach (var nd_m in fe_nodes.nodeMap)
@@ -116,7 +146,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             {
                 elementquad_store quad = quad_m.Value;
 
-                meshdata.add_mesh_quads(quad.quad_id, quad.nodeid1, quad.nodeid2 , quad.nodeid3, quad.nodeid4, quad.material_id);
+                meshdata.add_mesh_quads(quad.quad_id, quad.nodeid1, quad.nodeid2, quad.nodeid3, quad.nodeid4, quad.material_id);
 
             }
 
@@ -124,21 +154,32 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             meshdata.set_mesh_wireframe();
             meshdata.create_drawing_boundary();
 
-            // Model is set
-            meshdata.is_ModelSet = true;
+            //// Model is set
+            //meshdata.is_ModelSet = true;
 
             // Set the openTK buffer
             meshdata.set_shader();
             meshdata.set_buffer();
 
+            // Set the shader of selection rectangle and circle
+            selection_rectangle.set_shader();
+            selection_circle.set_shader();
+
+            // Set the buffer of selection rectangle and circle
+            selection_rectangle.set_buffer();
+            selection_circle.set_buffer();
+
+
             // Update the openGL uniform
-            meshdata.update_openTK_uniforms(true, true, true);
+            meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
+                graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
+                graphic_events_control.geom_transparency);
 
         }
 
         public void paint_model()
         {
-            if (isModelLoadSuccess == false)
+            if (isModelSet == false)
                 return;
 
             meshdata.paint_drawing_boundary();
@@ -173,13 +214,75 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             }
 
-            // Paint the selected meshes and point
-            meshdata.paint_selected_mesh();
-            meshdata.paint_selected_points();
 
-            // Paint the selection rectangle or circle
-            meshdata.paint_selection_boundaries();
 
+            if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
+            {
+
+                // Paint the selected meshes and point
+                if (isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
+                {
+                    meshdata.paint_selected_points();
+
+                }
+
+
+                if (isMaterialUpdateInProgress == true)
+                {
+                    meshdata.paint_selected_mesh();
+                }
+
+
+                if (gvariables_static.is_RectangleSelection == true)
+                {
+                    // Paint the selection rectangle
+                    selection_rectangle.paint_selection_rectangle();
+                }
+                else
+                {
+                    // Paint the selection circle
+                    selection_circle.paint_selection_circle();
+                }
+
+            }
+
+        }
+
+
+
+
+        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency)
+        {
+            if (isModelSet == false)
+                return;
+
+
+            meshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+                graphic_events_control.projectionMatrix,
+                graphic_events_control.modelMatrix,
+                graphic_events_control.viewMatrix,
+                graphic_events_control.geom_transparency);
+
+
+        }
+
+
+
+        public void select_mesh_objects(Vector2 o_pt, Vector2 c_pt, bool isRightButton)
+        {
+            // Perform the select option
+            if (isMaterialUpdateInProgress == true)
+            {
+                meshdata.select_mesh_elements(o_pt, c_pt, isRightButton, graphic_events_control);
+
+            }
+
+            if (isConstraintUpdateInProgress == true || isLoadUpdateInProgress == true)
+            {
+                // Select the points for load or constraint update
+                meshdata.select_mesh_points(o_pt, c_pt, isRightButton, graphic_events_control);
+
+            }
 
         }
 
@@ -195,7 +298,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 {
                     // Update the material id of the Triangle element
                     fe_tris.update_material(meshdata.selected_tri_ids, material_id);
-                    isMaterialUpdate = true;   
+                    isMaterialUpdate = true;
                 }
 
                 if (meshdata.selected_quad_ids.Count > 0)
@@ -220,7 +323,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
             // If Material update happened
-            if(isMaterialUpdate == true)
+            if (isMaterialUpdate == true)
             {
                 // Clear the number of elements applied to data on material
                 foreach (int mat_id in fe_materials.Keys)

@@ -84,7 +84,7 @@ namespace _2DHelmholtz_solver
                 ((float)clr_bg.A / 255.0f));
 
             // Update the size of the drawing area
-            fedata.meshdata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
+            fedata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
                 glControl_main_panel.Height);
 
             fpsStopwatch.Start();
@@ -116,7 +116,7 @@ namespace _2DHelmholtz_solver
             glControl_main_panel.SwapBuffers();
 
             // Update the zoom value
-            double zm_val = fedata.meshdata.graphic_events_control.zoom_val;
+            double zm_val = fedata.graphic_events_control.zoom_val;
             toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(zm_val * 100))).ToString() + "%";
             toolStripStatusLabel_IsRefresh.Invalidate();
 
@@ -137,7 +137,7 @@ namespace _2DHelmholtz_solver
             //    return;
 
             // Update the size of the drawing area
-            fedata.meshdata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
+            fedata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
                 glControl_main_panel.Height);
 
             toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(1.0f * 100))).ToString() + "%";
@@ -159,13 +159,13 @@ namespace _2DHelmholtz_solver
             if (e.Button == MouseButtons.Left)
             {
                 // Left button down
-                isRefresh = fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(true, e.X, e.Y);
+                isRefresh = fedata.graphic_events_control.handleMouseLeftButtonClick(true, e.X, e.Y);
 
             }
             else if (e.Button == MouseButtons.Right)
             {
                 // Right button down
-                isRefresh = fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(true, e.X, e.Y);
+                isRefresh = fedata.graphic_events_control.handleMouseRightButtonClick(true, e.X, e.Y);
 
             }
 
@@ -180,7 +180,7 @@ namespace _2DHelmholtz_solver
         private void glControl_main_panel_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // Mouse wheel
-            bool isRefresh = fedata.meshdata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
+            bool isRefresh = fedata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
 
             if (isRefresh == true)
             {
@@ -193,7 +193,7 @@ namespace _2DHelmholtz_solver
         private void glControl_main_panel_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // Mouse move 
-            bool isRefresh = fedata.meshdata.graphic_events_control.handleMouseMove(e.X, e.Y);
+            bool isRefresh = fedata.graphic_events_control.handleMouseMove(e.X, e.Y);
 
             if (isRefresh == true)
             {
@@ -209,13 +209,13 @@ namespace _2DHelmholtz_solver
             if (e.Button == MouseButtons.Left)
             {
                 // Left button up
-                isRefresh = fedata.meshdata.graphic_events_control.handleMouseLeftButtonClick(false, e.X, e.Y);
+                isRefresh = fedata.graphic_events_control.handleMouseLeftButtonClick(false, e.X, e.Y);
 
             }
             else if (e.Button == MouseButtons.Right)
             {
                 // Right button up
-                isRefresh = fedata.meshdata.graphic_events_control.handleMouseRightButtonClick(false, e.X, e.Y);
+                isRefresh = fedata.graphic_events_control.handleMouseRightButtonClick(false, e.X, e.Y);
 
             }
 
@@ -224,21 +224,21 @@ namespace _2DHelmholtz_solver
                 glControl_main_panel.Invalidate();
 
                 // Update the Material Property Form data
-                if (fedata.meshdata.isMaterialUpdateInProgress == true)
+                if (fedata.isMaterialUpdateInProgress == true)
                 {
                     matprop_Form.update_selected_element_list();
 
                 }
 
                 // Update the Load Form data
-                if(fedata.meshdata.isLoadUpdateInProgress  == true)
+                if(fedata.isLoadUpdateInProgress  == true)
                 {
                     load_Form.update_selected_node_list();
 
                 }
 
                 // Update the Constraint Form data
-                if(fedata.meshdata.isConstraintUpdateInProgress == true)
+                if(fedata.isConstraintUpdateInProgress == true)
                 {
                     constraint_Form.update_selected_node_list();
 
@@ -251,7 +251,7 @@ namespace _2DHelmholtz_solver
         private void glControl_main_panel_KeyDown(object sender, KeyEventArgs e)
         {
             // Keyboard Key Down
-            bool isRefresh = fedata.meshdata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
+            bool isRefresh = fedata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
 
             if (isRefresh == true)
             {
@@ -264,7 +264,7 @@ namespace _2DHelmholtz_solver
         private void glControl_main_panel_KeyUp(object sender, KeyEventArgs e)
         {
             // Keyboard Key Up
-            bool isRefresh = fedata.meshdata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
+            bool isRefresh = fedata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
 
             if (isRefresh == true)
             {
@@ -273,7 +273,7 @@ namespace _2DHelmholtz_solver
             }
 
             // If zoom-to-fit started, start the timer
-            if (fedata.meshdata.graphic_events_control.isZoomToFitInProgress == true)
+            if (fedata.graphic_events_control.isZoomToFitInProgress == true)
             {
                 // Start the zoomToFit timer
                 if (!zoomToFitTimer.Enabled)
@@ -296,7 +296,7 @@ namespace _2DHelmholtz_solver
             // Refresh the glControl_main_panel as the zoom to fit operation in progress
             glControl_main_panel.Invalidate();
 
-            if (fedata.meshdata.graphic_events_control.isZoomToFitInProgress == false)
+            if (fedata.graphic_events_control.isZoomToFitInProgress == false)
             {
                 // End the zoom to fit operation
                 // Stop zoom-to-fit operation once done
@@ -389,7 +389,7 @@ namespace _2DHelmholtz_solver
 
         private void optionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (fedata.meshdata.is_ModelSet == false)
+            if (fedata.isModelSet == false)
                 return;
 
             // Check if option_Form is null or disposed
@@ -438,7 +438,7 @@ namespace _2DHelmholtz_solver
         #region "Load Events"
         private void addLoadsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (fedata.meshdata.is_ModelSet == false)
+            if (fedata.isModelSet == false)
                 return;
 
             // Check if load_Form is null or disposed
@@ -461,7 +461,7 @@ namespace _2DHelmholtz_solver
             }
 
             // Turn on Flag Loads update form is open
-            fedata.meshdata.isLoadUpdateInProgress = true;
+            fedata.isLoadUpdateInProgress = true;
             fedata.meshdata.clear_selected_nodes();
 
             //// Show the form
@@ -476,7 +476,7 @@ namespace _2DHelmholtz_solver
 
         private void addConstraintsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (fedata.meshdata.is_ModelSet == false)
+            if (fedata.isModelSet == false)
                 return;
 
             // Check if constraint_Form is null or disposed
@@ -499,7 +499,7 @@ namespace _2DHelmholtz_solver
             }
 
             // Turn on Flag Constraint update form is open
-            fedata.meshdata.isConstraintUpdateInProgress = true;
+            fedata.isConstraintUpdateInProgress = true;
             fedata.meshdata.clear_selected_nodes();
 
             // Show the form
@@ -514,7 +514,7 @@ namespace _2DHelmholtz_solver
 
         private void materialPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (fedata.meshdata.is_ModelSet == false)
+            if (fedata.isModelSet == false)
                 return;
 
             // Check if matprop_Form is null or disposed
@@ -540,7 +540,7 @@ namespace _2DHelmholtz_solver
             }
 
             // Turn on Flag Material update form is open
-            fedata.meshdata.isMaterialUpdateInProgress = true;
+            fedata.isMaterialUpdateInProgress = true;
             fedata.meshdata.clear_selected_mesh();
 
             // Show the form
