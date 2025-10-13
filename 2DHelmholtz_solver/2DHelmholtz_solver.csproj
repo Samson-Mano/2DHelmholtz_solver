@@ -68,12 +68,6 @@
     <Compile Include="main_frm.Designer.cs">
       <DependentUpon>main_frm.cs</DependentUpon>
     </Compile>
-    <Compile Include="other_windows\bndrycondition_frm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="other_windows\bndrycondition_frm.Designer.cs">
-      <DependentUpon>bndrycondition_frm.cs</DependentUpon>
-    </Compile>
     <Compile Include="other_windows\constraint_frm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -131,9 +125,6 @@
     <Compile Include="src\opentk_control\shader_compiler\ShaderLibrary.cs" />
     <EmbeddedResource Include="main_frm.resx">
       <DependentUpon>main_frm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="other_windows\bndrycondition_frm.resx">
-      <DependentUpon>bndrycondition_frm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="other_windows\constraint_frm.resx">
       <DependentUpon>constraint_frm.cs</DependentUpon>
