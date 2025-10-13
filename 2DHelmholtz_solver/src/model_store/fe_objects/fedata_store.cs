@@ -66,6 +66,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public bool isConstraintUpdateInProgress = false;
         public bool isLoadUpdateInProgress = false;
         public bool isMaterialUpdateInProgress = false;
+        public bool isBoundaryUpdateInProgress = false;
 
 
         public fedata_store()
@@ -216,7 +217,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
 
-            if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
+            if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true
+                || isBoundaryUpdateInProgress == true)
             {
 
                 // Paint the selected meshes and point
@@ -230,6 +232,11 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 if (isMaterialUpdateInProgress == true)
                 {
                     meshdata.paint_selected_mesh();
+                }
+
+                if(isBoundaryUpdateInProgress == true)
+                {
+                    meshdata.paint_selected_edges();
                 }
 
 
@@ -282,6 +289,11 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 // Select the points for load or constraint update
                 meshdata.select_mesh_points(o_pt, c_pt, isRightButton, graphic_events_control);
 
+            }
+
+            if (isBoundaryUpdateInProgress == true)
+            {
+                meshdata.select_mesh_edges(o_pt, c_pt, isRightButton, graphic_events_control);
             }
 
         }

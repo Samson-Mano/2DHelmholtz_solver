@@ -41,11 +41,17 @@ namespace _2DHelmholtz_solver
         private matprop_frm matprop_Form;
         private load_frm load_Form;
         private constraint_frm constraint_Form;
-        private bndrycondition_frm bndrycondition_Form;
 
 
         public main_frm()
         {
+            // initializing OpenTK panel
+            var mode = new GraphicsMode(new ColorFormat(32),
+                24,      // depth bits
+                 8,       // stencil bits
+                 4);      // number of samples (MSAA))
+
+            glControl_main_panel = new GLControl(mode);
 
             InitializeComponent();
 
@@ -101,12 +107,15 @@ namespace _2DHelmholtz_solver
             // Tell OpenGL to use MyGLControl
             glControl_main_panel.MakeCurrent();
 
-            // GL.Enable(EnableCap.Multisample);
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(0, BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
-            // Clear the background
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            GL.Enable(EnableCap.Multisample);
+            // GL.Enable(EnableCap.LineSmooth);
+            GL.Hint(HintTarget.LineSmoothHint, HintMode.Nicest);
+
 
             fedata.paint_model();
 
@@ -133,9 +142,9 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_SizeChanged(object sender, EventArgs e)
         {
-           // Note: SizeChanged can fire before the OpenGL context exists (e.g., during form initialization, Load etc).
-           if (glControl_main_panel == null || fedata == null)
-                 return;
+            // Note: SizeChanged can fire before the OpenGL context exists (e.g., during form initialization, Load etc).
+            //if (glControl_main_panel.Context.IsDisposed)
+            //    return;
 
             // Update the size of the drawing area
             fedata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
@@ -242,13 +251,6 @@ namespace _2DHelmholtz_solver
                 if(fedata.isConstraintUpdateInProgress == true)
                 {
                     constraint_Form.update_selected_node_list();
-
-                }
-
-                // Update the Boundary Condition Form data
-                if(fedata.isBoundaryUpdateInProgress == true)
-                {
-                    bndrycondition_Form.update_selected_edge_list();
 
                 }
 
@@ -562,48 +564,6 @@ namespace _2DHelmholtz_solver
         }
 
 
-
-        private void boundaryConditionsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (fedata.isModelSet == false)
-                return;
-
-            // Check if bndrycondition_Form is null or disposed
-            if (bndrycondition_Form == null || bndrycondition_Form.IsDisposed)
-            {
-                bndrycondition_Form = new bndrycondition_frm(ref fedata);
-
-                // Make it behave like a tool window
-                bndrycondition_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-                bndrycondition_Form.ShowInTaskbar = false;
-                bndrycondition_Form.TopLevel = true;
-                // bndrycondition_Form.MdiParent = this;
-                bndrycondition_Form.Owner = this;
-
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - bndrycondition_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - bndrycondition_Form.Height) / 2;
-                bndrycondition_Form.StartPosition = FormStartPosition.Manual;
-                bndrycondition_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
-
-                // matprop_Form.StartPosition = FormStartPosition.CenterParent;
-
-            }
-
-            // Turn on Flag Boundary condition update form is open
-            fedata.isBoundaryUpdateInProgress = true;
-            fedata.meshdata.clear_selected_edges();
-
-            // Show the form
-            // matprop_Form.update_material_data();
-            bndrycondition_Form.update_selected_edge_list();
-            bndrycondition_Form.Show(this);
-            bndrycondition_Form.BringToFront();
-
-            glControl_main_panel.Invalidate();
-
-        }
-
         public void CallFrom_load_frm()
         {
             // Refresh 
@@ -613,13 +573,6 @@ namespace _2DHelmholtz_solver
 
 
         public void CallFrom_constraint_frm()
-        {
-            // Refresh 
-            glControl_main_panel.Invalidate();
-
-        }
-
-        public void CallFrom_boundary_frm()
         {
             // Refresh 
             glControl_main_panel.Invalidate();

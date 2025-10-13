@@ -1,17 +1,17 @@
-﻿using _2DHelmholtz_solver.opentk_control.opentk_buffer;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.opentk_control.opentk_buffer;
 using _2DHelmholtz_solver.opentk_control.shader_compiler;
+using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
 using _2DHelmholtz_solver.src.opentk_control.opentk_buffer;
+// OpenTK library
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-// OpenTK library
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
-using _2DHelmholtz_solver.global_variables;
 
 namespace _2DHelmholtz_solver.src.model_store.geom_objects
 {
@@ -150,6 +150,15 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
+        public void clear_edges()
+        {
+            // Clear the data
+            lineMap.Clear();
+            line_count = 0;
+
+        }
+
+
 
         public void paint_static_lines()
         {
@@ -180,6 +189,58 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             line_shader.UnBind();
 
         }
+
+
+
+        public List<int> is_line_selected(Vector2 corner_pt1, Vector2 corner_pt2, drawing_events graphic_events_control)
+        {
+            // Selected line list index;
+            List<int> selected_line_index = new List<int>();
+
+            // Loop through all line in map
+            foreach (var ln_m in lineMap)
+            {
+                line_store ln = ln_m.Value;
+
+                // End points
+                Vector3 node_startpt = _allPts.pointMap[ln.start_pt_id].pt_coord;
+                Vector3 node_endpt = _allPts.pointMap[ln.end_pt_id].pt_coord;
+
+                // Mid points
+                Vector3 md_pt_25 = gvariables_static.linear_interpolation3d(node_startpt, node_endpt, 0.25);
+                Vector3 md_pt_50 = gvariables_static.linear_interpolation3d(node_startpt, node_endpt, 0.50);
+                Vector3 md_pt_75 = gvariables_static.linear_interpolation3d(node_startpt, node_endpt, 0.75);
+
+                //______________________________
+                Vector4 node_startpt_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_startpt.X, node_startpt.Y, node_startpt.Z, 1.0f);
+                Vector4 node_endpt_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(node_endpt.X, node_endpt.Y, node_endpt.Z, 1.0f);
+
+                Vector4 md_pt_25_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_25.X, md_pt_25.Y, md_pt_25.Z, 1.0f);
+                Vector4 md_pt_50_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_50.X, md_pt_50.Y, md_pt_50.Z, 1.0f);
+                Vector4 md_pt_75_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                    * graphic_events_control.modelMatrix * new Vector4(md_pt_75.X, md_pt_75.Y, md_pt_75.Z, 1.0f);
+
+                // Check whether the point inside a rectangle
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_startpt_fp.X, node_startpt_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_endpt_fp.X, node_endpt_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_25_fp.X, md_pt_25_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_50_fp.X, md_pt_50_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_75_fp.X, md_pt_75_fp.Y)) == true)
+                {
+                    selected_line_index.Add(ln_m.Key);
+
+                }
+
+            }
+
+            return selected_line_index;
+
+        }
+
 
 
         private void get_line_vertex_buffer(line_store ln, ref float[] line_vertices, ref int line_v_index)

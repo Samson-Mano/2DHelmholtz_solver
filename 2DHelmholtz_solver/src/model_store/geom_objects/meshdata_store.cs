@@ -24,6 +24,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private point_list_store selected_mesh_points { get; }
         private line_list_store mesh_half_edges { get; }
         private line_list_store mesh_boundaries { get; }
+        private line_list_store selected_mesh_edges { get; }
         private tri_list_store mesh_tris { get; }
         private tri_list_store selected_mesh_tris { get; }
         private quad_list_store mesh_quads { get; }
@@ -35,6 +36,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public List<int> selected_tri_ids { get; } = new List<int>();
         public List<int> selected_quad_ids { get; } = new List<int>();
         public List<int> selected_point_ids { get; } = new List<int>();
+        public List<int> selected_edge_ids { get; } = new List<int>();
 
 
         public meshdata_store()
@@ -45,6 +47,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             selected_mesh_points = new point_list_store();
             mesh_half_edges = new line_list_store(mesh_points);
             mesh_boundaries = new line_list_store(mesh_points);
+            selected_mesh_edges = new line_list_store(mesh_points);
             mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
             selected_mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
             mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
@@ -98,10 +101,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 // Add to the selected point list
                 foreach (int pt_id in selected_point_ids)
                 {
-                    // Check whether the element is already in the list
+                    // Check whether the point is already in the list
                     if (!this.selected_point_ids.Contains(pt_id))
                     {
-                        // Add to selected elements
+                        // Add to selected points
                         this.selected_point_ids.Add(pt_id);
 
                         // Selection changed flag
@@ -115,7 +118,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 // Remove from the selected point list
                 foreach (int pt_id in selected_point_ids)
                 {
-                    // Remove the elements which is found in the list
+                    // Remove the point which is found in the list
                     this.selected_point_ids.Remove(pt_id);
 
                     // Selection changed flag
@@ -141,6 +144,63 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 }
 
                 selected_mesh_points.set_buffer();
+            }
+
+        }
+
+
+        public void add_selected_edges(List<int> selected_edge_ids, bool isRemove)
+        {
+            bool is_selection_changed = false;
+
+            if (isRemove == false)
+            {
+                // Add to the selected point list
+                foreach (int edge_id in selected_edge_ids)
+                {
+                    // Check whether the edge is already in the list
+                    if (!this.selected_edge_ids.Contains(edge_id))
+                    {
+                        // Add to selected edge
+                        this.selected_edge_ids.Add(edge_id);
+
+                        // Selection changed flag
+                        is_selection_changed = true;
+                    }
+
+                }
+            }
+            else
+            {
+                // Remove from the selected edge list
+                foreach (int edge_id in selected_edge_ids)
+                {
+                    // Remove the edge which is found in the list
+                    this.selected_edge_ids.Remove(edge_id);
+
+                    // Selection changed flag
+                    is_selection_changed = true;
+                }
+
+            }
+
+
+            if (is_selection_changed == true)
+            {
+                // Add the selected edges
+                selected_mesh_edges.clear_edges();
+
+                // Selected edge id
+                foreach (int edge_id in this.selected_edge_ids)
+                {
+                    // get the edge
+                    line_store ln = mesh_boundaries.lineMap[edge_id];
+
+                    selected_mesh_edges.add_line(edge_id, ln.start_pt_id, ln.end_pt_id, -2);
+
+                }
+
+                selected_mesh_edges.set_buffer();
             }
 
         }
@@ -270,6 +330,16 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             selected_quad_ids.Clear();
             selected_mesh_quads.clear_quadrilaterals();
             selected_mesh_quads.set_buffer();
+
+        }
+
+
+        public void clear_selected_edges()
+        {
+            // Clear the selected edges
+            selected_edge_ids.Clear();
+            selected_mesh_edges.clear_edges();
+            selected_mesh_edges.set_buffer();
 
         }
 
@@ -604,6 +674,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // mesh boundaries
             mesh_boundaries.set_shader();
+            selected_mesh_edges.set_shader();
 
             // mesh tris and quads
             mesh_tris.set_shader();
@@ -624,6 +695,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // mesh boundaries
             mesh_boundaries.set_buffer();
+            selected_mesh_edges.set_buffer();
 
             // mesh tris and quads
             mesh_tris.set_buffer();
@@ -700,6 +772,16 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
+        public void paint_selected_edges()
+        {
+
+            // Paint the selected edges
+            GL.LineWidth(4.0f);
+            selected_mesh_edges.paint_static_lines();
+            GL.LineWidth(1.0f);
+
+        }
+
         public void paint_selected_mesh()
         {
 
@@ -730,6 +812,14 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
+        public void select_mesh_edges(Vector2 o_pt, Vector2 c_pt, bool isRightButton, drawing_events graphic_events_control)
+        {
+            // Select the edges for load or constraint update
+            List<int> selected_edge_index = mesh_boundaries.is_line_selected(o_pt, c_pt, graphic_events_control);
+
+            add_selected_edges(selected_edge_index, isRightButton); 
+
+        }
 
         public void select_mesh_points(Vector2 o_pt, Vector2 c_pt, bool isRightButton, drawing_events graphic_events_control)
         {
@@ -737,7 +827,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             List<int> selected_point_index = mesh_points.is_point_selected(o_pt, c_pt, graphic_events_control);
 
             add_selected_points(selected_point_index, isRightButton);
-
 
         }
 
@@ -775,6 +864,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_tris.tri_shader.SetMatrix4("modelMatrix", modelMatrix);
 
                 mesh_boundaries.line_shader.SetMatrix4("modelMatrix", modelMatrix);
+                selected_mesh_edges.line_shader.SetMatrix4("modelMatrix", modelMatrix);
 
                 selected_mesh_points.point_shader.SetMatrix4("modelMatrix", modelMatrix);
                 mesh_points.point_shader.SetMatrix4("modelMatrix", modelMatrix);
@@ -788,6 +878,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_tris.tri_shader.SetMatrix4("projectionMatrix", projectionMatrix);
 
                 mesh_boundaries.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
+                selected_mesh_edges.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
 
                 selected_mesh_points.point_shader.SetMatrix4("projectionMatrix", projectionMatrix);
                 mesh_points.point_shader.SetMatrix4("projectionMatrix", projectionMatrix);
@@ -803,6 +894,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_tris.tri_shader.SetMatrix4("viewMatrix", viewMatrix);
 
                 mesh_boundaries.line_shader.SetMatrix4("viewMatrix", viewMatrix);
+                selected_mesh_edges.line_shader.SetMatrix4("viewMatrix", viewMatrix);
 
                 selected_mesh_points.point_shader.SetMatrix4("viewMatrix", viewMatrix);
                 mesh_points.point_shader.SetMatrix4("viewMatrix", viewMatrix);
@@ -818,6 +910,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
 
                 mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f);
+                selected_mesh_edges.line_shader.SetFloat("vertexTransparency", 0.2f);
 
                 selected_mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
                 mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
