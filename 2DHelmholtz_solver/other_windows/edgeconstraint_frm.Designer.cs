@@ -1,6 +1,6 @@
 ﻿namespace _2DHelmholtz_solver.other_windows
 {
-    partial class bndrycondition_frm
+    partial class edgeconstraint_frm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,12 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(bndrycondition_frm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(edgeconstraint_frm));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.radioButton_sommerfield = new System.Windows.Forms.RadioButton();
-            this.radioButton_newmann = new System.Windows.Forms.RadioButton();
-            this.radioButton_dirichlet = new System.Windows.Forms.RadioButton();
             this.textBox_neumann = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox_dirichlet = new System.Windows.Forms.TextBox();
@@ -45,16 +43,20 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.rectangleSelectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.circleSelectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.radioButton_boundaryconditions = new System.Windows.Forms.RadioButton();
+            this.checkBox_dirichlet = new System.Windows.Forms.CheckBox();
+            this.checkBox_neumann = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.checkBox_neumann);
+            this.groupBox1.Controls.Add(this.checkBox_dirichlet);
+            this.groupBox1.Controls.Add(this.radioButton_boundaryconditions);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.radioButton_sommerfield);
-            this.groupBox1.Controls.Add(this.radioButton_newmann);
-            this.groupBox1.Controls.Add(this.radioButton_dirichlet);
             this.groupBox1.Controls.Add(this.textBox_neumann);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.textBox_dirichlet);
@@ -64,7 +66,7 @@
             this.groupBox1.Size = new System.Drawing.Size(310, 262);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Constraint Data: ";
+            this.groupBox1.Text = "Edge Constraint Data: ";
             // 
             // label4
             // 
@@ -85,31 +87,9 @@
             this.radioButton_sommerfield.Text = "ABC or Sommerfield Radiation Condition: ";
             this.radioButton_sommerfield.UseVisualStyleBackColor = true;
             // 
-            // radioButton_newmann
-            // 
-            this.radioButton_newmann.AutoSize = true;
-            this.radioButton_newmann.Location = new System.Drawing.Point(11, 108);
-            this.radioButton_newmann.Name = "radioButton_newmann";
-            this.radioButton_newmann.Size = new System.Drawing.Size(260, 19);
-            this.radioButton_newmann.TabIndex = 7;
-            this.radioButton_newmann.Text = "Natural or Newmann Boundary Condition: ";
-            this.radioButton_newmann.UseVisualStyleBackColor = true;
-            // 
-            // radioButton_dirichlet
-            // 
-            this.radioButton_dirichlet.AutoSize = true;
-            this.radioButton_dirichlet.Checked = true;
-            this.radioButton_dirichlet.Location = new System.Drawing.Point(11, 31);
-            this.radioButton_dirichlet.Name = "radioButton_dirichlet";
-            this.radioButton_dirichlet.Size = new System.Drawing.Size(262, 19);
-            this.radioButton_dirichlet.TabIndex = 6;
-            this.radioButton_dirichlet.TabStop = true;
-            this.radioButton_dirichlet.Text = "Essential or Dirichlet Boundary Condition: ";
-            this.radioButton_dirichlet.UseVisualStyleBackColor = true;
-            // 
             // textBox_neumann
             // 
-            this.textBox_neumann.Location = new System.Drawing.Point(93, 133);
+            this.textBox_neumann.Location = new System.Drawing.Point(93, 139);
             this.textBox_neumann.Name = "textBox_neumann";
             this.textBox_neumann.Size = new System.Drawing.Size(100, 23);
             this.textBox_neumann.TabIndex = 5;
@@ -117,7 +97,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(37, 136);
+            this.label2.Location = new System.Drawing.Point(37, 142);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(50, 15);
             this.label2.TabIndex = 4;
@@ -125,7 +105,7 @@
             // 
             // textBox_dirichlet
             // 
-            this.textBox_dirichlet.Location = new System.Drawing.Point(93, 56);
+            this.textBox_dirichlet.Location = new System.Drawing.Point(93, 85);
             this.textBox_dirichlet.Name = "textBox_dirichlet";
             this.textBox_dirichlet.Size = new System.Drawing.Size(100, 23);
             this.textBox_dirichlet.TabIndex = 2;
@@ -133,7 +113,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(61, 59);
+            this.label1.Location = new System.Drawing.Point(61, 88);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(26, 15);
             this.label1.TabIndex = 1;
@@ -204,7 +184,39 @@
             this.circleSelectionToolStripMenuItem.Text = "Circle Selection";
             this.circleSelectionToolStripMenuItem.Click += new System.EventHandler(this.circleSelectionToolStripMenuItem_Click);
             // 
-            // bndrycondition_frm
+            // radioButton_boundaryconditions
+            // 
+            this.radioButton_boundaryconditions.AutoSize = true;
+            this.radioButton_boundaryconditions.Checked = true;
+            this.radioButton_boundaryconditions.Location = new System.Drawing.Point(11, 35);
+            this.radioButton_boundaryconditions.Name = "radioButton_boundaryconditions";
+            this.radioButton_boundaryconditions.Size = new System.Drawing.Size(145, 19);
+            this.radioButton_boundaryconditions.TabIndex = 10;
+            this.radioButton_boundaryconditions.TabStop = true;
+            this.radioButton_boundaryconditions.Text = "Boundary Conditions:";
+            this.radioButton_boundaryconditions.UseVisualStyleBackColor = true;
+            // 
+            // checkBox_dirichlet
+            // 
+            this.checkBox_dirichlet.AutoSize = true;
+            this.checkBox_dirichlet.Location = new System.Drawing.Point(29, 60);
+            this.checkBox_dirichlet.Name = "checkBox_dirichlet";
+            this.checkBox_dirichlet.Size = new System.Drawing.Size(263, 19);
+            this.checkBox_dirichlet.TabIndex = 11;
+            this.checkBox_dirichlet.Text = "Essential or Dirichlet Boundary Condition: ";
+            this.checkBox_dirichlet.UseVisualStyleBackColor = true;
+            // 
+            // checkBox_neumann
+            // 
+            this.checkBox_neumann.AutoSize = true;
+            this.checkBox_neumann.Location = new System.Drawing.Point(29, 114);
+            this.checkBox_neumann.Name = "checkBox_neumann";
+            this.checkBox_neumann.Size = new System.Drawing.Size(261, 19);
+            this.checkBox_neumann.TabIndex = 12;
+            this.checkBox_neumann.Text = "Natural or Newmann Boundary Condition: ";
+            this.checkBox_neumann.UseVisualStyleBackColor = true;
+            // 
+            // edgeconstraint_frm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -220,11 +232,11 @@
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.MaximumSize = new System.Drawing.Size(360, 600);
             this.MinimumSize = new System.Drawing.Size(350, 590);
-            this.Name = "bndrycondition_frm";
+            this.Name = "edgeconstraint_frm";
             this.Opacity = 0.85D;
-            this.Text = "Boundary Conditions";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.bndrycondition_frm_FormClosing);
-            this.Load += new System.EventHandler(this.constraint_frm_Load);
+            this.Text = "Edge Constraints";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.edgeconstraint_frm_FormClosing);
+            this.Load += new System.EventHandler(this.edgeconstraint_frm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
@@ -249,8 +261,9 @@
         private System.Windows.Forms.ToolStripMenuItem rectangleSelectionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem circleSelectionToolStripMenuItem;
         private System.Windows.Forms.RadioButton radioButton_sommerfield;
-        private System.Windows.Forms.RadioButton radioButton_newmann;
-        private System.Windows.Forms.RadioButton radioButton_dirichlet;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.RadioButton radioButton_boundaryconditions;
+        private System.Windows.Forms.CheckBox checkBox_neumann;
+        private System.Windows.Forms.CheckBox checkBox_dirichlet;
     }
 }

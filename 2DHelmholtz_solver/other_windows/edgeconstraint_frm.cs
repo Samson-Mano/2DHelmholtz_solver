@@ -12,11 +12,11 @@ using System.Windows.Forms;
 
 namespace _2DHelmholtz_solver.other_windows
 {
-    public partial class bndrycondition_frm : Form
+    public partial class edgeconstraint_frm : Form
     {
         private fedata_store fe_data;
 
-        public bndrycondition_frm(ref fedata_store fe_data)
+        public edgeconstraint_frm(ref fedata_store fe_data)
         {
             InitializeComponent();
 
@@ -54,15 +54,15 @@ namespace _2DHelmholtz_solver.other_windows
         }
 
 
-        private void bndrycondition_frm_FormClosing(object sender, FormClosingEventArgs e)
+        private void edgeconstraint_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Control the flag
-            fe_data.isBoundaryUpdateInProgress = false;
+            fe_data.isEdgeConstraintUpdateInProgress = false;
 
             // Call the main form
             if (this.Owner is main_frm mainForm)
             {
-                mainForm.CallFrom_boundary_frm();
+                mainForm.CallFrom_edgeconstraint_frm();
             }
 
         }
@@ -84,7 +84,7 @@ namespace _2DHelmholtz_solver.other_windows
         }
 
 
-        private void constraint_frm_Load(object sender, EventArgs e)
+        private void edgeconstraint_frm_Load(object sender, EventArgs e)
         {
             // Initialize selection state from global variable
             SetSelectionMode(gvariables_static.is_RectangleSelection);

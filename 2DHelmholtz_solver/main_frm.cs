@@ -40,8 +40,8 @@ namespace _2DHelmholtz_solver
         private option_frm option_Form;
         private matprop_frm matprop_Form;
         private load_frm load_Form;
-        private constraint_frm constraint_Form;
-        private bndrycondition_frm bndrycondition_Form;
+        private nodalconstraint_frm nodalconstraint_Form;
+        private edgeconstraint_frm edgeconstraint_Form;
 
 
         public main_frm()
@@ -238,17 +238,17 @@ namespace _2DHelmholtz_solver
 
                 }
 
-                // Update the Constraint Form data
-                if(fedata.isConstraintUpdateInProgress == true)
+                // Update the Nodal Constraint Form data
+                if(fedata.isNodalConstraintUpdateInProgress == true)
                 {
-                    constraint_Form.update_selected_node_list();
+                    nodalconstraint_Form.update_selected_node_list();
 
                 }
 
-                // Update the Boundary Condition Form data
-                if(fedata.isBoundaryUpdateInProgress == true)
+                // Update the Edge Constraint Form data
+                if (fedata.isEdgeConstraintUpdateInProgress == true)
                 {
-                    bndrycondition_Form.update_selected_edge_list();
+                    edgeconstraint_Form.update_selected_edge_list();
 
                 }
 
@@ -482,39 +482,81 @@ namespace _2DHelmholtz_solver
 
         }
 
-        private void addConstraintsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void addNodalConstraintsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (fedata.isModelSet == false)
                 return;
 
-            // Check if constraint_Form is null or disposed
-            if (constraint_Form == null || constraint_Form.IsDisposed)
+            // Check if nodalconstraint_Form is null or disposed
+            if (nodalconstraint_Form == null || nodalconstraint_Form.IsDisposed)
             {
-                constraint_Form = new constraint_frm(ref fedata);
+                nodalconstraint_Form = new nodalconstraint_frm(ref fedata);
 
                 // Make it behave like a tool window
-                constraint_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-                constraint_Form.ShowInTaskbar = false;
-                constraint_Form.TopLevel = true;
-                constraint_Form.Owner = this;
+                nodalconstraint_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                nodalconstraint_Form.ShowInTaskbar = false;
+                nodalconstraint_Form.TopLevel = true;
+                nodalconstraint_Form.Owner = this;
 
                 // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - constraint_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - constraint_Form.Height) / 2;
-                constraint_Form.StartPosition = FormStartPosition.Manual;
-                constraint_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+                int x = this.Location.X + (this.Width - nodalconstraint_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - nodalconstraint_Form.Height) / 2;
+                nodalconstraint_Form.StartPosition = FormStartPosition.Manual;
+                nodalconstraint_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
 
             }
 
-            // Turn on Flag Constraint update form is open
-            fedata.isConstraintUpdateInProgress = true;
+            // Turn on Flag Nodal Constraint update form is open
+            fedata.isNodalConstraintUpdateInProgress = true;
             fedata.meshdata.clear_selected_nodes();
 
             // Show the form
             // matprop_Form.update_material_data();
-            constraint_Form.update_selected_node_list();
-            constraint_Form.Show(this);
-            constraint_Form.BringToFront();
+            nodalconstraint_Form.update_selected_node_list();
+            nodalconstraint_Form.Show(this);
+            nodalconstraint_Form.BringToFront();
+
+            glControl_main_panel.Invalidate();
+
+        }
+
+
+        private void addEdgeConstraintsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fedata.isModelSet == false)
+                return;
+
+            // Check if edgeconstraint_Form is null or disposed
+            if (edgeconstraint_Form == null || edgeconstraint_Form.IsDisposed)
+            {
+                edgeconstraint_Form = new edgeconstraint_frm(ref fedata);
+
+                // Make it behave like a tool window
+                edgeconstraint_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                edgeconstraint_Form.ShowInTaskbar = false;
+                edgeconstraint_Form.TopLevel = true;
+                // edgeconstraint_Form.MdiParent = this;
+                edgeconstraint_Form.Owner = this;
+
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - edgeconstraint_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - edgeconstraint_Form.Height) / 2;
+                edgeconstraint_Form.StartPosition = FormStartPosition.Manual;
+                edgeconstraint_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // matprop_Form.StartPosition = FormStartPosition.CenterParent;
+
+            }
+
+            // Turn on Flag Edge Constraint update form is open
+            fedata.isEdgeConstraintUpdateInProgress = true;
+            fedata.meshdata.clear_selected_edges();
+
+            // Show the form
+            // matprop_Form.update_material_data();
+            edgeconstraint_Form.update_selected_edge_list();
+            edgeconstraint_Form.Show(this);
+            edgeconstraint_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
 
@@ -562,48 +604,6 @@ namespace _2DHelmholtz_solver
         }
 
 
-
-        private void boundaryConditionsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (fedata.isModelSet == false)
-                return;
-
-            // Check if bndrycondition_Form is null or disposed
-            if (bndrycondition_Form == null || bndrycondition_Form.IsDisposed)
-            {
-                bndrycondition_Form = new bndrycondition_frm(ref fedata);
-
-                // Make it behave like a tool window
-                bndrycondition_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-                bndrycondition_Form.ShowInTaskbar = false;
-                bndrycondition_Form.TopLevel = true;
-                // bndrycondition_Form.MdiParent = this;
-                bndrycondition_Form.Owner = this;
-
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - bndrycondition_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - bndrycondition_Form.Height) / 2;
-                bndrycondition_Form.StartPosition = FormStartPosition.Manual;
-                bndrycondition_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
-
-                // matprop_Form.StartPosition = FormStartPosition.CenterParent;
-
-            }
-
-            // Turn on Flag Boundary condition update form is open
-            fedata.isBoundaryUpdateInProgress = true;
-            fedata.meshdata.clear_selected_edges();
-
-            // Show the form
-            // matprop_Form.update_material_data();
-            bndrycondition_Form.update_selected_edge_list();
-            bndrycondition_Form.Show(this);
-            bndrycondition_Form.BringToFront();
-
-            glControl_main_panel.Invalidate();
-
-        }
-
         public void CallFrom_load_frm()
         {
             // Refresh 
@@ -612,14 +612,14 @@ namespace _2DHelmholtz_solver
         }
 
 
-        public void CallFrom_constraint_frm()
+        public void CallFrom_nodalconstraint_frm()
         {
             // Refresh 
             glControl_main_panel.Invalidate();
 
         }
 
-        public void CallFrom_boundary_frm()
+        public void CallFrom_edgeconstraint_frm()
         {
             // Refresh 
             glControl_main_panel.Invalidate();

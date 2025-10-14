@@ -63,10 +63,10 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public drawing_events graphic_events_control { get; private set; }
 
         // Update of mesh properties
-        public bool isConstraintUpdateInProgress = false;
+        public bool isNodalConstraintUpdateInProgress = false;
         public bool isLoadUpdateInProgress = false;
         public bool isMaterialUpdateInProgress = false;
-        public bool isBoundaryUpdateInProgress = false;
+        public bool isEdgeConstraintUpdateInProgress = false;
 
 
         public fedata_store()
@@ -217,12 +217,12 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
 
-            if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true
-                || isBoundaryUpdateInProgress == true)
+            if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isNodalConstraintUpdateInProgress == true
+                || isEdgeConstraintUpdateInProgress == true)
             {
 
                 // Paint the selected meshes and point
-                if (isLoadUpdateInProgress == true || isConstraintUpdateInProgress == true)
+                if (isLoadUpdateInProgress == true || isNodalConstraintUpdateInProgress == true)
                 {
                     meshdata.paint_selected_points();
 
@@ -234,7 +234,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                     meshdata.paint_selected_mesh();
                 }
 
-                if(isBoundaryUpdateInProgress == true)
+                if(isEdgeConstraintUpdateInProgress == true)
                 {
                     meshdata.paint_selected_edges();
                 }
@@ -284,14 +284,14 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             }
 
-            if (isConstraintUpdateInProgress == true || isLoadUpdateInProgress == true)
+            if (isNodalConstraintUpdateInProgress == true || isLoadUpdateInProgress == true)
             {
                 // Select the points for load or constraint update
                 meshdata.select_mesh_points(o_pt, c_pt, isRightButton, graphic_events_control);
 
             }
 
-            if (isBoundaryUpdateInProgress == true)
+            if (isEdgeConstraintUpdateInProgress == true)
             {
                 meshdata.select_mesh_edges(o_pt, c_pt, isRightButton, graphic_events_control);
             }

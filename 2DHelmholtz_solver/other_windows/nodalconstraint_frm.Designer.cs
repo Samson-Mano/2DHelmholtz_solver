@@ -1,6 +1,6 @@
 ﻿namespace _2DHelmholtz_solver.other_windows
 {
-    partial class constraint_frm
+    partial class nodalconstraint_frm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(constraint_frm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(nodalconstraint_frm));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.textBox_neumann = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -60,7 +60,7 @@
             this.groupBox1.Size = new System.Drawing.Size(310, 195);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Constraint Data: ";
+            this.groupBox1.Text = "Nodal Constraint Data: ";
             // 
             // textBox_neumann
             // 
@@ -179,7 +179,7 @@
             this.circleSelectionToolStripMenuItem.Text = "Circle Selection";
             this.circleSelectionToolStripMenuItem.Click += new System.EventHandler(this.circleSelectionToolStripMenuItem_Click);
             // 
-            // constraint_frm
+            // nodalconstraint_frm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -195,11 +195,11 @@
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.MaximumSize = new System.Drawing.Size(360, 520);
             this.MinimumSize = new System.Drawing.Size(350, 510);
-            this.Name = "constraint_frm";
+            this.Name = "nodalconstraint_frm";
             this.Opacity = 0.85D;
-            this.Text = "Constraints";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.constraint_frm_FormClosing);
-            this.Load += new System.EventHandler(this.constraint_frm_Load);
+            this.Text = "Nodal Constraints";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.nodalconstraint_frm_FormClosing);
+            this.Load += new System.EventHandler(this.nodalconstraint_frm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);

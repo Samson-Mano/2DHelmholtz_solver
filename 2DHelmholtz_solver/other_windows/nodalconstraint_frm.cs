@@ -12,11 +12,11 @@ using System.Windows.Forms;
 
 namespace _2DHelmholtz_solver.other_windows
 {
-    public partial class constraint_frm : Form
+    public partial class nodalconstraint_frm : Form
     {
         private fedata_store fe_data;
 
-        public constraint_frm(ref fedata_store fe_data)
+        public nodalconstraint_frm(ref fedata_store fe_data)
         {
             InitializeComponent();
 
@@ -54,15 +54,15 @@ namespace _2DHelmholtz_solver.other_windows
         }
 
 
-        private void constraint_frm_FormClosing(object sender, FormClosingEventArgs e)
+        private void nodalconstraint_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Control the flag
-            fe_data.isConstraintUpdateInProgress = false;
+            fe_data.isNodalConstraintUpdateInProgress = false;
 
             // Call the main form
             if (this.Owner is main_frm mainForm)
             {
-                mainForm.CallFrom_constraint_frm();
+                mainForm.CallFrom_nodalconstraint_frm();
             }
 
         }
@@ -84,7 +84,7 @@ namespace _2DHelmholtz_solver.other_windows
         }
 
 
-        private void constraint_frm_Load(object sender, EventArgs e)
+        private void nodalconstraint_frm_Load(object sender, EventArgs e)
         {
             // Initialize selection state from global variable
             SetSelectionMode(gvariables_static.is_RectangleSelection);

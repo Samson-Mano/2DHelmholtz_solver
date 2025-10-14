@@ -68,17 +68,17 @@
     <Compile Include="main_frm.Designer.cs">
       <DependentUpon>main_frm.cs</DependentUpon>
     </Compile>
-    <Compile Include="other_windows\bndrycondition_frm.cs">
+    <Compile Include="other_windows\edgeconstraint_frm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="other_windows\bndrycondition_frm.Designer.cs">
-      <DependentUpon>bndrycondition_frm.cs</DependentUpon>
+    <Compile Include="other_windows\edgeconstraint_frm.Designer.cs">
+      <DependentUpon>edgeconstraint_frm.cs</DependentUpon>
     </Compile>
-    <Compile Include="other_windows\constraint_frm.cs">
+    <Compile Include="other_windows\nodalconstraint_frm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="other_windows\constraint_frm.Designer.cs">
-      <DependentUpon>constraint_frm.cs</DependentUpon>
+    <Compile Include="other_windows\nodalconstraint_frm.Designer.cs">
+      <DependentUpon>nodalconstraint_frm.cs</DependentUpon>
     </Compile>
     <Compile Include="other_windows\import_frm.cs">
       <SubType>Form</SubType>
@@ -132,11 +132,11 @@
     <EmbeddedResource Include="main_frm.resx">
       <DependentUpon>main_frm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="other_windows\bndrycondition_frm.resx">
-      <DependentUpon>bndrycondition_frm.cs</DependentUpon>
+    <EmbeddedResource Include="other_windows\edgeconstraint_frm.resx">
+      <DependentUpon>edgeconstraint_frm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="other_windows\constraint_frm.resx">
-      <DependentUpon>constraint_frm.cs</DependentUpon>
+    <EmbeddedResource Include="other_windows\nodalconstraint_frm.resx">
+      <DependentUpon>nodalconstraint_frm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="other_windows\import_frm.resx">
       <DependentUpon>import_frm.cs</DependentUpon>
