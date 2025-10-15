@@ -244,34 +244,57 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                 if (line == "*CONSTRAINT_DATA")
                 {
+                    Dictionary<int, nodecnst_data> ConstraintSetData = new Dictionary<int, nodecnst_data>();
 
                     while (j < dataLines.Length)
                     {
-                        var constraintLine = dataLines[j + 1].Trim();
-                        var splitValues = constraintLine.Split(',');
+                        var ConstraintLine = dataLines[j + 1].Trim();
+                        var splitValues = ConstraintLine.Split(',');
 
-                        if (splitValues.Length != 2)
+                        if (splitValues.Length != 4)
                             break;
 
                         try
                         {
-                            int nodeId = int.Parse(splitValues[0]);
-                            int constraintType = int.Parse(splitValues[1]);
+                            int ConstraintSetId = int.Parse(splitValues[0]);
+                            int nodeId = int.Parse(splitValues[1]);
+                            double Constraint_fieldvalue = double.Parse(splitValues[2]);
+                            double Constraint_sourcevalue = double.Parse(splitValues[3]);
 
-                            // Add the node constraint to list
-                            fe_constraints.add_nodeconstraint(nodeId, constraintType);
+                            if (!ConstraintSetData.ContainsKey(ConstraintSetId))
+                                ConstraintSetData[ConstraintSetId] = new nodecnst_data();
+
+                            var constraintEntry = ConstraintSetData[ConstraintSetId];
+                            constraintEntry.constraint_node_ids.Add(nodeId); // Add the multiple nodes where the particular load set is applied
+
+                            // Add the load amplitude when the first node is added (all the nodes have same load values)
+                            if (constraintEntry.constraint_node_ids.Count == 1)
+                            {
+                                constraintEntry.field_value = Constraint_fieldvalue; // Field value (Dirichlet boundary condition)
+                                constraintEntry.source_value = Constraint_sourcevalue; // Source term, Excitation source
+                            }
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show($"Error parsing constraint data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            // Console.WriteLine($"Error parsing constraint data: {ex.Message}");
+                            MessageBox.Show($"Error parsing load data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            // Console.WriteLine($"Error parsing load data: {ex.Message}");
                             break;
                         }
 
                         j++;
                     }
 
+                    // Add to main constraint storage
+                    foreach (var kvp in ConstraintSetData)
+                    {
+                        var cnst = kvp.Value;
+
+                        // Add the node constraint to the list
+                        fe_constraints.add_nodeconstraint(cnst.constraint_node_ids, cnst.field_value, cnst.source_value);
+                    }
+
                     // Console.WriteLine($"Constraint data read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
+
                 }
 
 

@@ -22,17 +22,114 @@ namespace _2DHelmholtz_solver.other_windows
 
             this.fe_data = fe_data;
 
+            UpdateEnabledStateUI();
+
         }
 
 
 
         private void button_applyconstraint_Click(object sender, EventArgs e)
         {
+            if (fe_data.meshdata.selected_point_ids.Count == 0)
+                return;
+
+
+            // Test the data
+            if (!double.TryParse(textBox_dirichlet.Text, out double field_value) ||
+                !double.TryParse(textBox_source.Text, out double source_value))
+            {
+                MessageBox.Show("Please enter valid numeric values for field value, and source value.");
+                return;
+            }
+
+            // Add the constraint
+            fe_data.fe_constraints.add_nodeconstraint(fe_data.meshdata.selected_point_ids, field_value, source_value);
+
+            // Clear the selected point ids
+            fe_data.meshdata.clear_selected_nodes();
+
+            update_selected_node_list();
+
+            // Call the main form
+            if (this.Owner is main_frm mainForm)
+            {
+                mainForm.CallFrom_nodalconstraint_frm();
+            }
+
+            // Update the data grid view
+            update_dataGridView();
 
         }
 
+
         private void button_deleteconstraint_Click(object sender, EventArgs e)
         {
+            if (dataGridView_ConstraintList.SelectedRows.Count > 0)
+            {
+                DataGridViewRow selectedRow = dataGridView_ConstraintList.SelectedRows[0];
+
+                // Safely Retrieve the Constraint ID
+                string idString = selectedRow.Cells["Column1_constraintid"].Value?.ToString();
+
+                if (!int.TryParse(idString, out int constraint_id))
+                {
+                    // MessageBox.Show("Invalid constraint ID.");
+                    return;
+                }
+
+
+                // Delete the selected constraint
+                fe_data.fe_constraints.delete_nodeconstraint(constraint_id);
+
+                update_dataGridView();
+
+            }
+
+        }
+
+
+        public void update_dataGridView()
+        {
+
+            // refresh the Constraint list data grid view
+            dataGridView_ConstraintList.Rows.Clear();
+
+
+            foreach (var cnst_m in fe_data.fe_constraints.ndcnstMap)
+            {
+                nodecnst_data cnst = cnst_m.Value;
+
+                // Convert node IDs list to a short string, e.g. "1, 2, 3 ..."
+                string nodeIdsPreview;
+                int previewCount = 15; // how many IDs to show
+                if (cnst.constraint_node_ids.Count > previewCount)
+                {
+                    nodeIdsPreview = string.Join(", ", cnst.constraint_node_ids.Take(previewCount)) + " ...";
+                }
+                else
+                {
+                    nodeIdsPreview = string.Join(", ", cnst.constraint_node_ids);
+                }
+
+                dataGridView_ConstraintList.Rows.Add(
+                    cnst.cnst_id,
+                    nodeIdsPreview,   // show some of constraint nodes as string here
+                    cnst.field_value.ToString("G"),
+                    cnst.source_value.ToString("G")
+                    );
+
+            }
+
+            if (dataGridView_ConstraintList.Rows.Count > 0)
+            {
+                // Move the index to the last index
+                int lastIndex = dataGridView_ConstraintList.Rows.Count - 1;
+                dataGridView_ConstraintList.ClearSelection();
+                dataGridView_ConstraintList.Rows[lastIndex].Selected = true;
+
+            }
+
+            dataGridView_ConstraintList.Invalidate();
 
         }
 
@@ -105,6 +202,31 @@ namespace _2DHelmholtz_solver.other_windows
             circleSelectionToolStripMenuItem.BackColor = !isRectangle ? Color.LightBlue : SystemColors.Control;
 
         }
+
+        private void radioButton_dirichlet_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateEnabledStateUI();
+
+        }
+
+        private void radioButton_source_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateEnabledStateUI();
+
+        }
+
+
+        private void UpdateEnabledStateUI()
+        {
+            bool isSourceSelected = radioButton_source.Checked;
+
+            textBox_source.Enabled = isSourceSelected;
+            label_source.Enabled = isSourceSelected;
+
+            textBox_dirichlet.Enabled = !isSourceSelected;
+            label_dirichlet.Enabled = !isSourceSelected;
+        }
+
 
     }
 }
