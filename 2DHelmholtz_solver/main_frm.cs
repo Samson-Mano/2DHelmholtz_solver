@@ -512,6 +512,7 @@ namespace _2DHelmholtz_solver
 
             // Show the form
             // matprop_Form.update_material_data();
+            nodalconstraint_Form.update_dataGridView();
             nodalconstraint_Form.update_selected_node_list();
             nodalconstraint_Form.Show(this);
             nodalconstraint_Form.BringToFront();
@@ -615,6 +616,8 @@ namespace _2DHelmholtz_solver
         public void CallFrom_nodalconstraint_frm()
         {
             // Refresh 
+            fedata.update_openTK_uniforms(true, true, true);
+
             glControl_main_panel.Invalidate();
 
         }

@@ -24,6 +24,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private point_list_store selected_mesh_points { get; }
         private line_list_store mesh_half_edges { get; }
         private line_list_store mesh_boundaries { get; }
+
+        private line_list_store mesh_lines { get; }
+
+
         private line_list_store selected_mesh_edges { get; }
         private tri_list_store mesh_tris { get; }
         private tri_list_store selected_mesh_tris { get; }
@@ -47,6 +51,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             selected_mesh_points = new point_list_store();
             mesh_half_edges = new line_list_store(mesh_points);
             mesh_boundaries = new line_list_store(mesh_points);
+            mesh_lines = new line_list_store(mesh_points);
             selected_mesh_edges = new line_list_store(mesh_points);
             mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
             selected_mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
@@ -91,6 +96,31 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             mesh_points.add_point(point_id, x_coord, y_coord, z_coord, color_id);
 
         }
+
+
+        public void delete_mesh_point(int point_id)
+        {
+            // Delete the mesh point
+            mesh_points.delete_point(point_id);
+
+        }
+
+
+        public void add_mesh_lines(int line_id, int point_id1, int point_id2, int color_id)
+        {
+            // Add the mesh lines
+            mesh_lines.add_line(line_id, point_id1, point_id2, color_id);
+
+        }
+
+
+        public void delete_mesh_line(int line_id)
+        {
+            // Delete the mesh line
+            mesh_lines.delete_line(line_id);
+
+        }
+
 
         public void add_selected_points(List<int> selected_point_ids, bool isRemove)
         {
@@ -676,6 +706,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             mesh_boundaries.set_shader();
             selected_mesh_edges.set_shader();
 
+            // mesh lines
+            mesh_lines.set_shader();
+
             // mesh tris and quads
             mesh_tris.set_shader();
             mesh_quads.set_shader();
@@ -696,6 +729,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // mesh boundaries
             mesh_boundaries.set_buffer();
             selected_mesh_edges.set_buffer();
+
+            // mesh lines
+            mesh_lines.set_buffer();
 
             // mesh tris and quads
             mesh_tris.set_buffer();
@@ -724,6 +760,15 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
+        public void paint_static_mesh_lines()
+        {
+            // Paint the static mesh (lines)
+            GL.LineWidth(gvariables_static.LineWidth);
+            mesh_lines.paint_static_lines();
+            GL.LineWidth(1.0f);
+
+        }
+
         public void paint_static_mesh_boundaries()
         {
             // Paint the mesh boundaries
@@ -747,6 +792,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             mesh_quads.paint_dynamic_quadrilaterals();
 
         }
+
+
+        public void paint_dynamic_mesh_lines()
+        {
+            // Paint the static mesh (lines)
+            GL.LineWidth(gvariables_static.LineWidth);
+            mesh_lines.paint_dynamic_lines();
+            GL.LineWidth(1.0f);
+
+        }
+
 
         public void paint_dynamic_mesh_boundaries()
         {
@@ -864,6 +920,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_tris.tri_shader.SetMatrix4("modelMatrix", modelMatrix);
 
                 mesh_boundaries.line_shader.SetMatrix4("modelMatrix", modelMatrix);
+                mesh_lines.line_shader.SetMatrix4("modelMatrix", modelMatrix);
+
                 selected_mesh_edges.line_shader.SetMatrix4("modelMatrix", modelMatrix);
 
                 selected_mesh_points.point_shader.SetMatrix4("modelMatrix", modelMatrix);
@@ -878,6 +936,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_tris.tri_shader.SetMatrix4("projectionMatrix", projectionMatrix);
 
                 mesh_boundaries.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
+                mesh_lines.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
+
                 selected_mesh_edges.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
 
                 selected_mesh_points.point_shader.SetMatrix4("projectionMatrix", projectionMatrix);
@@ -894,6 +954,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_tris.tri_shader.SetMatrix4("viewMatrix", viewMatrix);
 
                 mesh_boundaries.line_shader.SetMatrix4("viewMatrix", viewMatrix);
+                mesh_lines.line_shader.SetMatrix4("viewMatrix", viewMatrix);
+
                 selected_mesh_edges.line_shader.SetMatrix4("viewMatrix", viewMatrix);
 
                 selected_mesh_points.point_shader.SetMatrix4("viewMatrix", viewMatrix);
@@ -909,8 +971,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
                 selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
 
-                mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f);
-                selected_mesh_edges.line_shader.SetFloat("vertexTransparency", 0.2f);
+                mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f * geom_transparency);
+                mesh_lines.line_shader.SetFloat("vertexTransparency", geom_transparency);
+
+                selected_mesh_edges.line_shader.SetFloat("vertexTransparency", 0.2f * geom_transparency);
 
                 selected_mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
                 mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);

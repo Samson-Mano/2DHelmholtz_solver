@@ -76,6 +76,16 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
+
+        public void delete_point(int point_id)
+        {
+            // Delete the point
+            pointMap.Remove(point_id);
+            point_count--;
+
+        }
+
+
         public void update_point(int point_id, double x_coord, double y_coord, double z_coord, double normalized_defl_scale)
         {
             // Update the point co-ordinates

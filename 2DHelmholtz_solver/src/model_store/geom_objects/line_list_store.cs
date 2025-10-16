@@ -84,6 +84,16 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
+
+        public void delete_line(int line_id)
+        {
+            // Delete the line
+            lineMap.Remove(line_id);
+            line_count--;
+
+        }
+
+
         public void set_shader()
         {
 

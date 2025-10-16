@@ -64,9 +64,10 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         // Update of mesh properties
         public bool isNodalConstraintUpdateInProgress = false;
+        public bool isEdgeConstraintUpdateInProgress = false;
         public bool isLoadUpdateInProgress = false;
         public bool isMaterialUpdateInProgress = false;
-        public bool isEdgeConstraintUpdateInProgress = false;
+
 
 
         public fedata_store()
@@ -121,6 +122,10 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             this.geom_bounds = max_bounds - min_bounds;
 
+            // update the global static value
+            gvariables_static.geom_size = this.geom_bounds.Length;
+
+
             // Create the mesh for drawing
             meshdata = new meshdata_store();
 
@@ -162,6 +167,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             meshdata.set_shader();
             meshdata.set_buffer();
 
+            fe_constraints.set_shader();
+
             // Set the shader of selection rectangle and circle
             selection_rectangle.set_shader();
             selection_circle.set_shader();
@@ -175,6 +182,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
                 graphic_events_control.geom_transparency);
+
+            fe_constraints.update_openTK_uniforms(true, true, true, graphic_events_control);
 
         }
 
@@ -211,7 +220,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Paint the constraints
             if (gvariables_static.is_paint_constraints == true)
             {
-
+                fe_constraints.paint_constraint();
 
             }
 
@@ -270,6 +279,9 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 graphic_events_control.viewMatrix,
                 graphic_events_control.geom_transparency);
 
+
+            fe_constraints.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+                graphic_events_control);
 
         }
 

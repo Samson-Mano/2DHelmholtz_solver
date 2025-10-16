@@ -289,8 +289,22 @@ namespace _2DHelmholtz_solver.src.events_handler
                     {
                         var cnst = kvp.Value;
 
+                        // Get the point locations
+                        List<Vector3> constraint_node_pts = new List<Vector3>();
+
+                        foreach (int ptid in cnst.constraint_node_ids)
+                        {
+                            node_store nd = fe_nodes.nodeMap[ptid];
+
+                            constraint_node_pts.Add(new Vector3((float)nd.node_pt_x_coord,
+                                (float)nd.node_pt_y_coord,
+                                (float)nd.node_pt_z_coord));
+                        }
+
+
                         // Add the node constraint to the list
-                        fe_constraints.add_nodeconstraint(cnst.constraint_node_ids, cnst.field_value, cnst.source_value);
+                        fe_constraints.add_nodeconstraint(cnst.constraint_node_ids, constraint_node_pts,
+                            cnst.field_value, cnst.source_value);
                     }
 
                     // Console.WriteLine($"Constraint data read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");

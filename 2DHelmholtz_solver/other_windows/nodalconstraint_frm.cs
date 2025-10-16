@@ -1,5 +1,6 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -42,8 +43,21 @@ namespace _2DHelmholtz_solver.other_windows
                 return;
             }
 
+            // Get the point locations
+            List<Vector3> constraint_node_pts = new List<Vector3>();
+
+            foreach(int ptid in fe_data.meshdata.selected_point_ids)
+            {
+                node_store nd = fe_data.fe_nodes.nodeMap[ptid];
+
+                constraint_node_pts.Add(new Vector3((float)nd.node_pt_x_coord,
+                    (float)nd.node_pt_y_coord,
+                    (float)nd.node_pt_z_coord));
+            }
+
+
             // Add the constraint
-            fe_data.fe_constraints.add_nodeconstraint(fe_data.meshdata.selected_point_ids, field_value, source_value);
+            fe_data.fe_constraints.add_nodeconstraint(fe_data.meshdata.selected_point_ids, constraint_node_pts, field_value, source_value);
 
             // Clear the selected point ids
             fe_data.meshdata.clear_selected_nodes();
@@ -82,6 +96,13 @@ namespace _2DHelmholtz_solver.other_windows
                 fe_data.fe_constraints.delete_nodeconstraint(constraint_id);
 
                 update_dataGridView();
+
+
+                // Call the main form
+                if (this.Owner is main_frm mainForm)
+                {
+                    mainForm.CallFrom_nodalconstraint_frm();
+                }
 
             }
 

@@ -81,6 +81,10 @@ namespace _2DHelmholtz_solver.global_variables
                         // Selection color 1
                         color = Color.Red;
                         break;
+                    case -3:
+                        // Constraint colors
+                        color = Color.BlueViolet;
+                        break;
                     default:
                         color = GetRandomColor(colorId);
                         break;
@@ -109,9 +113,14 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static bool is_paint_shrunk_triangle = false;
 
-        public static double mesh_shrink_factor = 0.8f;
-        public static double selectedmesh_shrink_factor = 0.8f;
-        public static bool is_RectangleSelection = false; // true = Rectangle selection, false = Circle Selection
+        public static float mesh_shrink_factor = 0.8f;
+        public static float selectedmesh_shrink_factor = 0.8f;
+        public static bool is_RectangleSelection = true; // true = Rectangle selection, false = Circle Selection
+
+        public static float geom_size = 0.0f;
+
+        public static float PointSize = 1.0f;
+        public static float LineWidth = 1.0f;
 
         public static int RoundOff(this int i)
         {

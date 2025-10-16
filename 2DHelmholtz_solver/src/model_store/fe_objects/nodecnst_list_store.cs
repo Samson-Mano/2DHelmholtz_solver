@@ -1,4 +1,8 @@
-﻿using OpenTK.Input;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.model_store.geom_objects;
+using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+using OpenTK;
+using OpenTK.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +15,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
     public class nodecnst_data
     {
         public int cnst_id { get; set; } // constraint id
+
+        public List<Vector3> constraint_node_pts { get; set; }
 
         public List<int> constraint_node_ids { get; set; }
 
@@ -28,6 +34,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         private List<int> all_constraintset_ids = new List<int>();
 
+        public meshdata_store cnst_meshdata;
 
         public nodecnst_list_store()
         {
@@ -35,21 +42,26 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             ndcnstMap = new Dictionary<int, nodecnst_data>();
             ndcnst_count = 0;
 
+            cnst_meshdata = new meshdata_store();
+
         }
 
 
-        public void add_nodeconstraint(List<int> constraint_node_ids, double field_value, double source_value)
+        public void add_nodeconstraint(List<int> constraint_node_ids, List<Vector3> constraint_node_pts,
+            double field_value, double source_value)
         {
             // Get an unique constraint set id
             int unique_constraintset_id = global_variables.gvariables_static.get_unique_id(all_constraintset_ids);
 
             // Make a copy of the list
             List<int> idsCopy = new List<int>(constraint_node_ids);
+            List<Vector3> nodePtsCopy = new List<Vector3>(constraint_node_pts);
 
             // Add the constraint to the particular node
             nodecnst_data temp_cnst = new nodecnst_data
             {
                 cnst_id = unique_constraintset_id,
+                constraint_node_pts = nodePtsCopy,
                 constraint_node_ids = idsCopy,
                 field_value = field_value,
                 source_value = source_value
@@ -58,6 +70,9 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Insert the constraint to nodes
             ndcnstMap[unique_constraintset_id] = temp_cnst;
             ndcnst_count++;
+
+            // Set the constraint data visualization
+            set_constraint(unique_constraintset_id, true);
 
             // Add the constraint set id to list to track the unique constraint set id
             all_constraintset_ids.Add(unique_constraintset_id);
@@ -69,11 +84,125 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Remove the constraint set ID from all_constraintset_ids
             all_constraintset_ids.Remove(cnst_id);
 
+            // Set the constraint data visualization
+            set_constraint(cnst_id, false);
+
             // Remove the constraint data based on the key (constraint id)
             ndcnstMap.Remove(cnst_id);
 
             // adjust the constraint data count
             ndcnst_count--;
+        }
+
+
+        private void set_constraint(int cnst_id, bool isAdd)
+        {
+            // Get the constraint
+            nodecnst_data cnstraint = ndcnstMap[cnst_id];
+
+            if (isAdd == true)
+            {
+                // Add visualization for this constraint id
+                int i = 0;
+                foreach(Vector3 node_pts in cnstraint.constraint_node_pts)
+                {
+                    int cnst_node_id = cnstraint.constraint_node_ids[i];
+
+                    int ndid1 = (cnst_node_id * 4) + 0;
+                    int ndid2 = (cnst_node_id * 4) + 1;
+                    int ndid3 = (cnst_node_id * 4) + 2;
+                    int ndid4 = (cnst_node_id * 4) + 3;
+
+                    int lnid1 = (cnst_node_id * 2) + 0;
+                    int lnid2 = (cnst_node_id * 2) + 1;
+
+                    float constraint_size = gvariables_static.geom_size * 0.0025f;
+
+                    cnst_meshdata.add_mesh_point(ndid1, 
+                        node_pts.X + constraint_size, node_pts.Y + constraint_size, node_pts.Z, -1);
+                    cnst_meshdata.add_mesh_point(ndid2,
+                        node_pts.X - constraint_size, node_pts.Y + constraint_size, node_pts.Z, -1);
+                    cnst_meshdata.add_mesh_point(ndid3,
+                        node_pts.X - constraint_size, node_pts.Y - constraint_size, node_pts.Z, -1);
+                    cnst_meshdata.add_mesh_point(ndid4,
+                        node_pts.X + constraint_size, node_pts.Y - constraint_size, node_pts.Z, -1);
+
+                    cnst_meshdata.add_mesh_lines(lnid1, ndid1, ndid3, -3);
+                    cnst_meshdata.add_mesh_lines(lnid2, ndid2, ndid4, -3);
+
+                    i++;
+                }
+
+            }
+            else
+            {
+                // Delete visualization for this constraint if
+                foreach (int cnst_node_id in cnstraint.constraint_node_ids)
+                {
+
+                    int ndid1 = (cnst_node_id * 4) + 0;
+                    int ndid2 = (cnst_node_id * 4) + 1;
+                    int ndid3 = (cnst_node_id * 4) + 2;
+                    int ndid4 = (cnst_node_id * 4) + 3;
+
+                    int lnid1 = (cnst_node_id * 2) + 0;
+                    int lnid2 = (cnst_node_id * 2) + 1;
+
+
+                    // Delete mesh line
+                    cnst_meshdata.delete_mesh_line(lnid1);
+                    cnst_meshdata.delete_mesh_line(lnid2);
+
+                    // Delete mesh point
+                    cnst_meshdata.delete_mesh_point(ndid1);
+                    cnst_meshdata.delete_mesh_point(ndid2);
+                    cnst_meshdata.delete_mesh_point(ndid3);
+                    cnst_meshdata.delete_mesh_point(ndid4);
+
+                }
+
+            }
+
+            //cnst_meshdata.set_shader();
+            cnst_meshdata.set_buffer();
+
+        }
+
+        public void set_shader()
+        {
+            // Set the shader 
+            cnst_meshdata.set_shader();
+        }
+
+
+        public void paint_constraint()
+        {
+            // node constraint count check
+            if(ndcnst_count == 0)
+                return;
+
+            gvariables_static.LineWidth = 3.0f;
+            cnst_meshdata.paint_static_mesh_lines();
+            gvariables_static.LineWidth = 1.0f;
+
+        }
+
+
+
+        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency, 
+            drawing_events graphic_events_control)
+        {
+            if (ndcnst_count == 0)
+                return;
+
+
+            cnst_meshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+                graphic_events_control.projectionMatrix,
+                graphic_events_control.modelMatrix,
+                graphic_events_control.viewMatrix,
+                graphic_events_control.geom_transparency);
+
+
         }
 
 
