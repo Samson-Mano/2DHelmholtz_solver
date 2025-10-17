@@ -224,6 +224,13 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             }
 
+            // Paint the constraints labels
+            if(gvariables_static.is_paint_constraints_label == true)
+            {
+                fe_constraints.paint_constraint_label();
+
+            }
+
 
 
             if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isNodalConstraintUpdateInProgress == true

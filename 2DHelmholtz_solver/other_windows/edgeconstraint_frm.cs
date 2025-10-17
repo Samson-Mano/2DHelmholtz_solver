@@ -22,6 +22,9 @@ namespace _2DHelmholtz_solver.other_windows
 
             this.fe_data = fe_data;
 
+            UpdateEnabledStateUI();
+            UpdateEnabledStateUI2();
+
         }
 
 
@@ -105,6 +108,72 @@ namespace _2DHelmholtz_solver.other_windows
             circleSelectionToolStripMenuItem.BackColor = !isRectangle ? Color.LightBlue : SystemColors.Control;
 
         }
+
+
+        private void radioButton_boundaryconditions_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateEnabledStateUI();
+
+        }
+
+
+        private void radioButton_sommerfield_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateEnabledStateUI();
+
+        }
+
+
+        private void UpdateEnabledStateUI()
+        {
+            bool isBoundartConditionSelected = radioButton_boundaryconditions.Checked;
+
+            // Boundary condition
+            checkBox_dirichlet.Enabled = isBoundartConditionSelected;
+            textBox_dirichlet.Enabled = isBoundartConditionSelected;
+            label_dirichlet.Enabled = isBoundartConditionSelected;
+
+            checkBox_neumann.Enabled = isBoundartConditionSelected;
+            textBox_neumann.Enabled= isBoundartConditionSelected;
+            label_neumann.Enabled = isBoundartConditionSelected;
+
+
+            // ABC Sommerfield
+            label_sommerfield.Enabled = !isBoundartConditionSelected;
+
+            UpdateEnabledStateUI2();
+
+        }
+
+        private void checkBox_dirichlet_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateEnabledStateUI2();
+
+        }
+
+        private void checkBox_neumann_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateEnabledStateUI2();
+
+        }
+
+
+        private void UpdateEnabledStateUI2()
+        {
+            bool isDirichletSelected = checkBox_dirichlet.Checked;
+
+            label_dirichlet.Enabled = isDirichletSelected;
+            textBox_dirichlet.Enabled = isDirichletSelected;
+
+
+            bool isNeumannSelected = checkBox_neumann.Checked;
+
+            label_neumann.Enabled = isNeumannSelected;
+            textBox_neumann.Enabled = isNeumannSelected;
+
+        }
+
+
 
     }
 }

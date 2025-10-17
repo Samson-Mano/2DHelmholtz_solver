@@ -83,6 +83,52 @@ void main()
         }
 
 
+        public static string text_vert_shader()
+        {
+            return @"
+
+#version 330 core
+
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+uniform float vertexTransparency; // Transparency of the mesh
+
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 origin;
+layout(location = 2) in vec2 textureCoord;
+layout(location = 3) in vec3 textColor;
+
+out vec4 v_textureColor;
+out vec2 v_textureCoord;
+
+void main()
+{
+
+	// apply Translation to the final position 
+	vec4 finalPosition =  projectionMatrix * viewMatrix * modelMatrix * vec4(position,0.0f,1.0f);
+
+	// apply Translation to the text origin
+	vec4 finalTextorigin =  projectionMatrix * viewMatrix * modelMatrix * vec4(origin,0.0f,1.0f);
+    
+    float zoomscale = viewMatrix[0][0];
+	// Remove the zoom scale
+	vec2 scaled_pt = vec2(finalPosition.x - finalTextorigin.x,finalPosition.y - finalTextorigin.y) / zoomscale;
+		
+	// Set the final position of the vertex
+	gl_Position = vec4(scaled_pt.x + finalTextorigin.x, scaled_pt.y + finalTextorigin.y, 0.0f, 1.0f);
+
+	// Calculate texture coordinates for the glyph
+	v_textureCoord = textureCoord;
+	
+	// Pass the texture color to the fragment shader
+	v_textureColor = vec4(textColor,vertexTransparency);
+}
+
+                    ";
+
+        }
 
 
 
@@ -150,7 +196,30 @@ void main()
         }
 
 
-      
+        public static string text_frag_shader()
+        {
+            return @"
+
+#version 330 core
+uniform sampler2D u_Texture;
+
+in vec4 v_textureColor;
+in vec2 v_textureCoord;
+
+out vec4 f_Color; // fragment's final color (out to the fragment shader)
+
+void main()
+{
+	vec4 texColor = vec4(1.0, 1.0, 1.0, texture(u_Texture, v_textureCoord).r);
+	f_Color = v_textureColor * texColor;
+}
+
+                    ";
+
+        }
+
+
+
         #endregion
 
         public static string get_vertex_shader(ShaderType type)
@@ -162,7 +231,8 @@ void main()
                     return mesh_vert_shader();
                 case ShaderType.SelectionShader:
                     return selrect_vert_shader();
-
+                case ShaderType.TextShader:
+                    return text_vert_shader();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), "Unknown shader type");
 
@@ -178,7 +248,8 @@ void main()
                     return mesh_frag_shader();
                 case ShaderType.SelectionShader:
                     return selrect_frag_shader();
-
+                case ShaderType.TextShader:
+                    return text_frag_shader();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), "Unknown shader type");
 

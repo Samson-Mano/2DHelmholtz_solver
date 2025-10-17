@@ -71,6 +71,9 @@ namespace _2DHelmholtz_solver
             // Fill the gcontrol panel
             glControl_main_panel.Dock = DockStyle.Fill;
 
+            // Create the main font atlas
+            gvariables_static.main_font.CreateAtlas();
+
         }
 
 

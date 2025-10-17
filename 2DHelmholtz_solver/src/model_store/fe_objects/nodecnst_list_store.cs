@@ -34,7 +34,11 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         private List<int> all_constraintset_ids = new List<int>();
 
+        // Constraint visualization
         public meshdata_store cnst_meshdata;
+        // Add labels for the constraint
+        private label_list_store cnst_label;
+
 
         public nodecnst_list_store()
         {
@@ -43,6 +47,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             ndcnst_count = 0;
 
             cnst_meshdata = new meshdata_store();
+            cnst_label = new label_list_store();
 
         }
 
@@ -72,7 +77,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             ndcnst_count++;
 
             // Set the constraint data visualization
-            set_constraint(unique_constraintset_id, true);
+            set_constraint_visualization(unique_constraintset_id, true);
 
             // Add the constraint set id to list to track the unique constraint set id
             all_constraintset_ids.Add(unique_constraintset_id);
@@ -85,7 +90,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             all_constraintset_ids.Remove(cnst_id);
 
             // Set the constraint data visualization
-            set_constraint(cnst_id, false);
+            set_constraint_visualization(cnst_id, false);
 
             // Remove the constraint data based on the key (constraint id)
             ndcnstMap.Remove(cnst_id);
@@ -95,7 +100,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         }
 
 
-        private void set_constraint(int cnst_id, bool isAdd)
+        private void set_constraint_visualization(int cnst_id, bool isAdd)
         {
             // Get the constraint
             nodecnst_data cnstraint = ndcnstMap[cnst_id];
@@ -104,7 +109,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             {
                 // Add visualization for this constraint id
                 int i = 0;
-                foreach(Vector3 node_pts in cnstraint.constraint_node_pts)
+                foreach (Vector3 node_pts in cnstraint.constraint_node_pts)
                 {
                     int cnst_node_id = cnstraint.constraint_node_ids[i];
 
@@ -118,7 +123,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
                     float constraint_size = gvariables_static.geom_size * 0.0025f;
 
-                    cnst_meshdata.add_mesh_point(ndid1, 
+                    cnst_meshdata.add_mesh_point(ndid1,
                         node_pts.X + constraint_size, node_pts.Y + constraint_size, node_pts.Z, -1);
                     cnst_meshdata.add_mesh_point(ndid2,
                         node_pts.X - constraint_size, node_pts.Y + constraint_size, node_pts.Z, -1);
@@ -132,6 +137,13 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
                     i++;
                 }
+
+                // Add labels
+                string label_string = $"Nodal Constraint {cnst_id}";
+                Vector2 label_loc = new Vector2(cnstraint.constraint_node_pts[0].X, cnstraint.constraint_node_pts[0].Y);
+
+
+                cnst_label.add_label(cnst_id, label_string, label_loc, -3);
 
             }
             else
@@ -161,10 +173,14 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
                 }
 
+                // Delete labels
+                cnst_label.delete_label(cnst_id);
+
             }
 
             //cnst_meshdata.set_shader();
             cnst_meshdata.set_buffer();
+            cnst_label.set_buffer();
 
         }
 
@@ -172,15 +188,18 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         {
             // Set the shader 
             cnst_meshdata.set_shader();
+            cnst_label.set_shader();
+
         }
 
 
         public void paint_constraint()
         {
             // node constraint count check
-            if(ndcnst_count == 0)
+            if (ndcnst_count == 0)
                 return;
 
+            // Paint the constraint label
             gvariables_static.LineWidth = 3.0f;
             cnst_meshdata.paint_static_mesh_lines();
             gvariables_static.LineWidth = 1.0f;
@@ -188,8 +207,18 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         }
 
 
+        public void paint_constraint_label()
+        {
+            // node constraint count check
+            if (ndcnst_count == 0)
+                return;
 
-        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency, 
+            cnst_label.paint_static_labels();
+
+        }
+
+
+        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency,
             drawing_events graphic_events_control)
         {
             if (ndcnst_count == 0)
@@ -201,6 +230,32 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 graphic_events_control.modelMatrix,
                 graphic_events_control.viewMatrix,
                 graphic_events_control.geom_transparency);
+
+
+            // Update the openGl uniform matrices
+            if (set_modelmatrix == true)
+            {
+                // Set the model matrix
+                cnst_label.label_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+
+                // Set the projection matrix
+                cnst_label.label_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+
+            }
+
+            if (set_viewmatrix == true)
+            {
+                // Set the view matrix
+                cnst_label.label_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+
+            }
+
+            if (set_transparency == true)
+            {
+                // Set the transparency float
+                cnst_label.label_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+
+            }
 
 
         }

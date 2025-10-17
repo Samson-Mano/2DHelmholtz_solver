@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using OpenTK;
 using System.Security.AccessControl;
+using _2DHelmholtz_solver.src.opentk_control.opentk_buffer;
 
 namespace _2DHelmholtz_solver.global_variables
 {
@@ -111,6 +112,8 @@ namespace _2DHelmholtz_solver.global_variables
         public static bool is_paint_constraints = true;
         public static bool is_paint_loads = true;
 
+        public static bool is_paint_constraints_label = true;
+
         public static bool is_paint_shrunk_triangle = false;
 
         public static float mesh_shrink_factor = 0.8f;
@@ -121,6 +124,8 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static float PointSize = 1.0f;
         public static float LineWidth = 1.0f;
+
+        public static fontAtlas main_font = new fontAtlas();
 
         public static int RoundOff(this int i)
         {
@@ -175,6 +180,37 @@ namespace _2DHelmholtz_solver.global_variables
             }
 
             return 0;
+        }
+
+        public static Vector2 RotatePoint(Vector2 rotateAbout, Vector2 pt, double rotationAngle)
+        {
+            // Translate the point relative to the rotation center
+            Vector2 translatedPt = pt - rotateAbout;
+
+            // Normalize the rotation angle (similar to the C++ version)
+            const double PI = 3.14159365;
+            if (rotationAngle > (PI * 0.5))
+            {
+                rotationAngle -= PI;
+            }
+
+            if (rotationAngle < (-1.0 * PI * 0.5))
+            {
+                rotationAngle += PI;
+            }
+
+            // Apply rotation
+            double cosTheta = Math.Cos(rotationAngle);
+            double sinTheta = Math.Sin(rotationAngle);
+
+            // Rotate the point
+            Vector2 rotatedPt = new Vector2(
+                (float)((translatedPt.X * cosTheta) - (translatedPt.Y * sinTheta)),
+                (float)((translatedPt.X * sinTheta) + (translatedPt.Y * cosTheta))
+            );
+
+            // Translate back and return
+            return rotatedPt + rotateAbout;
         }
 
 

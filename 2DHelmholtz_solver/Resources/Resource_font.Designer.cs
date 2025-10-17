@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace _2DHelmholtz_solver.Properties {
+namespace _2DHelmholtz_solver.Resources {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace _2DHelmholtz_solver.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    internal class Resource_font {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal Resource_font() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace _2DHelmholtz_solver.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("_2DHelmholtz_solver.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("_2DHelmholtz_solver.Resources.Resource_font", typeof(Resource_font).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,12 +61,22 @@ namespace _2DHelmholtz_solver.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static System.Drawing.Bitmap automorphism_view_polar_2 {
+        internal static byte[] FreeSans {
             get {
-                object obj = ResourceManager.GetObject("automorphism_view_polar_2", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("FreeSans", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] HyperFont {
+            get {
+                object obj = ResourceManager.GetObject("HyperFont", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }
