@@ -122,6 +122,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
+        #region "Seclection of points, edges and mesh"
+
+
         public void add_selected_points(List<int> selected_point_ids, bool isRemove)
         {
             bool is_selection_changed = false;
@@ -177,7 +180,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             }
 
         }
-
 
         public void add_selected_edges(List<int> selected_edge_ids, bool isRemove)
         {
@@ -349,6 +351,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
+
         public void clear_selected_mesh()
         {
             // Clear the selected triangles
@@ -382,6 +385,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             selected_mesh_points.set_buffer();
 
         }
+
+
+        #endregion
 
 
         public void add_mesh_tris(int tri_id, int point_id1, int point_id2, int point_id3, int color_id)
@@ -608,90 +614,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             mesh_quads.update_buffer();
 
         }
-
-
-        //public void update_material_id(int material_id, bool isMaterialDelete)
-        //{
-
-
-
-        //    //if(isMaterialDelete == false)
-        //    //{
-        //    //    if (this.selected_tri_ids.Count > 0)
-        //    //    {
-        //    //        // Update the material id of the Triangle element
-        //    //        foreach (int tri_id in this.selected_tri_ids)
-        //    //        {
-        //    //            mesh_tris.triMap[tri_id].color_id = material_id;
-        //    //            mesh_tris.triMap[tri_id].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
-        //    //        }
-
-        //    //        // Update the buffer to change the color based on new material id
-        //    //        mesh_tris.update_buffer();
-        //    //    }
-
-        //    //    if(this.selected_quad_ids.Count > 0)
-        //    //    {
-        //    //        // Update the material id of the Quadrilateral element
-        //    //        foreach (int quad_id in this.selected_quad_ids)
-        //    //        {
-        //    //            mesh_quads.quadMap[quad_id].color_id = material_id;
-        //    //            mesh_quads.quadMap[quad_id].quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(material_id);
-        //    //        }
-
-        //    //        // Update the buffer to change the color based on new material id
-        //    //        mesh_quads.update_buffer();
-
-        //    //    }
-
-        //    //}
-        //    //else
-        //    //{
-        //    //    // Material is deleted so assign the default material
-        //    //    bool isMaterialUpdate = false;
-
-        //    //    // Update the material id of the Triangle element
-        //    //    foreach (var tri in mesh_tris.triMap)
-        //    //    {
-        //    //        if(mesh_tris.triMap[tri.Key].color_id == material_id)
-        //    //        {
-        //    //            mesh_tris.triMap[tri.Key].color_id = 0;
-        //    //            mesh_tris.triMap[tri.Key].tri_color = gvariables_static.ColorUtils.MeshGetRandomColor(0);
-
-        //    //            isMaterialUpdate = true;
-        //    //        }
-        //    //    }
-
-        //    //    if(isMaterialUpdate == true)
-        //    //    {
-        //    //        // Update the buffer to change the color based on new material id
-        //    //        mesh_tris.set_buffer();
-        //    //    }
-
-        //    //    // Check the quad material id
-        //    //    isMaterialUpdate = false;
-
-        //    //    // Update the material id of the Quadrilateral element
-        //    //    foreach (var quad in mesh_quads.quadMap)
-        //    //    {
-        //    //        if (mesh_quads.quadMap[quad.Key].color_id == material_id)
-        //    //        {
-        //    //            mesh_quads.quadMap[quad.Key].color_id = 0;
-        //    //            mesh_quads.quadMap[quad.Key].quad_color = gvariables_static.ColorUtils.MeshGetRandomColor(0);
-
-        //    //            isMaterialUpdate = true;
-        //    //        }
-        //    //    }
-        //    //    if (isMaterialUpdate == true)
-        //    //    {
-        //    //        // Update the buffer to change the color based on new material id
-        //    //        mesh_quads.set_buffer();
-        //    //    }
-
-        //    //}
-
-        //}
-
 
 
         public void set_shader()

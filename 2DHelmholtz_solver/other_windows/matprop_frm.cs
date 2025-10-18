@@ -126,7 +126,16 @@ namespace _2DHelmholtz_solver.other_windows
             fe_data.fe_materials[material_id] = newMaterial;
             fe_data.materialids.Add(material_id);
 
+            fe_data.updateMaterialIDLabels();
+
+            // Call the main form for refresh
+            if (this.Owner is main_frm mainForm)
+            {
+                mainForm.CallFrom_matprop_frm(material_id, false, false);
+            }
+
         }
+
 
         private void button_update_Click(object sender, EventArgs e)
         {
@@ -175,9 +184,19 @@ namespace _2DHelmholtz_solver.other_windows
                 selectedRow.Cells["Column4_Permeability"].Value = permeability.ToString("G");
                 selectedRow.Cells["Column5_Conductivity"].Value = conductivity.ToString("G");
 
+                fe_data.updateMaterialIDLabels();
+
+                // Call the main form for refresh
+                if (this.Owner is main_frm mainForm)
+                {
+                    mainForm.CallFrom_matprop_frm(material_id, false, false);
+                }
+
+
             }
 
         }
+
 
         private void button_delete_Click(object sender, EventArgs e)
         {
@@ -210,6 +229,16 @@ namespace _2DHelmholtz_solver.other_windows
 
                 // remove the row from the data grid view
                 dataGridView_MaterialList.Rows.Remove(selectedRow);
+
+
+                // Update the material labels
+                fe_data.updateMaterialIDLabels();
+
+                // Call the main form for refresh
+                if (this.Owner is main_frm mainForm1)
+                {
+                    mainForm1.CallFrom_matprop_frm(material_id, false, false);
+                }
 
             }
 

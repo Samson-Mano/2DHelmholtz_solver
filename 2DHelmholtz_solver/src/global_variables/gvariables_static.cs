@@ -83,8 +83,16 @@ namespace _2DHelmholtz_solver.global_variables
                         color = Color.Red;
                         break;
                     case -3:
-                        // Constraint colors
+                        // Constraint colors (field value)
                         color = Color.BlueViolet;
+                        break;
+                    case -4:
+                        // Constraint colors (source value)
+                        color = Color.Magenta;
+                        break;
+                    case -5:
+                        // Constraint colors (Sommerfield Radiation value)
+                        color = Color.MediumVioletRed;
                         break;
                     default:
                         color = GetRandomColor(colorId);
@@ -132,6 +140,24 @@ namespace _2DHelmholtz_solver.global_variables
             // Roundoff to nearest 10 (used to display zoom value)
             return ((int)Math.Round(i / 10.0)) * 10;
         }
+
+
+        public static float get_font_scale(float font_size)
+        {
+            return gvariables_static.geom_size * 0.0003f * (font_size / 12.0f);
+
+        }
+
+
+        public static float get_text_height(float font_size)
+        {
+            char ch = 'A';
+            Character ch_data = gvariables_static.main_font.Glyphs[ch];
+
+            return ch_data.Size.Y * get_font_scale(font_size);
+
+        }
+
 
         public static int error_tracker = 0;
 

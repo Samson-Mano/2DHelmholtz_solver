@@ -55,9 +55,11 @@ namespace _2DHelmholtz_solver.other_windows
                     (float)nd.node_pt_z_coord));
             }
 
+            bool isField = radioButton_dirichlet.Checked;
 
             // Add the constraint
-            fe_data.fe_constraints.add_nodeconstraint(fe_data.meshdata.selected_point_ids, constraint_node_pts, field_value, source_value);
+            fe_data.fe_nodeconstraints.add_nodeconstraint(fe_data.meshdata.selected_point_ids, 
+                constraint_node_pts, field_value, source_value, isField);
 
             // Clear the selected point ids
             fe_data.meshdata.clear_selected_nodes();
@@ -93,7 +95,7 @@ namespace _2DHelmholtz_solver.other_windows
 
 
                 // Delete the selected constraint
-                fe_data.fe_constraints.delete_nodeconstraint(constraint_id);
+                fe_data.fe_nodeconstraints.delete_nodeconstraint(constraint_id);
 
                 update_dataGridView();
 
@@ -116,7 +118,7 @@ namespace _2DHelmholtz_solver.other_windows
             dataGridView_ConstraintList.Rows.Clear();
 
 
-            foreach (var cnst_m in fe_data.fe_constraints.ndcnstMap)
+            foreach (var cnst_m in fe_data.fe_nodeconstraints.ndcnstMap)
             {
                 nodecnst_data cnst = cnst_m.Value;
 
@@ -133,7 +135,7 @@ namespace _2DHelmholtz_solver.other_windows
                 }
 
                 dataGridView_ConstraintList.Rows.Add(
-                    cnst.cnst_id,
+                    cnst.ndcnst_id,
                     nodeIdsPreview,   // show some of constraint nodes as string here
                     cnst.field_value.ToString("G"),
                     cnst.source_value.ToString("G")

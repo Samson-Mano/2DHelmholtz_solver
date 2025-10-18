@@ -112,7 +112,7 @@ void main()
 	// apply Translation to the text origin
 	vec4 finalTextorigin =  projectionMatrix * viewMatrix * modelMatrix * vec4(origin,0.0f,1.0f);
     
-    float zoomscale = viewMatrix[0][0];
+    float zoomscale = 1.0f; //viewMatrix[0][0];
 	// Remove the zoom scale
 	vec2 scaled_pt = vec2(finalPosition.x - finalTextorigin.x,finalPosition.y - finalTextorigin.y) / zoomscale;
 		

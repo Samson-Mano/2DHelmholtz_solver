@@ -40,11 +40,13 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public elementtri_list_store fe_tris;
         public elementquad_list_store fe_quads;
 
-        public nodecnst_list_store fe_constraints;
+        public nodecnst_list_store fe_nodeconstraints;
+        public edgecnst_list_store fe_edgeconstraints;
         public nodeload_list_store fe_loads;
 
         public Dictionary<int, material_data> fe_materials;
         public List<int> materialids;
+        public label_list_store materiallabels;
 
         public meshdata_store meshdata;
         public bool isModelSet = false;
@@ -77,7 +79,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             fe_tris = new elementtri_list_store();
             fe_quads = new elementquad_list_store();
 
-            fe_constraints = new nodecnst_list_store();
+            fe_nodeconstraints = new nodecnst_list_store();
+            fe_edgeconstraints = new edgecnst_list_store();
             fe_loads = new nodeload_list_store();
 
             fe_materials = new Dictionary<int, material_data>();
@@ -105,7 +108,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             isModelSet = false;
 
             file_events.import_mesh(fileContent, ref fe_nodes, ref fe_tris, ref fe_quads,
-                ref fe_constraints, ref fe_loads, ref fe_materials, ref materialids, ref nodePtsList, ref isModelSet);
+                ref fe_nodeconstraints, ref fe_edgeconstraints, ref fe_loads, 
+                ref fe_materials, ref materialids, ref nodePtsList, ref isModelSet);
 
 
             if (isModelSet == false)
@@ -160,14 +164,19 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             meshdata.set_mesh_wireframe();
             meshdata.create_drawing_boundary();
 
-            //// Model is set
-            //meshdata.is_ModelSet = true;
+            // Material labels
+            materiallabels = new label_list_store();
+            materiallabels.set_shader();
+            // Update the material labels
+            updateMaterialIDLabels();
+            materiallabels.update_openTK_uniforms(true, true, true, graphic_events_control);
 
             // Set the openTK buffer
             meshdata.set_shader();
             meshdata.set_buffer();
 
-            fe_constraints.set_shader();
+            fe_nodeconstraints.set_shader();
+            fe_edgeconstraints.set_shader();
 
             // Set the shader of selection rectangle and circle
             selection_rectangle.set_shader();
@@ -183,7 +192,11 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
                 graphic_events_control.geom_transparency);
 
-            fe_constraints.update_openTK_uniforms(true, true, true, graphic_events_control);
+
+            fe_nodeconstraints.update_openTK_uniforms(true, true, true, graphic_events_control);
+
+            fe_edgeconstraints.update_openTK_uniforms(true, true, true, graphic_events_control);
+
 
         }
 
@@ -220,14 +233,16 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Paint the constraints
             if (gvariables_static.is_paint_constraints == true)
             {
-                fe_constraints.paint_constraint();
+                fe_nodeconstraints.paint_node_constraint();
+                fe_edgeconstraints.paint_edge_constraint();
 
             }
 
             // Paint the constraints labels
             if(gvariables_static.is_paint_constraints_label == true)
             {
-                fe_constraints.paint_constraint_label();
+                fe_nodeconstraints.paint_node_constraint_label();
+                fe_edgeconstraints.paint_edge_constraint_label();
 
             }
 
@@ -248,6 +263,10 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 if (isMaterialUpdateInProgress == true)
                 {
                     meshdata.paint_selected_mesh();
+
+                    // Paint the material labels
+                    materiallabels.paint_static_labels();
+
                 }
 
                 if(isEdgeConstraintUpdateInProgress == true)
@@ -286,8 +305,13 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 graphic_events_control.viewMatrix,
                 graphic_events_control.geom_transparency);
 
+            materiallabels.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+                graphic_events_control);
 
-            fe_constraints.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+            fe_nodeconstraints.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+                graphic_events_control);
+
+            fe_edgeconstraints.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
                 graphic_events_control);
 
         }
@@ -391,10 +415,44 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
                 // Update the buffer
                 meshdata.update_mesh_color_buffer();
+ 
 
             }
 
+            // Update the material labels
+            // updateMaterialIDLabels();
+
+
         }
+
+
+        public void updateMaterialIDLabels()
+        {
+
+            Vector2 geom_center = new Vector2((max_bounds.X - min_bounds.X) * 0.5f,
+                (max_bounds.Y - min_bounds.Y) * 0.5f);
+            float label_height = gvariables_static.get_text_height(12.0f) * 1.25f;
+
+            // Clear the labels
+            materiallabels.clear_labels();
+            int k = 0;
+            foreach (int i in materialids)
+            {
+                // Material id
+                material_data mat = fe_materials[i];
+                string materiallabel = $"Material ID {mat.material_id}, Material name = {mat.material_name}";
+
+                materiallabels.add_label(i, materiallabel, new Vector2(geom_center.X , geom_center.Y + (k * label_height)), 
+                    mat.material_id);
+
+                k++;
+            }
+
+            materiallabels.set_buffer();
+
+
+        }
+
 
 
 

@@ -14,7 +14,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
     public class nodecnst_data
     {
-        public int cnst_id { get; set; } // constraint id
+        public int ndcnst_id { get; set; } // constraint id
 
         public List<Vector3> constraint_node_pts { get; set; }
 
@@ -23,6 +23,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public double field_value { get; set; } // Dirichlet boundary condition
 
         public double source_value { get; set; } // Source/ External excitation 
+
+        public bool isField { get; set; } // is Field value
 
     }
 
@@ -35,9 +37,9 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         private List<int> all_constraintset_ids = new List<int>();
 
         // Constraint visualization
-        public meshdata_store cnst_meshdata;
+        public meshdata_store ndcnst_meshdata;
         // Add labels for the constraint
-        private label_list_store cnst_label;
+        private label_list_store ndcnst_label;
 
 
         public nodecnst_list_store()
@@ -46,14 +48,14 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             ndcnstMap = new Dictionary<int, nodecnst_data>();
             ndcnst_count = 0;
 
-            cnst_meshdata = new meshdata_store();
-            cnst_label = new label_list_store();
+            ndcnst_meshdata = new meshdata_store();
+            ndcnst_label = new label_list_store();
 
         }
 
 
         public void add_nodeconstraint(List<int> constraint_node_ids, List<Vector3> constraint_node_pts,
-            double field_value, double source_value)
+            double field_value, double source_value, bool isField)
         {
             // Get an unique constraint set id
             int unique_constraintset_id = global_variables.gvariables_static.get_unique_id(all_constraintset_ids);
@@ -65,11 +67,12 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Add the constraint to the particular node
             nodecnst_data temp_cnst = new nodecnst_data
             {
-                cnst_id = unique_constraintset_id,
+                ndcnst_id = unique_constraintset_id,
                 constraint_node_pts = nodePtsCopy,
                 constraint_node_ids = idsCopy,
                 field_value = field_value,
-                source_value = source_value
+                source_value = source_value,
+                isField = isField
             };
 
             // Insert the constraint to nodes
@@ -100,15 +103,17 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         }
 
 
-        private void set_constraint_visualization(int cnst_id, bool isAdd)
+        private void set_constraint_visualization(int ndcnst_id, bool isAdd)
         {
             // Get the constraint
-            nodecnst_data cnstraint = ndcnstMap[cnst_id];
+            nodecnst_data cnstraint = ndcnstMap[ndcnst_id];
 
             if (isAdd == true)
             {
                 // Add visualization for this constraint id
                 int i = 0;
+                int color_id = cnstraint.isField == true ? -3: -4;
+
                 foreach (Vector3 node_pts in cnstraint.constraint_node_pts)
                 {
                     int cnst_node_id = cnstraint.constraint_node_ids[i];
@@ -123,27 +128,45 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
                     float constraint_size = gvariables_static.geom_size * 0.0025f;
 
-                    cnst_meshdata.add_mesh_point(ndid1,
+                    ndcnst_meshdata.add_mesh_point(ndid1,
                         node_pts.X + constraint_size, node_pts.Y + constraint_size, node_pts.Z, -1);
-                    cnst_meshdata.add_mesh_point(ndid2,
+                    ndcnst_meshdata.add_mesh_point(ndid2,
                         node_pts.X - constraint_size, node_pts.Y + constraint_size, node_pts.Z, -1);
-                    cnst_meshdata.add_mesh_point(ndid3,
+                    ndcnst_meshdata.add_mesh_point(ndid3,
                         node_pts.X - constraint_size, node_pts.Y - constraint_size, node_pts.Z, -1);
-                    cnst_meshdata.add_mesh_point(ndid4,
+                    ndcnst_meshdata.add_mesh_point(ndid4,
                         node_pts.X + constraint_size, node_pts.Y - constraint_size, node_pts.Z, -1);
 
-                    cnst_meshdata.add_mesh_lines(lnid1, ndid1, ndid3, -3);
-                    cnst_meshdata.add_mesh_lines(lnid2, ndid2, ndid4, -3);
+                    ndcnst_meshdata.add_mesh_lines(lnid1, ndid1, ndid3, color_id);
+                    ndcnst_meshdata.add_mesh_lines(lnid2, ndid2, ndid4, color_id);
 
                     i++;
                 }
 
                 // Add labels
-                string label_string = $"Nodal Constraint {cnst_id}";
-                Vector2 label_loc = new Vector2(cnstraint.constraint_node_pts[0].X, cnstraint.constraint_node_pts[0].Y);
+                int mid_index = cnstraint.constraint_node_pts.Count / 2;
+                string label_string1 = $"Nodal Constraint {ndcnst_id}";
+                string label_string2 = "";
+               
 
+                if(cnstraint.isField == true)
+                {
+                    label_string2 = $"Field value = {cnstraint.field_value}";
+                }
+                else
+                {
+                    label_string2 = $"Source value = {cnstraint.source_value}";
+                }
 
-                cnst_label.add_label(cnst_id, label_string, label_loc, -3);
+                float label_ht =  gvariables_static.get_text_height(12.0f) * 1.25f;
+
+                Vector2 label_loc1 = new Vector2(cnstraint.constraint_node_pts[mid_index].X,
+                        cnstraint.constraint_node_pts[mid_index].Y);
+                Vector2 label_loc2 = new Vector2(cnstraint.constraint_node_pts[mid_index].X,
+                        cnstraint.constraint_node_pts[mid_index].Y - label_ht);
+
+                ndcnst_label.add_label((ndcnst_id * 2) + 0, label_string1, label_loc1, color_id);
+                ndcnst_label.add_label((ndcnst_id * 2) + 1, label_string2, label_loc2, color_id);
 
             }
             else
@@ -162,38 +185,39 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
                     // Delete mesh line
-                    cnst_meshdata.delete_mesh_line(lnid1);
-                    cnst_meshdata.delete_mesh_line(lnid2);
+                    ndcnst_meshdata.delete_mesh_line(lnid1);
+                    ndcnst_meshdata.delete_mesh_line(lnid2);
 
                     // Delete mesh point
-                    cnst_meshdata.delete_mesh_point(ndid1);
-                    cnst_meshdata.delete_mesh_point(ndid2);
-                    cnst_meshdata.delete_mesh_point(ndid3);
-                    cnst_meshdata.delete_mesh_point(ndid4);
+                    ndcnst_meshdata.delete_mesh_point(ndid1);
+                    ndcnst_meshdata.delete_mesh_point(ndid2);
+                    ndcnst_meshdata.delete_mesh_point(ndid3);
+                    ndcnst_meshdata.delete_mesh_point(ndid4);
 
                 }
 
                 // Delete labels
-                cnst_label.delete_label(cnst_id);
+                ndcnst_label.delete_label((ndcnst_id * 2) + 0);
+                ndcnst_label.delete_label((ndcnst_id * 2) + 1);
 
             }
 
             //cnst_meshdata.set_shader();
-            cnst_meshdata.set_buffer();
-            cnst_label.set_buffer();
+            ndcnst_meshdata.set_buffer();
+            ndcnst_label.set_buffer();
 
         }
 
         public void set_shader()
         {
             // Set the shader 
-            cnst_meshdata.set_shader();
-            cnst_label.set_shader();
+            ndcnst_meshdata.set_shader();
+            ndcnst_label.set_shader();
 
         }
 
 
-        public void paint_constraint()
+        public void paint_node_constraint()
         {
             // node constraint count check
             if (ndcnst_count == 0)
@@ -201,19 +225,19 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             // Paint the constraint label
             gvariables_static.LineWidth = 3.0f;
-            cnst_meshdata.paint_static_mesh_lines();
+            ndcnst_meshdata.paint_static_mesh_lines();
             gvariables_static.LineWidth = 1.0f;
 
         }
 
 
-        public void paint_constraint_label()
+        public void paint_node_constraint_label()
         {
             // node constraint count check
             if (ndcnst_count == 0)
                 return;
 
-            cnst_label.paint_static_labels();
+            ndcnst_label.paint_static_labels();
 
         }
 
@@ -225,39 +249,17 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 return;
 
 
-            cnst_meshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+            ndcnst_meshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
                 graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix,
                 graphic_events_control.viewMatrix,
                 graphic_events_control.geom_transparency);
 
 
-            // Update the openGl uniform matrices
-            if (set_modelmatrix == true)
-            {
-                // Set the model matrix
-                cnst_label.label_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+            ndcnst_label.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+                graphic_events_control);
 
-                // Set the projection matrix
-                cnst_label.label_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
-
-            }
-
-            if (set_viewmatrix == true)
-            {
-                // Set the view matrix
-                cnst_label.label_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
-
-            }
-
-            if (set_transparency == true)
-            {
-                // Set the transparency float
-                cnst_label.label_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
-
-            }
-
-
+       
         }
 
 

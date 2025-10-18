@@ -39,7 +39,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public Dictionary<int, label_store> labelMap { get; } = new Dictionary<int, label_store>();
         public int label_count = 0;
         public int total_char_count = 0;
-
+        public float font_size = 12.0f;
 
         private graphicBuffers label_buffer;
         public Shader label_shader;
@@ -64,7 +64,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 label = label,
                 label_loc = label_loc,
                 label_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id),
-                label_angle = 0.0,
+                label_angle = 0.0, // radian
                 label_above_loc = true,
                 label_char_count = label.Length
             };
@@ -113,7 +113,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Set the label index buffers
             foreach (var lb in labelMap)
             {
-                get_label_index_buffer(ref label_indices, ref label_i_index);
+                get_label_index_buffer(lb.Value, ref label_indices, ref label_i_index);
             }
 
             // Define the vertex layout
@@ -173,6 +173,37 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
+        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency,
+                                    drawing_events graphic_events_control)
+        {
+
+            // Update the openGl uniform matrices
+            if (set_modelmatrix == true)
+            {
+                // Set the model matrix
+                label_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
+
+                // Set the projection matrix
+                label_shader.SetMatrix4("projectionMatrix", graphic_events_control.projectionMatrix);
+
+            }
+
+            if (set_viewmatrix == true)
+            {
+                // Set the view matrix
+                label_shader.SetMatrix4("viewMatrix", graphic_events_control.viewMatrix);
+
+            }
+
+            if (set_transparency == true)
+            {
+                // Set the transparency float
+                label_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+
+            }
+
+        }
+
 
         public void paint_static_labels()
         {
@@ -202,7 +233,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private void get_label_vertex_buffer(label_store lb, ref float[] label_vertices, ref int label_v_index)
         {
 
-            float font_scale = gvariables_static.geom_size * 0.005f;
+            float font_scale = gvariables_static.get_font_scale(font_size);
 
             // Find the label total width and total height of the label
             float total_label_width = 0.0f;
@@ -216,7 +247,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 char ch = lb.label[i];
                 Character ch_data = gvariables_static.main_font.Glyphs[ch];
 
-                total_label_width += (ch_data.Advance >> 6) * font_scale;
+                total_label_width += ch_data.Advance * font_scale;
                 total_label_height = Math.Max(total_label_height, ch_data.Size.Y * font_scale);
             }
 
@@ -252,7 +283,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 float w = ch_data.Size.X * font_scale;
                 float h = ch_data.Size.Y * font_scale;
 
-                float margin = 0.00002f; // This value prevents the minor overlap with the next char when rendering
+                float margin = 0.00022f; // This value prevents the minor overlap with the next char when rendering
 
                 // Point 1
                 // Vertices [0,0] // 0th point
@@ -357,31 +388,34 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 label_v_index = label_v_index + 9;
 
                 //__________________________________________________________________________________________
-                x += (ch_data.Advance >> 6) * font_scale;
+                x += ch_data.Advance * font_scale;
 
             }
 
         }
 
 
-        private void get_label_index_buffer(ref int[] label_indices, ref int label_i_index)
+        private void get_label_index_buffer(label_store lb, ref int[] label_indices, ref int label_i_index)
         {
 
-            // Set the index buffers
-            int t_id = ((label_i_index / 6) * 4);
+            for (int i = 0; i < lb.label_char_count; ++i)
+            {
+                // Set the index buffers
+                int t_id = ((label_i_index / 6) * 4);
 
-            // Triangle 0,1,2
-            label_indices[label_i_index + 0] = t_id + 0;
-            label_indices[label_i_index + 1] = t_id + 1;
-            label_indices[label_i_index + 2] = t_id + 2;
+                // Triangle 0,1,2
+                label_indices[label_i_index + 0] = t_id + 0;
+                label_indices[label_i_index + 1] = t_id + 1;
+                label_indices[label_i_index + 2] = t_id + 2;
 
-            // Triangle 2,3,0
-            label_indices[label_i_index + 3] = t_id + 2;
-            label_indices[label_i_index + 4] = t_id + 3;
-            label_indices[label_i_index + 5] = t_id + 0;
+                // Triangle 2,3,0
+                label_indices[label_i_index + 3] = t_id + 2;
+                label_indices[label_i_index + 4] = t_id + 3;
+                label_indices[label_i_index + 5] = t_id + 0;
 
-            // Increment
-            label_i_index = label_i_index + 6;
+                // Increment
+                label_i_index = label_i_index + 6;
+            }
 
         }
 

@@ -445,7 +445,6 @@ namespace _2DHelmholtz_solver
         #endregion
 
 
-
         #region "Load Events"
         private void addLoadsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -668,6 +667,8 @@ namespace _2DHelmholtz_solver
 
 
         #endregion
+
+
 
     }
 }

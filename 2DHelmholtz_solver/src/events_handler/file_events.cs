@@ -19,7 +19,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                     ref node_list_store fe_nodes,
                     ref elementtri_list_store fe_tris,
                     ref elementquad_list_store fe_quads,
-                    ref nodecnst_list_store fe_constraints,
+                    ref nodecnst_list_store fe_nodeconstraints,
+                    ref edgecnst_list_store fe_edgeconstraints,
                     ref nodeload_list_store fe_loads,
                     ref Dictionary<int, material_data> fe_materials,
                     ref List<int> materialids,
@@ -32,7 +33,8 @@ namespace _2DHelmholtz_solver.src.events_handler
             fe_tris = new elementtri_list_store();
             fe_quads = new elementquad_list_store();
 
-            fe_constraints = new nodecnst_list_store();
+            fe_nodeconstraints = new nodecnst_list_store();
+            fe_edgeconstraints = new edgecnst_list_store();
             fe_loads = new nodeload_list_store();
 
 
@@ -242,7 +244,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                 }
 
 
-                if (line == "*CONSTRAINT_DATA")
+                if (line == "*NODE_CONSTRAINT_DATA")
                 {
                     Dictionary<int, nodecnst_data> ConstraintSetData = new Dictionary<int, nodecnst_data>();
 
@@ -251,7 +253,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                         var ConstraintLine = dataLines[j + 1].Trim();
                         var splitValues = ConstraintLine.Split(',');
 
-                        if (splitValues.Length != 4)
+                        if (splitValues.Length != 5)
                             break;
 
                         try
@@ -260,6 +262,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                             int nodeId = int.Parse(splitValues[1]);
                             double Constraint_fieldvalue = double.Parse(splitValues[2]);
                             double Constraint_sourcevalue = double.Parse(splitValues[3]);
+                            int Constraint_isField = int.Parse(splitValues[4]);
 
                             if (!ConstraintSetData.ContainsKey(ConstraintSetId))
                                 ConstraintSetData[ConstraintSetId] = new nodecnst_data();
@@ -272,6 +275,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                             {
                                 constraintEntry.field_value = Constraint_fieldvalue; // Field value (Dirichlet boundary condition)
                                 constraintEntry.source_value = Constraint_sourcevalue; // Source term, Excitation source
+                                constraintEntry.isField = Constraint_isField == 1 ? true : false;    
                             }
                         }
                         catch (Exception ex)
@@ -301,16 +305,107 @@ namespace _2DHelmholtz_solver.src.events_handler
                                 (float)nd.node_pt_z_coord));
                         }
 
+                        
 
                         // Add the node constraint to the list
-                        fe_constraints.add_nodeconstraint(cnst.constraint_node_ids, constraint_node_pts,
-                            cnst.field_value, cnst.source_value);
+                        fe_nodeconstraints.add_nodeconstraint(cnst.constraint_node_ids, constraint_node_pts,
+                            cnst.field_value, cnst.source_value, cnst.isField);
+
                     }
 
                     // Console.WriteLine($"Constraint data read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
 
                 }
 
+
+                if (line == "*EDGE_CONSTRAINT_DATA")
+                {
+                    Dictionary<int, edgecnst_store> ConstraintSetData = new Dictionary<int, edgecnst_store>();
+
+                    while (j < dataLines.Length)
+                    {
+                        var ConstraintLine = dataLines[j + 1].Trim();
+                        var splitValues = ConstraintLine.Split(',');
+
+                        if (splitValues.Length != 7)
+                            break;
+
+                        try
+                        {
+                            int ConstraintSetId = int.Parse(splitValues[0]);
+                            int edgeId = int.Parse(splitValues[1]);
+                            int edgeStartptID = int.Parse(splitValues[2]);
+                            int edgeEndptID = int.Parse(splitValues[3]);
+                            double Constraint_fieldvalue = double.Parse(splitValues[4]);
+                            double Constraint_derivfieldvalue = double.Parse(splitValues[5]);
+                            int Constraint_isSommerfield = int.Parse(splitValues[6]);
+
+                            if (!ConstraintSetData.ContainsKey(ConstraintSetId))
+                                ConstraintSetData[ConstraintSetId] = new edgecnst_store();
+
+                            var constraintEntry = ConstraintSetData[ConstraintSetId];
+                            constraintEntry.constraint_edge_ids.Add(edgeId); // Add the multiple nodes where the particular load set is applied
+                            constraintEntry.constraint_edge_startpt_ids.Add(edgeStartptID);
+                            constraintEntry.constraint_edge_endpt_ids.Add(edgeEndptID);
+
+                            // Add the load amplitude when the first edge is added (all the edges have same load values)
+                            if (constraintEntry.constraint_edge_ids.Count == 1)
+                            {
+                                constraintEntry.field_value = Constraint_fieldvalue; // Field value (Dirichlet boundary condition)
+                                constraintEntry.normalderivfield_value = Constraint_derivfieldvalue; // Derivative field value (Neumann boundary condition)
+                                constraintEntry.isSommerfieldBC = Constraint_isSommerfield == 1 ? true : false;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error parsing load data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            // Console.WriteLine($"Error parsing load data: {ex.Message}");
+                            break;
+                        }
+
+                        j++;
+                    }
+
+                    // Add to main constraint storage
+                    foreach (var kvp in ConstraintSetData)
+                    {
+                        var cnst = kvp.Value;
+
+                        // Get the start and end point locations
+                        List<Vector3> constraint_edge_startpts = new List<Vector3>();
+                        List<Vector3> constraint_edge_endpts = new List<Vector3>();
+
+                        int i = 0;
+
+                        foreach (int edgeid in cnst.constraint_edge_ids)
+                        {
+                            node_store nd1 = fe_nodes.nodeMap[cnst.constraint_edge_startpt_ids[i]];
+                            node_store nd2 = fe_nodes.nodeMap[cnst.constraint_edge_endpt_ids[i]];
+
+                            constraint_edge_startpts.Add(new Vector3((float)nd1.node_pt_x_coord,
+                                (float)nd1.node_pt_y_coord,
+                                (float)nd1.node_pt_z_coord));
+
+                            constraint_edge_endpts.Add(new Vector3((float)nd2.node_pt_x_coord,
+                                (float)nd2.node_pt_y_coord,
+                                (float)nd2.node_pt_z_coord));
+
+                            i++;
+                        }
+
+
+
+                        // Add the edge constraint to the list
+                        fe_edgeconstraints.add_edgeconstraint(cnst.constraint_edge_ids,
+                            cnst.constraint_edge_startpt_ids, cnst.constraint_edge_endpt_ids,
+                            cnst.constraint_edge_startpts, cnst.constraint_edge_endpts,
+                            cnst.field_value, cnst.normalderivfield_value, cnst.isSommerfieldBC);
+
+                    }
+
+                    // Console.WriteLine($"Constraint data read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
+
+                }
 
 
                 if (line == "*LOAD_DATA")
