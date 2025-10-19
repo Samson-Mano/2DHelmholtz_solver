@@ -627,6 +627,8 @@ namespace _2DHelmholtz_solver
         public void CallFrom_edgeconstraint_frm()
         {
             // Refresh 
+            fedata.update_openTK_uniforms(true, true, true);
+
             glControl_main_panel.Invalidate();
 
         }

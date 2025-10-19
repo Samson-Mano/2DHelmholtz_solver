@@ -100,7 +100,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         }
 
-        public void delete_nodeconstraint(int edgecnst_id)
+        public void delete_edgeconstraint(int edgecnst_id)
         {
             // Remove the constraint set ID from all_constraintset_ids
             all_edgeconstraintset_ids.Remove(edgecnst_id);

@@ -23,8 +23,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private point_list_store mesh_points { get; }
         private point_list_store selected_mesh_points { get; }
         private line_list_store mesh_half_edges { get; }
-        private line_list_store mesh_boundaries { get; }
-
+        public line_list_store mesh_boundaries { get; }
         private line_list_store mesh_lines { get; }
 
 

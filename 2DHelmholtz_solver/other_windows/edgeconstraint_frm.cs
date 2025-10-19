@@ -1,5 +1,6 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,13 +32,203 @@ namespace _2DHelmholtz_solver.other_windows
 
         private void button_applyconstraint_Click(object sender, EventArgs e)
         {
+            if (fe_data.meshdata.selected_edge_ids.Count == 0)
+                return;
+
+
+
+            if(radioButton_boundaryconditions.Checked == true)
+            {
+                // Test the data
+                if (!double.TryParse(textBox_dirichlet.Text, out double field_value) ||
+                    !double.TryParse(textBox_neumann.Text, out double normalderiv_value))
+                {
+                    MessageBox.Show("Please enter valid numeric values for field value, and normal derivative source value.");
+                    return;
+                }
+
+                // Get the edges
+                // Get the start and end point locations
+                List<int> constraint_edge_startpt_ids = new List<int>();
+                List<int> constraint_edge_endpt_ids = new List<int>();
+
+                List<Vector3> constraint_edge_startpts = new List<Vector3>();
+                List<Vector3> constraint_edge_endpts = new List<Vector3>();
+
+                int i = 0;
+
+                foreach (int edgeid in fe_data.meshdata.selected_edge_ids)
+                {
+                    int start_pt_id = fe_data.meshdata.mesh_boundaries.lineMap[edgeid].start_pt_id;
+                    int end_pt_id = fe_data.meshdata.mesh_boundaries.lineMap[edgeid].end_pt_id;
+
+                    // Add the edge end point ids
+                    constraint_edge_startpt_ids.Add(start_pt_id);
+                    constraint_edge_endpt_ids.Add(end_pt_id);
+
+                    node_store nd1 = fe_data.fe_nodes.nodeMap[start_pt_id];
+                    node_store nd2 = fe_data.fe_nodes.nodeMap[end_pt_id];
+
+                    // Add edge end points
+                    constraint_edge_startpts.Add(new Vector3((float)nd1.node_pt_x_coord,
+                        (float)nd1.node_pt_y_coord,
+                        (float)nd1.node_pt_z_coord));
+
+                    constraint_edge_endpts.Add(new Vector3((float)nd2.node_pt_x_coord,
+                        (float)nd2.node_pt_y_coord,
+                        (float)nd2.node_pt_z_coord));
+
+                    i++;
+                }
+
+                // Add the edge constraint
+                fe_data.fe_edgeconstraints.add_edgeconstraint(fe_data.meshdata.selected_edge_ids,
+                    constraint_edge_startpt_ids, constraint_edge_endpt_ids,
+                    constraint_edge_startpts, constraint_edge_endpts,
+                    field_value, normalderiv_value, false);
+
+            }
+            else
+            {
+
+                // Get the edges
+                // Get the start and end point locations
+                List<int> constraint_edge_startpt_ids = new List<int>();
+                List<int> constraint_edge_endpt_ids = new List<int>();
+
+                List<Vector3> constraint_edge_startpts = new List<Vector3>();
+                List<Vector3> constraint_edge_endpts = new List<Vector3>();
+
+                int i = 0;
+
+                foreach (int edgeid in fe_data.meshdata.selected_edge_ids)
+                {
+                    int start_pt_id = fe_data.meshdata.mesh_boundaries.lineMap[edgeid].start_pt_id;
+                    int end_pt_id = fe_data.meshdata.mesh_boundaries.lineMap[edgeid].end_pt_id;
+
+                    // Add the edge end point ids
+                    constraint_edge_startpt_ids.Add(start_pt_id);
+                    constraint_edge_endpt_ids.Add(end_pt_id);
+
+                    node_store nd1 = fe_data.fe_nodes.nodeMap[start_pt_id];
+                    node_store nd2 = fe_data.fe_nodes.nodeMap[end_pt_id];
+
+                    // Add edge end points
+                    constraint_edge_startpts.Add(new Vector3((float)nd1.node_pt_x_coord,
+                        (float)nd1.node_pt_y_coord,
+                        (float)nd1.node_pt_z_coord));
+
+                    constraint_edge_endpts.Add(new Vector3((float)nd2.node_pt_x_coord,
+                        (float)nd2.node_pt_y_coord,
+                        (float)nd2.node_pt_z_coord));
+
+                    i++;
+                }
+
+                // Add the edge constraint
+                fe_data.fe_edgeconstraints.add_edgeconstraint(fe_data.meshdata.selected_edge_ids,
+                    constraint_edge_startpt_ids, constraint_edge_endpt_ids,
+                    constraint_edge_startpts, constraint_edge_endpts,
+                    0.0, 0.0, true);
+
+            }
+
+            // Clear the selected edge ids
+            fe_data.meshdata.clear_selected_edges();
+
+            update_selected_edge_list();
+
+            // Call the main form
+            if (this.Owner is main_frm mainForm)
+            {
+                mainForm.CallFrom_edgeconstraint_frm();
+            }
+
+            // Update the data grid view
+            update_dataGridView();
 
         }
 
         private void button_deleteconstraint_Click(object sender, EventArgs e)
         {
+            if (dataGridView_ConstraintList.SelectedRows.Count > 0)
+            {
+                DataGridViewRow selectedRow = dataGridView_ConstraintList.SelectedRows[0];
+
+                // Safely Retrieve the Constraint ID
+                string idString = selectedRow.Cells["Column1_constraintid"].Value?.ToString();
+
+                if (!int.TryParse(idString, out int constraint_id))
+                {
+                    // MessageBox.Show("Invalid constraint ID.");
+                    return;
+                }
+
+
+                // Delete the selected constraint
+                fe_data.fe_edgeconstraints.delete_edgeconstraint(constraint_id);
+
+                update_dataGridView();
+
+
+                // Call the main form
+                if (this.Owner is main_frm mainForm)
+                {
+                    mainForm.CallFrom_nodalconstraint_frm();
+                }
+
+            }
 
         }
+
+
+
+        public void update_dataGridView()
+        {
+
+            // refresh the Constraint list data grid view
+            dataGridView_ConstraintList.Rows.Clear();
+
+
+            foreach (var cnst_m in fe_data.fe_edgeconstraints.edgecnstMap)
+            {
+                edgecnst_store cnst = cnst_m.Value;
+
+                // Convert edge IDs list to a short string, e.g. "1, 2, 3 ..."
+                string edgeIdsPreview;
+                int previewCount = 15; // how many IDs to show
+                if (cnst.constraint_edge_ids.Count > previewCount)
+                {
+                    edgeIdsPreview = string.Join(", ", cnst.constraint_edge_ids.Take(previewCount)) + " ...";
+                }
+                else
+                {
+                    edgeIdsPreview = string.Join(", ", cnst.constraint_edge_ids);
+                }
+
+                dataGridView_ConstraintList.Rows.Add(
+                    cnst.edgecnst_id,
+                    edgeIdsPreview,   // show some of constraint nodes as string here
+                    cnst.field_value.ToString("G"),
+                    cnst.normalderivfield_value.ToString("G"),
+                    cnst.isSommerfieldBC
+                    );
+
+            }
+
+            if (dataGridView_ConstraintList.Rows.Count > 0)
+            {
+                // Move the index to the last index
+                int lastIndex = dataGridView_ConstraintList.Rows.Count - 1;
+                dataGridView_ConstraintList.ClearSelection();
+                dataGridView_ConstraintList.Rows[lastIndex].Selected = true;
+
+            }
+
+            dataGridView_ConstraintList.Invalidate();
+
+        }
+
 
 
 

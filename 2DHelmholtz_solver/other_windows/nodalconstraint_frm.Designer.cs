@@ -30,6 +30,8 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(nodalconstraint_frm));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.radioButton_source = new System.Windows.Forms.RadioButton();
+            this.radioButton_dirichlet = new System.Windows.Forms.RadioButton();
             this.textBox_source = new System.Windows.Forms.TextBox();
             this.label_source = new System.Windows.Forms.Label();
             this.textBox_dirichlet = new System.Windows.Forms.TextBox();
@@ -46,8 +48,6 @@
             this.Column2_nodeids = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column3_fieldvalue = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column4_sourcevalue = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.radioButton_dirichlet = new System.Windows.Forms.RadioButton();
-            this.radioButton_source = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_ConstraintList)).BeginInit();
@@ -67,6 +67,31 @@
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Nodal Constraint Data: ";
+            // 
+            // radioButton_source
+            // 
+            this.radioButton_source.AutoSize = true;
+            this.radioButton_source.Location = new System.Drawing.Point(11, 119);
+            this.radioButton_source.Name = "radioButton_source";
+            this.radioButton_source.Size = new System.Drawing.Size(180, 19);
+            this.radioButton_source.TabIndex = 7;
+            this.radioButton_source.TabStop = true;
+            this.radioButton_source.Text = "Source/ External Excitation: ";
+            this.radioButton_source.UseVisualStyleBackColor = true;
+            this.radioButton_source.CheckedChanged += new System.EventHandler(this.radioButton_source_CheckedChanged);
+            // 
+            // radioButton_dirichlet
+            // 
+            this.radioButton_dirichlet.AutoSize = true;
+            this.radioButton_dirichlet.Checked = true;
+            this.radioButton_dirichlet.Location = new System.Drawing.Point(11, 39);
+            this.radioButton_dirichlet.Name = "radioButton_dirichlet";
+            this.radioButton_dirichlet.Size = new System.Drawing.Size(262, 19);
+            this.radioButton_dirichlet.TabIndex = 6;
+            this.radioButton_dirichlet.TabStop = true;
+            this.radioButton_dirichlet.Text = "Essential or Dirichlet Boundary Condition: ";
+            this.radioButton_dirichlet.UseVisualStyleBackColor = true;
+            this.radioButton_dirichlet.CheckedChanged += new System.EventHandler(this.radioButton_dirichlet_CheckedChanged);
             // 
             // textBox_source
             // 
@@ -192,7 +217,7 @@
             // Column1_constraintid
             // 
             this.Column1_constraintid.FillWeight = 80F;
-            this.Column1_constraintid.HeaderText = "Constraint ID";
+            this.Column1_constraintid.HeaderText = "Node Constraint ID";
             this.Column1_constraintid.MinimumWidth = 8;
             this.Column1_constraintid.Name = "Column1_constraintid";
             this.Column1_constraintid.ReadOnly = true;
@@ -222,31 +247,6 @@
             this.Column4_sourcevalue.Name = "Column4_sourcevalue";
             this.Column4_sourcevalue.ReadOnly = true;
             this.Column4_sourcevalue.Width = 80;
-            // 
-            // radioButton_dirichlet
-            // 
-            this.radioButton_dirichlet.AutoSize = true;
-            this.radioButton_dirichlet.Checked = true;
-            this.radioButton_dirichlet.Location = new System.Drawing.Point(11, 39);
-            this.radioButton_dirichlet.Name = "radioButton_dirichlet";
-            this.radioButton_dirichlet.Size = new System.Drawing.Size(262, 19);
-            this.radioButton_dirichlet.TabIndex = 6;
-            this.radioButton_dirichlet.TabStop = true;
-            this.radioButton_dirichlet.Text = "Essential or Dirichlet Boundary Condition: ";
-            this.radioButton_dirichlet.UseVisualStyleBackColor = true;
-            this.radioButton_dirichlet.CheckedChanged += new System.EventHandler(this.radioButton_dirichlet_CheckedChanged);
-            // 
-            // radioButton_source
-            // 
-            this.radioButton_source.AutoSize = true;
-            this.radioButton_source.Location = new System.Drawing.Point(11, 119);
-            this.radioButton_source.Name = "radioButton_source";
-            this.radioButton_source.Size = new System.Drawing.Size(180, 19);
-            this.radioButton_source.TabIndex = 7;
-            this.radioButton_source.TabStop = true;
-            this.radioButton_source.Text = "Source/ External Excitation: ";
-            this.radioButton_source.UseVisualStyleBackColor = true;
-            this.radioButton_source.CheckedChanged += new System.EventHandler(this.radioButton_source_CheckedChanged);
             // 
             // nodalconstraint_frm
             // 
@@ -295,11 +295,11 @@
         private System.Windows.Forms.ToolStripMenuItem rectangleSelectionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem circleSelectionToolStripMenuItem;
         private System.Windows.Forms.DataGridView dataGridView_ConstraintList;
+        private System.Windows.Forms.RadioButton radioButton_source;
+        private System.Windows.Forms.RadioButton radioButton_dirichlet;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1_constraintid;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2_nodeids;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column3_fieldvalue;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column4_sourcevalue;
-        private System.Windows.Forms.RadioButton radioButton_source;
-        private System.Windows.Forms.RadioButton radioButton_dirichlet;
     }
 }
