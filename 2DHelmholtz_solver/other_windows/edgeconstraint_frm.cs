@@ -332,8 +332,11 @@ namespace _2DHelmholtz_solver.other_windows
             // ABC Sommerfield
             label_sommerfield.Enabled = !isBoundartConditionSelected;
 
-            UpdateEnabledStateUI2();
-
+            if(isBoundartConditionSelected == true)
+            {
+                UpdateEnabledStateUI2();
+            }
+   
         }
 
         private void checkBox_dirichlet_CheckedChanged(object sender, EventArgs e)

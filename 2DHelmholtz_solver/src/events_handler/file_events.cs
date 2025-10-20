@@ -1,8 +1,10 @@
-﻿using _2DHelmholtz_solver.src.model_store.fe_objects;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.model_store.fe_objects;
 using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace _2DHelmholtz_solver.src.events_handler
         private static double RoundToSixDigits(double value) => Math.Round(value, 6);
 
 
-        public static void import_mesh(string fileContent,
+        public static void import_txt_mesh(string fileContent,
                     ref node_list_store fe_nodes,
                     ref elementtri_list_store fe_tris,
                     ref elementquad_list_store fe_quads,
@@ -85,6 +87,12 @@ namespace _2DHelmholtz_solver.src.events_handler
                     // Console.WriteLine($"Nodes read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
                 }
 
+                // Set the text 
+                // Set the mesh boundaries
+                Tuple<Vector3, Vector3> geom_extremes = gvariables_static.FindMinMaxXY(nodePtsList);
+
+                // update the global static value
+                gvariables_static.geom_size = (geom_extremes.Item2 - geom_extremes.Item1).Length;
 
 
                 if (line == "*ELEMENT,TYPE=S3")
@@ -246,41 +254,41 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                 if (line == "*NODE_CONSTRAINT_DATA")
                 {
-                    Dictionary<int, nodecnst_data> ConstraintSetData = new Dictionary<int, nodecnst_data>();
+                    Dictionary<int, nodecnst_data> NodeConstraintSetData = new Dictionary<int, nodecnst_data>();
 
                     while (j < dataLines.Length)
                     {
-                        var ConstraintLine = dataLines[j + 1].Trim();
-                        var splitValues = ConstraintLine.Split(',');
+                        var NodeConstraintLine = dataLines[j + 1].Trim();
+                        var splitValues = NodeConstraintLine.Split(',');
 
                         if (splitValues.Length != 5)
                             break;
 
                         try
                         {
-                            int ConstraintSetId = int.Parse(splitValues[0]);
+                            int NodeConstraintSetId = int.Parse(splitValues[0]);
                             int nodeId = int.Parse(splitValues[1]);
-                            double Constraint_fieldvalue = double.Parse(splitValues[2]);
-                            double Constraint_sourcevalue = double.Parse(splitValues[3]);
-                            int Constraint_isField = int.Parse(splitValues[4]);
+                            double NodeConstraint_fieldvalue = double.Parse(splitValues[2]);
+                            double NodeConstraint_sourcevalue = double.Parse(splitValues[3]);
+                            int NodeConstraint_isField = int.Parse(splitValues[4]);
 
-                            if (!ConstraintSetData.ContainsKey(ConstraintSetId))
-                                ConstraintSetData[ConstraintSetId] = new nodecnst_data();
+                            if (!NodeConstraintSetData.ContainsKey(NodeConstraintSetId))
+                                NodeConstraintSetData[NodeConstraintSetId] = new nodecnst_data();
 
-                            var constraintEntry = ConstraintSetData[ConstraintSetId];
-                            constraintEntry.constraint_node_ids.Add(nodeId); // Add the multiple nodes where the particular load set is applied
+                            var NodeconstraintEntry = NodeConstraintSetData[NodeConstraintSetId];
+                            NodeconstraintEntry.constraint_node_ids.Add(nodeId); // Add the multiple nodes where the particular load set is applied
 
                             // Add the load amplitude when the first node is added (all the nodes have same load values)
-                            if (constraintEntry.constraint_node_ids.Count == 1)
+                            if (NodeconstraintEntry.constraint_node_ids.Count == 1)
                             {
-                                constraintEntry.field_value = Constraint_fieldvalue; // Field value (Dirichlet boundary condition)
-                                constraintEntry.source_value = Constraint_sourcevalue; // Source term, Excitation source
-                                constraintEntry.isField = Constraint_isField == 1 ? true : false;    
+                                NodeconstraintEntry.field_value =  NodeConstraint_fieldvalue; // Field value (Dirichlet boundary condition)
+                                NodeconstraintEntry.source_value = NodeConstraint_sourcevalue; // Source term, Excitation source
+                                NodeconstraintEntry.isField = NodeConstraint_isField == 1 ? true : false;    
                             }
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show($"Error parsing load data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"Error parsing Node Boundary Condition data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             // Console.WriteLine($"Error parsing load data: {ex.Message}");
                             break;
                         }
@@ -289,7 +297,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                     }
 
                     // Add to main constraint storage
-                    foreach (var kvp in ConstraintSetData)
+                    foreach (var kvp in NodeConstraintSetData)
                     {
                         var cnst = kvp.Value;
 
@@ -312,7 +320,6 @@ namespace _2DHelmholtz_solver.src.events_handler
                             cnst.field_value, cnst.source_value, cnst.isField);
 
                     }
-
                     // Console.WriteLine($"Constraint data read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
 
                 }
@@ -320,30 +327,30 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                 if (line == "*EDGE_CONSTRAINT_DATA")
                 {
-                    Dictionary<int, edgecnst_store> ConstraintSetData = new Dictionary<int, edgecnst_store>();
+                    Dictionary<int, edgecnst_store> EdgeConstraintSetData = new Dictionary<int, edgecnst_store>();
 
                     while (j < dataLines.Length)
                     {
-                        var ConstraintLine = dataLines[j + 1].Trim();
-                        var splitValues = ConstraintLine.Split(',');
+                        var EdgeConstraintLine = dataLines[j + 1].Trim();
+                        var splitValues = EdgeConstraintLine.Split(',');
 
                         if (splitValues.Length != 7)
                             break;
 
                         try
                         {
-                            int ConstraintSetId = int.Parse(splitValues[0]);
+                            int EdgeConstraintSetId = int.Parse(splitValues[0]);
                             int edgeId = int.Parse(splitValues[1]);
                             int edgeStartptID = int.Parse(splitValues[2]);
                             int edgeEndptID = int.Parse(splitValues[3]);
-                            double Constraint_fieldvalue = double.Parse(splitValues[4]);
-                            double Constraint_derivfieldvalue = double.Parse(splitValues[5]);
-                            int Constraint_isSommerfield = int.Parse(splitValues[6]);
+                            double EdgeConstraint_fieldvalue = double.Parse(splitValues[4]);
+                            double EdgeConstraint_derivfieldvalue = double.Parse(splitValues[5]);
+                            int EdgeConstraint_isSommerfield = int.Parse(splitValues[6]);
 
-                            if (!ConstraintSetData.ContainsKey(ConstraintSetId))
-                                ConstraintSetData[ConstraintSetId] = new edgecnst_store();
+                            if (!EdgeConstraintSetData.ContainsKey(EdgeConstraintSetId))
+                                EdgeConstraintSetData[EdgeConstraintSetId] = new edgecnst_store();
 
-                            var constraintEntry = ConstraintSetData[ConstraintSetId];
+                            var constraintEntry = EdgeConstraintSetData[EdgeConstraintSetId];
                             constraintEntry.constraint_edge_ids.Add(edgeId); // Add the multiple nodes where the particular load set is applied
                             constraintEntry.constraint_edge_startpt_ids.Add(edgeStartptID);
                             constraintEntry.constraint_edge_endpt_ids.Add(edgeEndptID);
@@ -351,14 +358,14 @@ namespace _2DHelmholtz_solver.src.events_handler
                             // Add the load amplitude when the first edge is added (all the edges have same load values)
                             if (constraintEntry.constraint_edge_ids.Count == 1)
                             {
-                                constraintEntry.field_value = Constraint_fieldvalue; // Field value (Dirichlet boundary condition)
-                                constraintEntry.normalderivfield_value = Constraint_derivfieldvalue; // Derivative field value (Neumann boundary condition)
-                                constraintEntry.isSommerfieldBC = Constraint_isSommerfield == 1 ? true : false;
+                                constraintEntry.field_value = EdgeConstraint_fieldvalue; // Field value (Dirichlet boundary condition)
+                                constraintEntry.normalderivfield_value = EdgeConstraint_derivfieldvalue; // Derivative field value (Neumann boundary condition)
+                                constraintEntry.isSommerfieldBC = EdgeConstraint_isSommerfield == 1 ? true : false;
                             }
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show($"Error parsing load data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"Error parsing Edge Boundary Condition data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             // Console.WriteLine($"Error parsing load data: {ex.Message}");
                             break;
                         }
@@ -367,7 +374,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                     }
 
                     // Add to main constraint storage
-                    foreach (var kvp in ConstraintSetData)
+                    foreach (var kvp in EdgeConstraintSetData)
                     {
                         var cnst = kvp.Value;
 
@@ -408,65 +415,9 @@ namespace _2DHelmholtz_solver.src.events_handler
                 }
 
 
-                if (line == "*LOAD_DATA")
-                {
-                    Dictionary<int, nodeload_data> loadSetData = new Dictionary<int, nodeload_data>();
-
-                    while (j < dataLines.Length)
-                    {
-                        var loadLine = dataLines[j + 1].Trim();
-                        var splitValues = loadLine.Split(',');
-
-                        if (splitValues.Length != 5)
-                            break;
-
-                        try
-                        {
-                            int loadSetId = int.Parse(splitValues[0]);
-                            int nodeId = int.Parse(splitValues[1]);
-                            double load_amplitude = double.Parse(splitValues[2]);
-                            double load_frequency = double.Parse(splitValues[3]);
-                            double load_phase = double.Parse(splitValues[4]);
-
-                            if (!loadSetData.ContainsKey(loadSetId))
-                                loadSetData[loadSetId] = new nodeload_data();
-
-                            var loadEntry = loadSetData[loadSetId];
-                            loadEntry.load_node_ids.Add(nodeId); // Add the multiple nodes where the particular load set is applied
-
-                            // Add the load amplitude when the first node is added (all the nodes have same load values)
-                            if (loadEntry.load_node_ids.Count == 1)
-                            {
-                                loadEntry.load_amplitude = load_amplitude;
-                                loadEntry.load_frequency = load_frequency;
-                                loadEntry.load_phase = load_phase;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Error parsing load data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            // Console.WriteLine($"Error parsing load data: {ex.Message}");
-                            break;
-                        }
-
-                        j++;
-                    }
-
-                    // Add to main load storage
-                    foreach (var kvp in loadSetData)
-                    {
-                        var ld = kvp.Value;
-
-                        // Add the node loads to the list
-                        fe_loads.add_loads(ld.load_node_ids, ld.load_amplitude, ld.load_frequency, ld.load_phase);
-                    }
-                    // Console.WriteLine($"Load data read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
-                }
-
-
                 // Iterate to next line
-
                 j++;
+
             }
 
 
@@ -528,6 +479,356 @@ namespace _2DHelmholtz_solver.src.events_handler
 
 
         }
+
+
+        public static void export_binary_mesh(string filePath, 
+                    ref node_list_store fe_nodes,
+                    ref elementtri_list_store fe_tris,
+                    ref elementquad_list_store fe_quads,
+                    ref nodecnst_list_store fe_nodeconstraints,
+                    ref edgecnst_list_store fe_edgeconstraints,
+                    ref nodeload_list_store fe_loads,
+                    ref Dictionary<int, material_data> fe_materials)
+        {
+
+            using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
+            {
+                // Nodes
+                writer.Write(fe_nodes.nodeMap.Count);
+                foreach (var node in fe_nodes.nodeMap.Values)
+                {
+                    writer.Write(node.node_id);
+                    writer.Write(node.node_pt_x_coord);
+                    writer.Write(node.node_pt_y_coord);
+                    writer.Write(node.node_pt_z_coord);
+                }
+
+                // Tri elements
+                writer.Write(fe_tris.elementtriMap.Count);
+                foreach (var tri in fe_tris.elementtriMap.Values)
+                {
+                    writer.Write(tri.tri_id);
+                    writer.Write(tri.nodeid1);
+                    writer.Write(tri.nodeid2);
+                    writer.Write(tri.nodeid3);
+                    writer.Write(tri.material_id);
+                }
+
+                // Quad elements
+                writer.Write(fe_quads.elementquadMap.Count);
+                foreach (var quad in fe_quads.elementquadMap.Values)
+                {
+                    writer.Write(quad.quad_id);
+                    writer.Write(quad.nodeid1);
+                    writer.Write(quad.nodeid2);
+                    writer.Write(quad.nodeid3);
+                    writer.Write(quad.nodeid4);
+                    writer.Write(quad.material_id);
+                }
+
+                // Materials
+                writer.Write(fe_materials.Count);
+                foreach (var mat in fe_materials.Values)
+                {
+                    writer.Write(mat.material_id);
+                    writer.Write(mat.material_name);
+                    writer.Write(mat.material_permittivity);
+                    writer.Write(mat.material_permeability);
+                    writer.Write(mat.material_conductivity);
+                    writer.Write(mat.number_of_elements_appliedto);
+
+                }
+
+                // Node constraints
+                writer.Write(fe_nodeconstraints.ndcnstMap.Count);
+                foreach (var cnst in fe_nodeconstraints.ndcnstMap.Values)
+                {
+                    writer.Write(cnst.ndcnst_id);
+                    writer.Write(cnst.constraint_node_ids.Count);
+                    foreach (int nid in cnst.constraint_node_ids)
+                        writer.Write(nid);
+                    writer.Write(cnst.field_value);
+                    writer.Write(cnst.source_value);
+                    writer.Write(cnst.isField);
+                }
+
+                // Edge constraints
+                writer.Write(fe_edgeconstraints.edgecnstMap.Count);
+                foreach (var cnst in fe_edgeconstraints.edgecnstMap.Values)
+                {
+                    writer.Write(cnst.edgecnst_id);
+                    writer.Write(cnst.constraint_edge_ids.Count);
+                    for (int i = 0; i < cnst.constraint_edge_ids.Count; i++)
+                    {
+                        writer.Write(cnst.constraint_edge_ids[i]);  
+                        writer.Write(cnst.constraint_edge_startpt_ids[i]);
+                        writer.Write(cnst.constraint_edge_endpt_ids[i]);
+                    }
+                    writer.Write(cnst.field_value);
+                    writer.Write(cnst.normalderivfield_value);
+                    writer.Write(cnst.isSommerfieldBC);
+                }
+            }
+
+
+
+        }
+
+
+
+
+        public static void import_binary_mesh(string filePath,
+                    ref node_list_store fe_nodes,
+                    ref elementtri_list_store fe_tris,
+                    ref elementquad_list_store fe_quads,
+                    ref nodecnst_list_store fe_nodeconstraints,
+                    ref edgecnst_list_store fe_edgeconstraints,
+                    ref nodeload_list_store fe_loads,
+                    ref Dictionary<int, material_data> fe_materials,
+                    ref List<int> materialids,
+                    ref List<Vector3> nodePtsList,
+                    ref bool isModelLoadSuccess)
+        {
+
+            // Clear the data
+            fe_nodes = new node_list_store();
+            fe_tris = new elementtri_list_store();
+            fe_quads = new elementquad_list_store();
+
+            fe_nodeconstraints = new nodecnst_list_store();
+            fe_edgeconstraints = new edgecnst_list_store();
+            fe_loads = new nodeload_list_store();
+
+            // Node point list to capture the bounding geometry
+            nodePtsList = new List<Vector3>();
+
+            isModelLoadSuccess = false;
+
+            using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open)))
+            {
+                // --- NODES ---
+                int nodeCount = reader.ReadInt32();
+                for (int i = 0; i < nodeCount; i++)
+                {
+
+                    int nodeId = reader.ReadInt32();
+                    double x = reader.ReadDouble();
+                    double y = reader.ReadDouble();
+                    double z = reader.ReadDouble();
+
+                    var nodePt = new Vector3((float)x, (float)y, (float)z);
+                    nodePtsList.Add(nodePt);
+
+                    // node added to the node list
+                    fe_nodes.add_node(nodeId, x, y, z);
+                }
+
+
+                // Set the text 
+                // Set the mesh boundaries
+                Tuple<Vector3, Vector3> geom_extremes = gvariables_static.FindMinMaxXY(nodePtsList);
+
+                // update the global static value
+                gvariables_static.geom_size = (geom_extremes.Item2 - geom_extremes.Item1).Length;
+
+
+                // --- TRI ELEMENTS ---
+                var triMaterialMap = new Dictionary<int, List<int>>();
+
+                int triCount = reader.ReadInt32();
+                for (int i = 0; i < triCount; i++)
+                {
+                    int triId = reader.ReadInt32();
+                    int nd1 = reader.ReadInt32();
+                    int nd2 = reader.ReadInt32();
+                    int nd3 = reader.ReadInt32();
+                    int matid = reader.ReadInt32();
+
+                    // Tirangle mesh added to the list
+                    fe_tris.add_elementtriangle(triId, nd1, nd2, nd3);
+
+                    // Add the Triangle element id to material ID map 
+                    if (!triMaterialMap.ContainsKey(matid))
+                        triMaterialMap[matid] = new List<int>();
+
+                    triMaterialMap[matid].Add(triId);
+
+                }
+
+                // --- QUAD ELEMENTS ---
+                var quadMaterialMap = new Dictionary<int, List<int>>();
+
+                int quadCount = reader.ReadInt32();
+                for (int i = 0; i < quadCount; i++)
+                {
+                    int quadId = reader.ReadInt32();
+                    int nd1 = reader.ReadInt32();
+                    int nd2 = reader.ReadInt32();
+                    int nd3 = reader.ReadInt32();
+                    int nd4 = reader.ReadInt32();
+                    int matid = reader.ReadInt32();
+
+                    // Quadrilateral mesh added to the list
+                    fe_quads.add_elementquadrilateral(quadId, nd1, nd2, nd3, nd4);
+
+                    // Add the Quadrilateral element id to material ID map 
+                    if (!quadMaterialMap.ContainsKey(matid))
+                        quadMaterialMap[matid] = new List<int>();
+
+                    quadMaterialMap[matid].Add(quadId);
+
+                }
+
+                // --- MATERIALS ---
+                int matCount = reader.ReadInt32();
+                fe_materials.Clear();
+                materialids.Clear(); // Clear the material ids
+                for (int i = 0; i < matCount; i++)
+                {
+                    material_data mat = new material_data();
+                    mat.material_id = reader.ReadInt32();
+                    mat.material_name = reader.ReadString();
+                    mat.material_permittivity = reader.ReadDouble();
+                    mat.material_permeability = reader.ReadDouble();
+                    mat.material_conductivity = reader.ReadDouble();
+                    mat.number_of_elements_appliedto = reader.ReadInt32();
+
+                    fe_materials[mat.material_id] = mat;
+                    materialids.Add(mat.material_id);
+
+                }
+
+                // Apply all materials at once
+                foreach (var kvp in triMaterialMap)
+                {
+                    // value = list of tri element id, Key = material id
+                    fe_tris.update_material(kvp.Value, kvp.Key);
+                }
+
+                foreach (var kvp in quadMaterialMap)
+                {
+                    // value = list of quad element id, Key = material id
+                    fe_quads.update_material(kvp.Value, kvp.Key);
+                }
+
+
+                // --- NODE CONSTRAINTS ---
+                int nodeCnstCount = reader.ReadInt32();
+                fe_nodeconstraints.set_shader();
+
+                for (int i = 0; i < nodeCnstCount; i++)
+                {
+                    nodecnst_data cnst = new nodecnst_data();
+                    cnst.ndcnst_id = reader.ReadInt32();
+
+                    int nidCount = reader.ReadInt32();
+                    cnst.constraint_node_ids = new List<int>();
+                    for (int j = 0; j < nidCount; j++)
+                        cnst.constraint_node_ids.Add(reader.ReadInt32());
+
+                    cnst.field_value = reader.ReadDouble();
+                    cnst.source_value = reader.ReadDouble();
+                    cnst.isField = reader.ReadBoolean();
+
+                    // Get the point locations
+                    List<Vector3> constraint_node_pts = new List<Vector3>();
+
+                    foreach (int ptid in cnst.constraint_node_ids)
+                    {
+                        node_store nd = fe_nodes.nodeMap[ptid];
+
+                        constraint_node_pts.Add(new Vector3((float)nd.node_pt_x_coord,
+                            (float)nd.node_pt_y_coord,
+                            (float)nd.node_pt_z_coord));
+                    }
+
+
+                    // Add the node constraint to the list
+                    fe_nodeconstraints.add_nodeconstraint(cnst.constraint_node_ids, constraint_node_pts,
+                        cnst.field_value, cnst.source_value, cnst.isField);
+
+                }
+
+                // --- EDGE CONSTRAINTS ---
+                int edgeCnstCount = reader.ReadInt32();
+                fe_edgeconstraints.set_shader();
+
+                for (int i = 0; i < edgeCnstCount; i++)
+                {
+                    edgecnst_store cnst = new edgecnst_store();
+                    cnst.edgecnst_id = reader.ReadInt32();
+
+                    int edgeCount = reader.ReadInt32();
+                    cnst.constraint_edge_ids = new List<int>();
+                    cnst.constraint_edge_startpt_ids = new List<int>();
+                    cnst.constraint_edge_endpt_ids = new List<int>();
+
+                    for (int j = 0; j < edgeCount; j++)
+                    {
+                        cnst.constraint_edge_ids.Add(reader.ReadInt32());
+                        cnst.constraint_edge_startpt_ids.Add(reader.ReadInt32());
+                        cnst.constraint_edge_endpt_ids.Add(reader.ReadInt32());
+                    }
+
+                    cnst.field_value = reader.ReadDouble();
+                    cnst.normalderivfield_value = reader.ReadDouble();
+                    cnst.isSommerfieldBC = reader.ReadBoolean();
+
+                    // Get the start and end point locations
+                    List<Vector3> constraint_edge_startpts = new List<Vector3>();
+                    List<Vector3> constraint_edge_endpts = new List<Vector3>();
+
+                    int k = 0;
+
+                    foreach (int edgeid in cnst.constraint_edge_ids)
+                    {
+                        node_store nd1 = fe_nodes.nodeMap[cnst.constraint_edge_startpt_ids[k]];
+                        node_store nd2 = fe_nodes.nodeMap[cnst.constraint_edge_endpt_ids[k]];
+
+                        constraint_edge_startpts.Add(new Vector3((float)nd1.node_pt_x_coord,
+                            (float)nd1.node_pt_y_coord,
+                            (float)nd1.node_pt_z_coord));
+
+                        constraint_edge_endpts.Add(new Vector3((float)nd2.node_pt_x_coord,
+                            (float)nd2.node_pt_y_coord,
+                            (float)nd2.node_pt_z_coord));
+
+                        k++;
+                    }
+
+
+
+                    // Add the edge constraint to the list
+                    fe_edgeconstraints.add_edgeconstraint(cnst.constraint_edge_ids,
+                        cnst.constraint_edge_startpt_ids, cnst.constraint_edge_endpt_ids,
+                        constraint_edge_startpts, constraint_edge_endpts,
+                        cnst.field_value, cnst.normalderivfield_value, cnst.isSommerfieldBC);
+
+
+                }
+
+                // Check the model
+                if (fe_nodes.node_count < 2 || (fe_tris.elementtri_count + fe_quads.elementquad_count) < 1)
+                {
+                    isModelLoadSuccess = false;
+                    MessageBox.Show("Input error!! ", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+
+                }
+
+
+                // Set that model load is success
+                isModelLoadSuccess = true;
+
+            }
+
+        }
+
+
+
+
+
+
 
 
     }

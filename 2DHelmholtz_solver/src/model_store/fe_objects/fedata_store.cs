@@ -102,12 +102,12 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         }
 
-        public void importMesh(string fileContent)
+        public void importTXTFile(string fileContent)
         {
             List<Vector3> nodePtsList = new List<Vector3>();
             isModelSet = false;
 
-            file_events.import_mesh(fileContent, ref fe_nodes, ref fe_tris, ref fe_quads,
+            file_events.import_txt_mesh(fileContent, ref fe_nodes, ref fe_tris, ref fe_quads,
                 ref fe_nodeconstraints, ref fe_edgeconstraints, ref fe_loads, 
                 ref fe_materials, ref materialids, ref nodePtsList, ref isModelSet);
 
@@ -199,6 +199,118 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
         }
+
+
+        public void importBINFile(string filePath)
+        {
+            List<Vector3> nodePtsList = new List<Vector3>();
+            isModelSet = false;
+
+            file_events.import_binary_mesh(filePath, ref fe_nodes, ref fe_tris, ref fe_quads,
+                ref fe_nodeconstraints, ref fe_edgeconstraints, ref fe_loads,
+                ref fe_materials, ref materialids, ref nodePtsList, ref isModelSet);
+
+
+            if (isModelSet == false)
+                return;
+
+            // Set the mesh boundaries
+            Vector3 geometry_center = gvariables_static.FindGeometricCenter(nodePtsList);
+            Tuple<Vector3, Vector3> geom_extremes = gvariables_static.FindMinMaxXY(nodePtsList);
+
+
+            // Set the geometry bounds
+            this.min_bounds = geom_extremes.Item1; // Minimum bound
+            this.max_bounds = geom_extremes.Item2; // Maximum bound
+
+            this.geom_bounds = max_bounds - min_bounds;
+
+            // update the global static value
+            gvariables_static.geom_size = this.geom_bounds.Length;
+
+
+            // Create the mesh for drawing
+            meshdata = new meshdata_store();
+
+            // Add the mesh points
+            foreach (var nd_m in fe_nodes.nodeMap)
+            {
+                node_store nd = nd_m.Value;
+
+                meshdata.add_mesh_point(nd.node_id, nd.node_pt_x_coord, nd.node_pt_y_coord, nd.node_pt_z_coord, -1);
+
+            }
+
+            // Add the mesh tris
+            foreach (var tri_m in fe_tris.elementtriMap)
+            {
+                elementtri_store tri = tri_m.Value;
+
+                meshdata.add_mesh_tris(tri.tri_id, tri.nodeid1, tri.nodeid2, tri.nodeid3, tri.material_id);
+
+            }
+
+            // Add the mesh quads
+            foreach (var quad_m in fe_quads.elementquadMap)
+            {
+                elementquad_store quad = quad_m.Value;
+
+                meshdata.add_mesh_quads(quad.quad_id, quad.nodeid1, quad.nodeid2, quad.nodeid3, quad.nodeid4, quad.material_id);
+
+            }
+
+            // Create the mesh boundaries
+            meshdata.set_mesh_wireframe();
+            meshdata.create_drawing_boundary();
+
+            // Material labels
+            materiallabels = new label_list_store();
+            materiallabels.set_shader();
+            // Update the material labels
+            updateMaterialIDLabels();
+            materiallabels.update_openTK_uniforms(true, true, true, graphic_events_control);
+
+            // Set the openTK buffer
+            meshdata.set_shader();
+            meshdata.set_buffer();
+
+            //fe_nodeconstraints.set_shader();
+            //fe_edgeconstraints.set_shader();
+
+            //fe_nodeconstraints.ndcnst_meshdata.set_buffer();
+            //fe_nodeconstraints.ndcnst_label.set_buffer();
+
+            // Set the shader of selection rectangle and circle
+            selection_rectangle.set_shader();
+            selection_circle.set_shader();
+
+            // Set the buffer of selection rectangle and circle
+            selection_rectangle.set_buffer();
+            selection_circle.set_buffer();
+
+
+            // Update the openGL uniform
+            meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
+                graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
+                graphic_events_control.geom_transparency);
+
+
+            fe_nodeconstraints.update_openTK_uniforms(true, true, true, graphic_events_control);
+
+            fe_edgeconstraints.update_openTK_uniforms(true, true, true, graphic_events_control);
+
+        }
+
+
+        public void exportBINFile(string filePath)
+        {
+            // Export the bindary mesh
+            file_events.export_binary_mesh(filePath, ref fe_nodes, ref fe_tris, ref fe_quads,
+              ref fe_nodeconstraints, ref fe_edgeconstraints, ref fe_loads,
+              ref fe_materials);
+
+        }
+
 
         public void paint_model()
         {

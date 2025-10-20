@@ -1,4 +1,64 @@
 ﻿
+                if (line == "*LOAD_DATA")
+                {
+                    Dictionary<int, nodeload_data> loadSetData = new Dictionary<int, nodeload_data>();
+
+                    while (j < dataLines.Length)
+                    {
+                        var loadLine = dataLines[j + 1].Trim();
+                        var splitValues = loadLine.Split(',');
+
+                        if (splitValues.Length != 5)
+                            break;
+
+                        try
+                        {
+                            int loadSetId = int.Parse(splitValues[0]);
+                            int nodeId = int.Parse(splitValues[1]);
+                            double load_amplitude = double.Parse(splitValues[2]);
+                            double load_frequency = double.Parse(splitValues[3]);
+                            double load_phase = double.Parse(splitValues[4]);
+
+                            if (!loadSetData.ContainsKey(loadSetId))
+                                loadSetData[loadSetId] = new nodeload_data();
+
+                            var loadEntry = loadSetData[loadSetId];
+                            loadEntry.load_node_ids.Add(nodeId); // Add the multiple nodes where the particular load set is applied
+
+                            // Add the load amplitude when the first node is added (all the nodes have same load values)
+                            if (loadEntry.load_node_ids.Count == 1)
+                            {
+                                loadEntry.load_amplitude = load_amplitude;
+                                loadEntry.load_frequency = load_frequency;
+                                loadEntry.load_phase = load_phase;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error parsing load data: {ex.Message}", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            // Console.WriteLine($"Error parsing load data: {ex.Message}");
+                            break;
+                        }
+
+                        j++;
+                    }
+
+                    // Add to main load storage
+                    foreach (var kvp in loadSetData)
+                    {
+                        var ld = kvp.Value;
+
+                        // Add the node loads to the list
+                        fe_loads.add_loads(ld.load_node_ids, ld.load_amplitude, ld.load_frequency, ld.load_phase);
+                    }
+                    // Console.WriteLine($"Load data read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
+                }
+
+
+
+
+
+
 
 
 

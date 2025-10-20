@@ -62,6 +62,9 @@ namespace _2DHelmholtz_solver
             refreshStatusResetTimer.Interval = 500; // milliseconds before resetting status
             refreshStatusResetTimer.Tick += RefreshStatusResetTimer_Tick;
 
+            // Add loads is covered in Nodal Boundary condition (so hidden)
+            addLoadsToolStripMenuItem.Visible = false;
+
         }
 
 
@@ -356,7 +359,8 @@ namespace _2DHelmholtz_solver
 
         #region "File Events"
 
-        private void importModelToolStripMenuItem_Click(object sender, EventArgs e)
+
+        private void importTXTFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
             OpenFileDialog openFileDialog = new OpenFileDialog
@@ -374,14 +378,51 @@ namespace _2DHelmholtz_solver
                 {
                     string fileContent = File.ReadAllText(filePath);
 
-                    fedata.importMesh(fileContent);
+                    fedata.importTXTFile(fileContent);
 
                     // Do something with the file content, e.g., parse the model
                     // MessageBox.Show("Model file loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error reading file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Error reading text file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            glControl_main_panel_SizeChanged(sender, e);
+
+            glControl_main_panel.Refresh();
+            glControl_main_panel.Invalidate();
+
+
+        }
+
+
+        private void importModelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Import Model File",
+                Filter = "Text Files (*.bin)|*.bin|All Files (*.*)|*.*",
+                // InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = openFileDialog.FileName;
+
+                try
+                {
+
+                    fedata.importBINFile(filePath);
+
+                    // Do something with the file content, e.g., parse the model
+                    // MessageBox.Show("Model file loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error reading binary file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
 
@@ -394,7 +435,35 @@ namespace _2DHelmholtz_solver
 
         private void exportModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Title = "Export Model File",
+                Filter = "Bindary Files (*.bin)|*.bin|All Files (*.*)|*.*",
+                // InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
 
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = saveFileDialog.FileName;
+
+                try
+                {
+
+                    fedata.exportBINFile(filePath);
+
+                    // Do something with the file content, e.g., parse the model
+                    // MessageBox.Show("Model file exported successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error exporting file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            glControl_main_panel_SizeChanged(sender, e);
+
+            glControl_main_panel.Refresh();
+            glControl_main_panel.Invalidate();
         }
 
 
@@ -513,7 +582,6 @@ namespace _2DHelmholtz_solver
             fedata.meshdata.clear_selected_nodes();
 
             // Show the form
-            // matprop_Form.update_material_data();
             nodalconstraint_Form.update_dataGridView();
             nodalconstraint_Form.update_selected_node_list();
             nodalconstraint_Form.Show(this);
@@ -556,7 +624,7 @@ namespace _2DHelmholtz_solver
             fedata.meshdata.clear_selected_edges();
 
             // Show the form
-            // matprop_Form.update_material_data();
+            edgeconstraint_Form.update_dataGridView();
             edgeconstraint_Form.update_selected_edge_list();
             edgeconstraint_Form.Show(this);
             edgeconstraint_Form.BringToFront();
@@ -668,8 +736,25 @@ namespace _2DHelmholtz_solver
         }
 
 
+
+
         #endregion
 
+
+        #region"Solver Events"
+
+        private void dHelmholtzSolveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // 2D Helmholtz Solver
+
+
+
+
+
+        }
+
+
+        #endregion
 
 
     }

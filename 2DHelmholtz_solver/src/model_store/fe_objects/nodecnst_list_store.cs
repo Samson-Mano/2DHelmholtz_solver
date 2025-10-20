@@ -37,7 +37,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         private List<int> all_constraintset_ids = new List<int>();
 
         // Constraint visualization
-        public meshdata_store ndcnst_meshdata;
+        private meshdata_store ndcnst_meshdata;
         // Add labels for the constraint
         private label_list_store ndcnst_label;
 
@@ -70,8 +70,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 ndcnst_id = unique_constraintset_id,
                 constraint_node_pts = nodePtsCopy,
                 constraint_node_ids = idsCopy,
-                field_value = field_value,
-                source_value = source_value,
+                field_value = isField == true ? field_value : 0.0,
+                source_value = isField == true ? 0.0 : source_value,
                 isField = isField
             };
 

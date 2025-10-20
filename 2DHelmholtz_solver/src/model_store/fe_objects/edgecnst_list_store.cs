@@ -71,6 +71,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             // Make a copy of the list
             List<int> idsCopy = new List<int>(constraint_edge_ids);
+            List<int> startnodePtIDsCopy = new List<int>(constraint_edge_startpt_ids);
+            List<int> endnodePtIDsCopy = new List<int>(constraint_edge_endpt_ids);
             List<Vector3> startnodePtsCopy = new List<Vector3>(constraint_edge_startpts);
             List<Vector3> endnodePtsCopy = new List<Vector3>(constraint_edge_endpts);
 
@@ -78,13 +80,13 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             edgecnst_store temp_edge_cnst = new edgecnst_store
             {
                 edgecnst_id = unique_constraintset_id,
-                constraint_edge_startpt_ids = constraint_edge_startpt_ids,
-                constraint_edge_endpt_ids = constraint_edge_endpt_ids,
+                constraint_edge_startpt_ids = startnodePtIDsCopy,
+                constraint_edge_endpt_ids = endnodePtIDsCopy,
                 constraint_edge_startpts = startnodePtsCopy,
                 constraint_edge_endpts = endnodePtsCopy,
                 constraint_edge_ids = idsCopy,
-                field_value = field_value,
-                normalderivfield_value = normalderivfield_value,
+                field_value = isSommerfieldBC == true ? 0.0 : field_value,
+                normalderivfield_value = isSommerfieldBC == true ? 0.0 : normalderivfield_value,
                 isSommerfieldBC = isSommerfieldBC
             };
 
