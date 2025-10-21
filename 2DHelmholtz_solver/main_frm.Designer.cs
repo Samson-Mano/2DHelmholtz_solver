@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(main_frm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importTXTFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -41,12 +42,12 @@
             this.addEdgeConstraintsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.materialPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.solverToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.dHelmholtzSolveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.glControl_main_panel = new OpenTK.GLControl();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_zoom_value = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_IsRefresh = new System.Windows.Forms.ToolStripStatusLabel();
-            this.dHelmholtzSolveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importTXTFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -77,31 +78,38 @@
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 22);
             this.fileToolStripMenuItem.Text = "File";
             // 
+            // importTXTFileToolStripMenuItem
+            // 
+            this.importTXTFileToolStripMenuItem.Name = "importTXTFileToolStripMenuItem";
+            this.importTXTFileToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.importTXTFileToolStripMenuItem.Text = "Import TXT File";
+            this.importTXTFileToolStripMenuItem.Click += new System.EventHandler(this.importTXTFileToolStripMenuItem_Click);
+            // 
             // importModelToolStripMenuItem
             // 
             this.importModelToolStripMenuItem.Name = "importModelToolStripMenuItem";
-            this.importModelToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.importModelToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.importModelToolStripMenuItem.Text = "Import Model";
             this.importModelToolStripMenuItem.Click += new System.EventHandler(this.importModelToolStripMenuItem_Click);
             // 
             // exportModelToolStripMenuItem
             // 
             this.exportModelToolStripMenuItem.Name = "exportModelToolStripMenuItem";
-            this.exportModelToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportModelToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.exportModelToolStripMenuItem.Text = "Export Model";
             this.exportModelToolStripMenuItem.Click += new System.EventHandler(this.exportModelToolStripMenuItem_Click);
             // 
             // optionToolStripMenuItem
             // 
             this.optionToolStripMenuItem.Name = "optionToolStripMenuItem";
-            this.optionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.optionToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.optionToolStripMenuItem.Text = "Option";
             this.optionToolStripMenuItem.Click += new System.EventHandler(this.optionToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -147,10 +155,18 @@
             // solverToolStripMenuItem
             // 
             this.solverToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.dHelmholtzSolveToolStripMenuItem});
+            this.dHelmholtzSolveToolStripMenuItem,
+            this.showResultsToolStripMenuItem});
             this.solverToolStripMenuItem.Name = "solverToolStripMenuItem";
             this.solverToolStripMenuItem.Size = new System.Drawing.Size(51, 22);
             this.solverToolStripMenuItem.Text = "Solver";
+            // 
+            // dHelmholtzSolveToolStripMenuItem
+            // 
+            this.dHelmholtzSolveToolStripMenuItem.Name = "dHelmholtzSolveToolStripMenuItem";
+            this.dHelmholtzSolveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.dHelmholtzSolveToolStripMenuItem.Text = "2D Helmholtz solve";
+            this.dHelmholtzSolveToolStripMenuItem.Click += new System.EventHandler(this.dHelmholtzSolveToolStripMenuItem_Click);
             // 
             // glControl_main_panel
             // 
@@ -200,19 +216,12 @@
             this.toolStripStatusLabel_IsRefresh.Size = new System.Drawing.Size(10, 17);
             this.toolStripStatusLabel_IsRefresh.Text = " ";
             // 
-            // dHelmholtzSolveToolStripMenuItem
+            // showResultsToolStripMenuItem
             // 
-            this.dHelmholtzSolveToolStripMenuItem.Name = "dHelmholtzSolveToolStripMenuItem";
-            this.dHelmholtzSolveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.dHelmholtzSolveToolStripMenuItem.Text = "2D Helmholtz solve";
-            this.dHelmholtzSolveToolStripMenuItem.Click += new System.EventHandler(this.dHelmholtzSolveToolStripMenuItem_Click);
-            // 
-            // importTXTFileToolStripMenuItem
-            // 
-            this.importTXTFileToolStripMenuItem.Name = "importTXTFileToolStripMenuItem";
-            this.importTXTFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.importTXTFileToolStripMenuItem.Text = "Import TXT File";
-            this.importTXTFileToolStripMenuItem.Click += new System.EventHandler(this.importTXTFileToolStripMenuItem_Click);
+            this.showResultsToolStripMenuItem.Name = "showResultsToolStripMenuItem";
+            this.showResultsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.showResultsToolStripMenuItem.Text = "Show Results";
+            this.showResultsToolStripMenuItem.Click += new System.EventHandler(this.showResultsToolStripMenuItem_Click);
             // 
             // main_frm
             // 
@@ -224,7 +233,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "main_frm";
             this.Text = "2D Helmholtz Solver";
             this.Load += new System.EventHandler(this.main_frm_Load);
@@ -257,6 +266,7 @@
         private System.Windows.Forms.ToolStripMenuItem addEdgeConstraintsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem dHelmholtzSolveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importTXTFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showResultsToolStripMenuItem;
     }
 }
 

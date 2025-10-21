@@ -42,6 +42,7 @@ namespace _2DHelmholtz_solver
         private load_frm load_Form;
         private nodalconstraint_frm nodalconstraint_Form;
         private edgeconstraint_frm edgeconstraint_Form;
+        private solver_frm solver_Form;
 
 
         public main_frm()
@@ -746,16 +747,49 @@ namespace _2DHelmholtz_solver
         private void dHelmholtzSolveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // 2D Helmholtz Solver
+            if (fedata.isModelSet == false)
+                return;
 
+            // Check if solver_Form is null or disposed
+            if (solver_Form == null || solver_Form.IsDisposed)
+            {
+                solver_Form = new solver_frm(ref fedata);
 
+                // Make it behave like a tool window
+                solver_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                solver_Form.ShowInTaskbar = false;
+                solver_Form.TopLevel = true;
+                solver_Form.Owner = this;
 
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - solver_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - solver_Form.Height) / 2;
+                solver_Form.StartPosition = FormStartPosition.Manual;
+                solver_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+            }
+
+            //// Turn on Flag Material update form is open
+            //fedata.meshdata.isMaterialUpdateInProgress = true;
+            //fedata.meshdata.clear_selected_mesh();
+
+            // Show the form
+            solver_Form.Show(this);
+            solver_Form.BringToFront();
+
+            glControl_main_panel.Invalidate();
 
 
         }
 
 
-        #endregion
+        private void showResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            showResultsToolStripMenuItem.Checked = !showResultsToolStripMenuItem.Checked;
 
+        }
+
+        #endregion
 
     }
 }
