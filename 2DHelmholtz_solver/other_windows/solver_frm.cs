@@ -1,4 +1,6 @@
-﻿using _2DHelmholtz_solver.src.model_store.fe_objects;
+﻿using _2DHelmholtz_solver.src.events_handler;
+using _2DHelmholtz_solver.src.global_variables;
+using _2DHelmholtz_solver.src.model_store.fe_objects;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -34,9 +36,28 @@ namespace _2DHelmholtz_solver.other_windows
             string inputPath = Path.Combine(Application.StartupPath, "model_input.bin");
             string outputPath = Path.Combine(Application.StartupPath, "model_output.bin");
 
+            // Write the binary file
+            file_events.export_binary_mesh(inputPath,
+                                        fe_data.fe_nodes,
+                                        fe_data.fe_tris,
+                                        fe_data.fe_quads,
+                                        fe_data.fe_nodeconstraints,
+                                        fe_data.fe_edgeconstraints,
+                                        fe_data.fe_loads,
+                                        fe_data.fe_materials);
 
 
 
+            // Call the C++ dll solver
+            try
+            {
+                helmholtzSolverInterop.solve_helmholtzsolverCPP(inputPath, outputPath);
+                MessageBox.Show("Solver completed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Solver failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
 
 
 

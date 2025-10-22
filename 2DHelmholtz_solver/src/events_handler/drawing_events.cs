@@ -290,7 +290,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             Vector2 screen_pt_b4_scale = intellizoom_normalized_screen_pt(e_X, e_Y);
 
             // Zoom operation
-            zoom_val = global_variables.gvariables_static.UpdateZoom(zoom_val, e_Delta);
+            zoom_val = gvariables_static.UpdateZoom(zoom_val, e_Delta);
 
             // Transformed Hypothetical Screen point after zoom
             Vector2 screen_pt_a4_scale = intellizoom_normalized_screen_pt(e_X, e_Y);
@@ -398,7 +398,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             }
 
             // map param_t through easing
-            double easedT = global_variables.gvariables_static.EaseInOut(param_t);
+            double easedT = gvariables_static.EaseInOut(param_t);
 
             // Animate the translation & zoom value
             this.zoom_val = temp_zm * (1 - easedT) + (1.0f * easedT);

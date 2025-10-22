@@ -482,13 +482,13 @@ namespace _2DHelmholtz_solver.src.events_handler
 
 
         public static void export_binary_mesh(string filePath, 
-                    ref node_list_store fe_nodes,
-                    ref elementtri_list_store fe_tris,
-                    ref elementquad_list_store fe_quads,
-                    ref nodecnst_list_store fe_nodeconstraints,
-                    ref edgecnst_list_store fe_edgeconstraints,
-                    ref nodeload_list_store fe_loads,
-                    ref Dictionary<int, material_data> fe_materials)
+                    node_list_store fe_nodes,
+                    elementtri_list_store fe_tris,
+                    elementquad_list_store fe_quads,
+                    nodecnst_list_store fe_nodeconstraints,
+                    edgecnst_list_store fe_edgeconstraints,
+                    nodeload_list_store fe_loads,
+                    Dictionary<int, material_data> fe_materials)
         {
 
             using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))

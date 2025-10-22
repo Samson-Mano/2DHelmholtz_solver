@@ -1,4 +1,5 @@
-﻿using SharpFont.Cache;
+﻿using _2DHelmholtz_solver.global_variables;
+using SharpFont.Cache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public void add_loads(List<int> load_node_ids, double load_amplitude, double load_frequency, double load_phase)
         {
             // Get an unique load set id
-            int unique_loadset_id = global_variables.gvariables_static.get_unique_id(all_loadset_ids);
+            int unique_loadset_id = gvariables_static.get_unique_id(all_loadset_ids);
 
             // Add the Load to the list
             nodeload_data temp_load = new nodeload_data

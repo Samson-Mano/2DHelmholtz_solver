@@ -67,7 +67,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             double field_value, double normalderivfield_value, bool isSommerfieldBC)
         {
             // Get an unique constraint set id
-            int unique_constraintset_id = global_variables.gvariables_static.get_unique_id(all_edgeconstraintset_ids);
+            int unique_constraintset_id = gvariables_static.get_unique_id(all_edgeconstraintset_ids);
 
             // Make a copy of the list
             List<int> idsCopy = new List<int>(constraint_edge_ids);
