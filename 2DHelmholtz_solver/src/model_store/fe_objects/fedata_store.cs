@@ -306,7 +306,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         {
             // Export the bindary mesh
             file_events.export_binary_mesh(filePath, fe_nodes, fe_tris, fe_quads,
-              fe_nodeconstraints, fe_edgeconstraints, fe_loads,
+              fe_nodeconstraints, fe_edgeconstraints, fe_loads, meshdata.mesh_boundaries,
               fe_materials);
 
         }

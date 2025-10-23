@@ -11,9 +11,21 @@ namespace _2DHelmholtz_solver.src.global_variables
 {
     public static class helmholtzSolverInterop
     {
+        // Declare the callback delegate
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CallbackDelegate([MarshalAs(UnmanagedType.LPStr)] string message);
 
-        [DllImport("helmholtz_solverCPP.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern void solve_helmholtzsolverCPP(string input_file, string output_file);
+
+        // Import the DLL function (updated to accept callback)
+        [DllImport("helmholtz_solver.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void solve_helmholtzsolverCPP(
+            [MarshalAs(UnmanagedType.LPStr)] string inputPath,
+            [MarshalAs(UnmanagedType.LPStr)] string outputPath,
+            ref bool isAnalysisSuccess,
+            CallbackDelegate callback
+        );
+
+
 
     }
 }

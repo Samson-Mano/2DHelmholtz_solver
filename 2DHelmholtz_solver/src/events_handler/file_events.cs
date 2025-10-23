@@ -1,5 +1,6 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
+using _2DHelmholtz_solver.src.model_store.geom_objects;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -69,11 +70,11 @@ namespace _2DHelmholtz_solver.src.events_handler
                             double y = RoundToSixDigits(double.Parse(splitValues[2]));
                             double z = RoundToSixDigits(double.Parse(splitValues[3]));
 
-                            var nodePt = new Vector3((float)x, (float)y, (float)z); 
+                            var nodePt = new Vector3((float)x, (float)y, (float)z);
                             nodePtsList.Add(nodePt);
 
                             // node added to the node list
-                            fe_nodes.add_node(nodeId, x,y,z); 
+                            fe_nodes.add_node(nodeId, x, y, z);
                         }
                         catch (Exception ex)
                         {
@@ -97,7 +98,7 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                 if (line == "*ELEMENT,TYPE=S3")
                 {
- 
+
                     while (j < dataLines.Length)
                     {
                         var elementLine = dataLines[j + 1].Trim();
@@ -114,8 +115,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                             int nd3 = int.Parse(splitValues[3]);
 
                             // Tirangle mesh added to the list
-                            fe_tris.add_elementtriangle(triId, nd1 , nd2, nd3); 
-                                
+                            fe_tris.add_elementtriangle(triId, nd1, nd2, nd3);
+
                         }
                         catch (Exception ex)
                         {
@@ -127,7 +128,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                         j++;
                     }
 
-                   // Console.WriteLine($"Triangle Elements read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
+                    // Console.WriteLine($"Triangle Elements read completed at {stopwatch.Elapsed.TotalSeconds:F2} secs");
                 }
 
                 if (line == "*ELEMENT,TYPE=S4")
@@ -150,8 +151,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                             int nd4 = int.Parse(splitValues[4]);
 
                             // Quadrilateral mesh added to the list
-                            fe_quads.add_elementquadrilateral(quadId, nd1 , nd2,nd3, nd4);
-                            
+                            fe_quads.add_elementquadrilateral(quadId, nd1, nd2, nd3, nd4);
+
                         }
                         catch (Exception ex)
                         {
@@ -281,9 +282,9 @@ namespace _2DHelmholtz_solver.src.events_handler
                             // Add the load amplitude when the first node is added (all the nodes have same load values)
                             if (NodeconstraintEntry.constraint_node_ids.Count == 1)
                             {
-                                NodeconstraintEntry.field_value =  NodeConstraint_fieldvalue; // Field value (Dirichlet boundary condition)
+                                NodeconstraintEntry.field_value = NodeConstraint_fieldvalue; // Field value (Dirichlet boundary condition)
                                 NodeconstraintEntry.source_value = NodeConstraint_sourcevalue; // Source term, Excitation source
-                                NodeconstraintEntry.isField = NodeConstraint_isField == 1 ? true : false;    
+                                NodeconstraintEntry.isField = NodeConstraint_isField == 1 ? true : false;
                             }
                         }
                         catch (Exception ex)
@@ -313,7 +314,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                                 (float)nd.node_pt_z_coord));
                         }
 
-                        
+
 
                         // Add the node constraint to the list
                         fe_nodeconstraints.add_nodeconstraint(cnst.constraint_node_ids, constraint_node_pts,
@@ -422,7 +423,7 @@ namespace _2DHelmholtz_solver.src.events_handler
 
 
             // Check the model
-            if(fe_nodes.node_count < 2 || (fe_tris.elementtri_count + fe_quads.elementquad_count) < 1)
+            if (fe_nodes.node_count < 2 || (fe_tris.elementtri_count + fe_quads.elementquad_count) < 1)
             {
                 isModelLoadSuccess = false;
                 MessageBox.Show("Input error!! ", "Model Import Error ", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -431,7 +432,7 @@ namespace _2DHelmholtz_solver.src.events_handler
             }
 
             // No material is assigned in the model (Add a default material)
-            if(is_material_inpt_exists == false || fe_materials.Count == 0)
+            if (is_material_inpt_exists == false || fe_materials.Count == 0)
             {
                 var tempMaterial = new material_data
                 {
@@ -454,7 +455,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                 List<int> selected_tri_elm_ids = new List<int>();
                 List<int> selected_quad_elm_ids = new List<int>();
 
-                foreach(var tri in fe_tris.elementtriMap)
+                foreach (var tri in fe_tris.elementtriMap)
                 {
                     selected_tri_elm_ids.Add(tri.Key);
                 }
@@ -481,13 +482,14 @@ namespace _2DHelmholtz_solver.src.events_handler
         }
 
 
-        public static void export_binary_mesh(string filePath, 
+        public static void export_binary_mesh(string filePath,
                     node_list_store fe_nodes,
                     elementtri_list_store fe_tris,
                     elementquad_list_store fe_quads,
                     nodecnst_list_store fe_nodeconstraints,
                     edgecnst_list_store fe_edgeconstraints,
                     nodeload_list_store fe_loads,
+                    line_list_store mesh_edges,
                     Dictionary<int, material_data> fe_materials)
         {
 
@@ -501,6 +503,15 @@ namespace _2DHelmholtz_solver.src.events_handler
                     writer.Write(node.node_pt_x_coord);
                     writer.Write(node.node_pt_y_coord);
                     writer.Write(node.node_pt_z_coord);
+                }
+
+                // Edges
+                writer.Write(mesh_edges.line_count);
+                foreach (var edge in mesh_edges.lineMap.Values)
+                {
+                    writer.Write(edge.line_id);
+                    writer.Write(edge.start_pt_id);
+                    writer.Write(edge.end_pt_id);
                 }
 
                 // Tri elements
@@ -544,12 +555,13 @@ namespace _2DHelmholtz_solver.src.events_handler
                 foreach (var cnst in fe_nodeconstraints.ndcnstMap.Values)
                 {
                     writer.Write(cnst.ndcnst_id);
-                    writer.Write(cnst.constraint_node_ids.Count);
-                    foreach (int nid in cnst.constraint_node_ids)
-                        writer.Write(nid);
                     writer.Write(cnst.field_value);
                     writer.Write(cnst.source_value);
                     writer.Write(cnst.isField);
+
+                    writer.Write(cnst.constraint_node_ids.Count);
+                    foreach (int nid in cnst.constraint_node_ids)
+                        writer.Write(nid);
                 }
 
                 // Edge constraints
@@ -557,17 +569,20 @@ namespace _2DHelmholtz_solver.src.events_handler
                 foreach (var cnst in fe_edgeconstraints.edgecnstMap.Values)
                 {
                     writer.Write(cnst.edgecnst_id);
-                    writer.Write(cnst.constraint_edge_ids.Count);
-                    for (int i = 0; i < cnst.constraint_edge_ids.Count; i++)
-                    {
-                        writer.Write(cnst.constraint_edge_ids[i]);  
-                        writer.Write(cnst.constraint_edge_startpt_ids[i]);
-                        writer.Write(cnst.constraint_edge_endpt_ids[i]);
-                    }
                     writer.Write(cnst.field_value);
                     writer.Write(cnst.normalderivfield_value);
                     writer.Write(cnst.isSommerfieldBC);
+
+                    writer.Write(cnst.constraint_edge_ids.Count);
+                    for (int i = 0; i < cnst.constraint_edge_ids.Count; i++)
+                    {
+                        writer.Write(cnst.constraint_edge_ids[i]);
+                        writer.Write(cnst.constraint_edge_startpt_ids[i]);
+                        writer.Write(cnst.constraint_edge_endpt_ids[i]);
+                    }
+
                 }
+
             }
 
 
@@ -630,6 +645,17 @@ namespace _2DHelmholtz_solver.src.events_handler
 
                 // update the global static value
                 gvariables_static.geom_size = (geom_extremes.Item2 - geom_extremes.Item1).Length;
+
+
+                // --- Edges --- (Ignore the edges for reading the model)
+                int edgecount = reader.ReadInt32();
+                for (int i = 0; i < edgecount; i++)
+                {
+                    int edgeId = reader.ReadInt32();
+                    int startptID = reader.ReadInt32();
+                    int endptID = reader.ReadInt32();
+
+                }
 
 
                 // --- TRI ELEMENTS ---
@@ -720,15 +746,15 @@ namespace _2DHelmholtz_solver.src.events_handler
                 {
                     nodecnst_data cnst = new nodecnst_data();
                     cnst.ndcnst_id = reader.ReadInt32();
+                    cnst.field_value = reader.ReadDouble();
+                    cnst.source_value = reader.ReadDouble();
+                    cnst.isField = reader.ReadBoolean();
+
 
                     int nidCount = reader.ReadInt32();
                     cnst.constraint_node_ids = new List<int>();
                     for (int j = 0; j < nidCount; j++)
                         cnst.constraint_node_ids.Add(reader.ReadInt32());
-
-                    cnst.field_value = reader.ReadDouble();
-                    cnst.source_value = reader.ReadDouble();
-                    cnst.isField = reader.ReadBoolean();
 
                     // Get the point locations
                     List<Vector3> constraint_node_pts = new List<Vector3>();
@@ -757,6 +783,9 @@ namespace _2DHelmholtz_solver.src.events_handler
                 {
                     edgecnst_store cnst = new edgecnst_store();
                     cnst.edgecnst_id = reader.ReadInt32();
+                    cnst.field_value = reader.ReadDouble();
+                    cnst.normalderivfield_value = reader.ReadDouble();
+                    cnst.isSommerfieldBC = reader.ReadBoolean();
 
                     int edgeCount = reader.ReadInt32();
                     cnst.constraint_edge_ids = new List<int>();
@@ -769,10 +798,6 @@ namespace _2DHelmholtz_solver.src.events_handler
                         cnst.constraint_edge_startpt_ids.Add(reader.ReadInt32());
                         cnst.constraint_edge_endpt_ids.Add(reader.ReadInt32());
                     }
-
-                    cnst.field_value = reader.ReadDouble();
-                    cnst.normalderivfield_value = reader.ReadDouble();
-                    cnst.isSommerfieldBC = reader.ReadBoolean();
 
                     // Get the start and end point locations
                     List<Vector3> constraint_edge_startpts = new List<Vector3>();

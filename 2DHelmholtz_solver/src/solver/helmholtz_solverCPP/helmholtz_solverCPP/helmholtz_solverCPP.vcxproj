@@ -128,6 +128,10 @@
   <ItemGroup>
     <ClCompile Include="helmholtz_solverCPP.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="system_store\helmholtz_system_store.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="system_store\helmholtz_system_store.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

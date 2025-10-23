@@ -76,6 +76,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             List<Vector3> startnodePtsCopy = new List<Vector3>(constraint_edge_startpts);
             List<Vector3> endnodePtsCopy = new List<Vector3>(constraint_edge_endpts);
 
+
             // Add the constraint to the particular edge
             edgecnst_store temp_edge_cnst = new edgecnst_store
             {
@@ -85,7 +86,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 constraint_edge_startpts = startnodePtsCopy,
                 constraint_edge_endpts = endnodePtsCopy,
                 constraint_edge_ids = idsCopy,
-                field_value = isSommerfieldBC == true ? 0.0 : field_value,
+                field_value = isSommerfieldBC == true ? 0.0 :  field_value,
                 normalderivfield_value = isSommerfieldBC == true ? 0.0 : normalderivfield_value,
                 isSommerfieldBC = isSommerfieldBC
             };

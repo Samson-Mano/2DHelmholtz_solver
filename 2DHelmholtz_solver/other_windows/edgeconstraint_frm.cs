@@ -81,6 +81,12 @@ namespace _2DHelmholtz_solver.other_windows
                     i++;
                 }
 
+                if (checkBox_dirichlet.Checked == false)
+                    field_value = 0.0;
+
+                if (checkBox_neumann.Checked == false)
+                    normalderiv_value = 0.0;
+
                 // Add the edge constraint
                 fe_data.fe_edgeconstraints.add_edgeconstraint(fe_data.meshdata.selected_edge_ids,
                     constraint_edge_startpt_ids, constraint_edge_endpt_ids,

@@ -53,7 +53,7 @@
             // 
             // solver_frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(674, 401);
             this.Controls.Add(this.button_performsolve);
@@ -64,6 +64,7 @@
             this.Name = "solver_frm";
             this.Opacity = 0.85D;
             this.Text = "2D Helmholtz Solver";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.solver_frm_FormClosing);
             this.ResumeLayout(false);
 
         }
