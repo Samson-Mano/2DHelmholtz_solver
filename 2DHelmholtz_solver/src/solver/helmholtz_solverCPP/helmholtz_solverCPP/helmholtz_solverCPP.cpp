@@ -3,11 +3,13 @@
 #include <vector>
 #include <cmath>
 #include <string>
-#include <unordered_map>
 #include <cstdint>
-#include <Eigen/Dense>
-#include "system_store/helmholtz_system_store.h"
+#include <iomanip>
+#include <sstream>
 
+#include "system_store/helmholtz_system_store.h"
+#include "system_store/stopwatch_events.h"
+#include "solver/helmholtz2d_solver.h"
 
 
 // Helper to read C#-style strings (BinaryWriter.Write(string))
@@ -32,13 +34,17 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 	std::ofstream outfile(output_file, std::ios::binary);
 
 	if (callback) callback("Initializing solver...");
+	(*isAnalysisSuccess) = false;
 
+	stopwatch_events stopwatch;
+	std::stringstream stopwatch_elapsed_str;
+	std::string msg = "";
 
 	if (!infile.is_open())
 	{
 		if (callback)
 		{
-			std::string msg = "Error: Unable to open input file: " + std::string(input_file);
+			msg = "Error: Unable to open input file: " + std::string(input_file);
 			callback(msg.c_str());
 
 		}
@@ -52,7 +58,7 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 	{
 		if (callback)
 		{
-			std::string msg = "Error: Unable to open output file: " + std::string(output_file);
+			msg = "Error: Unable to open output file: " + std::string(output_file);
 			callback(msg.c_str());
 
 		}
@@ -62,6 +68,11 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 		// std::cerr << "Error: Unable to open output file: " << output_file << std::endl;
 		return;
 	}
+
+	stopwatch.start();
+
+	stopwatch_elapsed_str.str("");
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6);
 
 
 	helmholtz_system_store helmholtz_2dsystem;
@@ -85,6 +96,14 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 
 	}
 
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Finished reading nodes at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
+
+
 	// ---------- Edges ----------
 	int32_t edgeCount;
 	infile.read(reinterpret_cast<char*>(&edgeCount), 4);
@@ -101,6 +120,14 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 		helmholtz_2dsystem.add_edge(edge_id, startnodeid, endnodeid);
 
 	}
+
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Finished reading edges at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
+
 
 	// ---------- Tri Elements ----------
 	int32_t triCount;
@@ -121,6 +148,14 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 
 	}
 
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Finished reading triangular elements at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
+
+
 	// ---------- Quad Elements ----------
 	int32_t quadCount;
 	infile.read(reinterpret_cast<char*>(&quadCount), 4);
@@ -140,6 +175,14 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 		helmholtz_2dsystem.add_quadelement(quad_id, nodeid1, nodeid2, nodeid3, nodeid4, materialid);
 
 	}
+
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Finished reading quadrilateral elements at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
+
 
 	// ---------- Materials ----------
 	int32_t matCount;
@@ -162,6 +205,13 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 		helmholtz_2dsystem.add_material(materialid, permittivity, permeability);
 
 	}
+
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Finished reading materials at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
 
 
 	// ---------- Node Constraints ----------
@@ -194,6 +244,13 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 		}
 
 	}
+
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Finished reading nodal constraints at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
 
 
 	// ---------- Edge Constraints ----------
@@ -230,6 +287,43 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 
 	}
 
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Finished reading edge constraints at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
+
+
+	//____________ Set the Matrices _________________________
+	helmholtz2d_solver helmholtz_solver;
+
+	helmholtz_solver.init(&helmholtz_2dsystem);
+
+	//_____________________________________________________________________________________
+	// Create the matrices
+	helmholtz_solver.create_global_matrices();
+
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	msg = "Global matrices created at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
+
+
+
+
+
+
+
+
+
+
+	//_________________________________________________________
+	// Close the files
+	infile.close();
+	outfile.close();
 
 }
 

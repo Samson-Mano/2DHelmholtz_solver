@@ -17,7 +17,7 @@ namespace _2DHelmholtz_solver.src.global_variables
 
 
         // Import the DLL function (updated to accept callback)
-        [DllImport("helmholtz_solver.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("helmholtz_solverCPP.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void solve_helmholtzsolverCPP(
             [MarshalAs(UnmanagedType.LPStr)] string inputPath,
             [MarshalAs(UnmanagedType.LPStr)] string outputPath,

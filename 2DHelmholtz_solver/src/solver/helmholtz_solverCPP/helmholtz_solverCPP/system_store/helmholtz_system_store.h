@@ -62,6 +62,13 @@ struct material_store
 class helmholtz_system_store
 {
 public:
+	std::unordered_map<int, node_store> node_list;
+	std::unordered_map<int, edge_store> edge_list;
+	std::unordered_map<int, trielement_store> trielement_list;
+	std::unordered_map<int, quadelement_store> quadelement_list;
+	std::unordered_map<int, material_store> material_list;
+
+
 	helmholtz_system_store();
 	~helmholtz_system_store() = default;
 
@@ -101,11 +108,6 @@ public:
 
 
 private:
-	std::unordered_map<int, node_store> node_list;
-	std::unordered_map<int, edge_store> edge_list;
-	std::unordered_map<int, trielement_store> trielement_list;
-	std::unordered_map<int, quadelement_store> quadelement_list;
-	std::unordered_map<int, material_store> material_list;
 
 
 };

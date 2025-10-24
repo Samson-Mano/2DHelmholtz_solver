@@ -24,9 +24,21 @@
     <ClCompile Include="system_store\helmholtz_system_store.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="system_store\stopwatch_events.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="solver\helmholtz2d_solver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system_store\helmholtz_system_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="system_store\stopwatch_events.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="solver\helmholtz2d_solver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
