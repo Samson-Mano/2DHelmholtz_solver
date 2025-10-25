@@ -54,9 +54,81 @@ private:
 
 	int get_edge_id(const int& startNode_id, const int& endNode_id);
 
-	double get_line_length(const node_store& pt1, const node_store& pt2);
+	double get_line_length(const node_store& nd1, const node_store& nd2);
 
-	double get_triangle_area(const node_store& pt1, const node_store& pt2, const node_store& pt3);
+	double get_triangle_area(const node_store& nd1, const node_store& nd2, const node_store& nd3);
+
+
+	void get_trielement_k_matrix(const node_store& nd1, const node_store& nd2, const node_store& nd3,
+		const double& k, Eigen::Matrix3d& element_k_matrix);
+
+
+	void get_trielement_m_matrix(const node_store& nd1, const node_store& nd2, const node_store& nd3,
+		const double& k, Eigen::Matrix3d& element_m_matrix);
+
+
+	void get_trielement_kI_matrix(const int& edge1_id, const int& edge2_id, const int& edge3_id,
+		const double& edge1_length, const double& edge2_length, const double& edge3_length,
+		const double& k, Eigen::Matrix3d& element_kI_matrix);
+
+
+	void get_trielement_field_vector(const node_store& nd1, const node_store& nd2, const node_store& nd3,
+		const int& edge1_id, const int& edge2_id, const int& edge3_id,
+		const double& edge1_length, const double& edge2_length, const double& edge3_length,
+		Eigen::Vector3d& dirichlet_vector);
+
+
+	void get_trielement_normderivfield_vector(const int& edge1_id, const int& edge2_id, const int& edge3_id,
+		const double& edge1_length, const double& edge2_length, const double& edge3_length,
+		Eigen::Vector3d& neumann_vector);
+
+
+	void get_trielement_source_vector(const node_store& nd1, const node_store& nd2, const node_store& nd3,
+		Eigen::Vector3d& source_vector);
+
+
+
+
+	void get_quadelement_k_matrix(const node_store& nd1, const node_store& nd2, 
+		const node_store& nd3, const node_store& nd4,
+		const double& k, Eigen::MatrixXd& element_k_matrix);
+
+
+	void get_quadelement_m_matrix(const node_store& nd1, const node_store& nd2, 
+		const node_store& nd3, const node_store& nd4,
+		const double& k, Eigen::MatrixXd& element_m_matrix);
+
+
+	void get_quadelement_kI_matrix(const node_store& nd1, const node_store& nd2, 
+		const node_store& nd3, const node_store& nd4,
+		const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
+		const double& edge1_length, const double& edge2_length, 
+		const double& edge3_length, const double& edge4_length,
+		const double& k, Eigen::MatrixXd& element_kI_matrix);
+
+
+	void get_quadelement_field_vector(const node_store& nd1, const node_store& nd2, 
+		const node_store& nd3, const node_store& nd4,
+		const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
+		const double& edge1_length, const double& edge2_length, 
+		const double& edge3_length, const double& edge4_length,
+		Eigen::VectorXd& dirichlet_vector);
+
+
+	void get_quadelement_normderivfield_vector(const node_store& nd1, const node_store& nd2,
+		const node_store& nd3, const node_store& nd4,
+		const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
+		const double& edge1_length, const double& edge2_length,
+		const double& edge3_length, const double& edge4_length,
+		Eigen::VectorXd& dirichlet_vector);
+
+
+	void get_quadelement_source_vector(const node_store& nd1, const node_store& nd2, 
+		const node_store& nd3, const node_store& nd4,
+		Eigen::VectorXd& source_vector);
+
+
+
 
 
 };
