@@ -10,6 +10,7 @@ struct node_store
 	double y_coord = 0.0;
 
 	bool isboundarynode = false;
+	bool isFieldBC = false;
 	double fieldvalue = 0.0; // Field value in the node
 	double sourcevalue = 0.0; // Source value in the node
 
@@ -23,6 +24,8 @@ struct edge_store
 
 	bool isboundaryedge = false;
 	bool isSommerfieldBC = false;
+	bool isFieldBC = false;
+	bool isDerivFieldBC = false;
 	double fieldvalue = 0.0; 
 	double normalderivfieldvalue = 0.0;
 
@@ -98,11 +101,14 @@ public:
 		const double& permeability);
 
 	void add_nodeconstraint(const int& node_id,
+		const bool& isFieldBC,
 		const double& fieldvalue,
 		const double& sourcevalue);
 
 	void add_edgeconstraint(const int& edge_id,
 		const bool& isSommerfieldBC,
+		const bool& isFieldBC,
+		const bool& isDerivFieldBC,
 		const double& fieldvalue,
 		const double& normalderivfieldvalue);
 

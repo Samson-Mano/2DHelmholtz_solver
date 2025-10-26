@@ -43,7 +43,13 @@ namespace _2DHelmholtz_solver.other_windows
                 if (!double.TryParse(textBox_dirichlet.Text, out double field_value) ||
                     !double.TryParse(textBox_neumann.Text, out double normalderiv_value))
                 {
-                    MessageBox.Show("Please enter valid numeric values for field value, and normal derivative source value.");
+                    MessageBox.Show("Please enter valid numeric values for field value, and normal derivative field value.");
+                    return;
+                }
+
+                if (checkBox_dirichlet.Checked == false && checkBox_neumann.Checked == false)
+                {
+                    MessageBox.Show("Please select field value, and normal derivative field value.");
                     return;
                 }
 
@@ -91,7 +97,7 @@ namespace _2DHelmholtz_solver.other_windows
                 fe_data.fe_edgeconstraints.add_edgeconstraint(fe_data.meshdata.selected_edge_ids,
                     constraint_edge_startpt_ids, constraint_edge_endpt_ids,
                     constraint_edge_startpts, constraint_edge_endpts,
-                    field_value, normalderiv_value, false);
+                    field_value, normalderiv_value, checkBox_dirichlet.Checked, checkBox_neumann.Checked,false);
 
             }
             else
@@ -135,7 +141,7 @@ namespace _2DHelmholtz_solver.other_windows
                 fe_data.fe_edgeconstraints.add_edgeconstraint(fe_data.meshdata.selected_edge_ids,
                     constraint_edge_startpt_ids, constraint_edge_endpt_ids,
                     constraint_edge_startpts, constraint_edge_endpts,
-                    0.0, 0.0, true);
+                    0.0, 0.0, false, false, true);
 
             }
 

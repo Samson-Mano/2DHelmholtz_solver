@@ -239,7 +239,7 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 			infile.read(reinterpret_cast<char*>(&node_id), 4);
 
 			// Update the constraint of the node where constarints are applied
-			helmholtz_2dsystem.add_nodeconstraint(node_id, fieldvalue, sourcevalue);
+			helmholtz_2dsystem.add_nodeconstraint(node_id, isfield, fieldvalue, sourcevalue);
 
 		}
 
@@ -261,12 +261,16 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 	{
 		int32_t edgeConstraintsid = 0;
 		double fieldvalue = 0.0, normalderivfieldvalue = 0.0;
+		bool isFieldBC = false;
+		bool isDerivfieldBC = false;
 		bool isSommerfieldBC = false;
 
 
 		infile.read(reinterpret_cast<char*>(&edgeConstraintsid), 4);
 		infile.read(reinterpret_cast<char*>(&fieldvalue), 8);
 		infile.read(reinterpret_cast<char*>(&normalderivfieldvalue), 8);
+		infile.read(reinterpret_cast<char*>(&isFieldBC), 1);
+		infile.read(reinterpret_cast<char*>(&isDerivfieldBC), 1);
 		infile.read(reinterpret_cast<char*>(&isSommerfieldBC), 1);
 
 		int32_t eidCount;
@@ -281,7 +285,8 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 			infile.read(reinterpret_cast<char*>(&endnodeid), 4);
 
 			// Update the constraint of the edge where constarints are applied
-			helmholtz_2dsystem.add_edgeconstraint(edge_id, isSommerfieldBC, fieldvalue, normalderivfieldvalue);
+			helmholtz_2dsystem.add_edgeconstraint(edge_id, isSommerfieldBC, isFieldBC, isDerivfieldBC,
+				fieldvalue, normalderivfieldvalue);
 
 		}
 

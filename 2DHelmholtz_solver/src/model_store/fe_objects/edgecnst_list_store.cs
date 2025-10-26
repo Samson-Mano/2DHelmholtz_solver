@@ -28,7 +28,12 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         public double normalderivfield_value { get; set; } // neumann boundary condition (normal derivative field value)
 
-        public bool isSommerfieldBC { get; set; } // is Field value
+
+        public bool isfieldvalue { get; set; } // is prescribed field value
+
+        public bool isnormalderivfieldvalue { get; set; } // is prescribed normal derivative field value
+
+        public bool isSommerfieldBC { get; set; } // is Sommerfield absorbing boundary condition
 
 
 
@@ -64,7 +69,9 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public void add_edgeconstraint(List<int> constraint_edge_ids,
             List<int> constraint_edge_startpt_ids, List<int> constraint_edge_endpt_ids,
             List<Vector3> constraint_edge_startpts, List<Vector3> constraint_edge_endpts,
-            double field_value, double normalderivfield_value, bool isSommerfieldBC)
+            double field_value, double normalderivfield_value, 
+            bool isfieldvalue, bool isnormalderivfieldvalue,
+            bool isSommerfieldBC)
         {
             // Get an unique constraint set id
             int unique_constraintset_id = gvariables_static.get_unique_id(all_edgeconstraintset_ids);
@@ -88,6 +95,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 constraint_edge_ids = idsCopy,
                 field_value = isSommerfieldBC == true ? 0.0 :  field_value,
                 normalderivfield_value = isSommerfieldBC == true ? 0.0 : normalderivfield_value,
+                isfieldvalue = isfieldvalue,
+                isnormalderivfieldvalue = isnormalderivfieldvalue,
                 isSommerfieldBC = isSommerfieldBC
             };
 
@@ -192,8 +201,20 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 }
                 else
                 {
-                    label_string2 = $"Field value = {cnstraint.field_value}, " +
-                        $"Normal derivative value = {cnstraint.normalderivfield_value}";
+                    if (cnstraint.isfieldvalue == true && cnstraint.isnormalderivfieldvalue == true)
+                    {
+                        label_string2 = $"Field value = {cnstraint.field_value}, " +
+                                $"Normal derivative value = {cnstraint.normalderivfield_value}";
+                    }
+                    else if (cnstraint.isfieldvalue == true)
+                    {
+                        label_string2 = $"Field value = {cnstraint.field_value}";
+                    }
+                    else if (cnstraint.isnormalderivfieldvalue == true)
+                    {
+                        label_string2 = $"Normal derivative value = {cnstraint.normalderivfield_value}";
+                    }
+
                 }
 
                 float label_ht = gvariables_static.get_text_height(12.0f) * 1.25f;

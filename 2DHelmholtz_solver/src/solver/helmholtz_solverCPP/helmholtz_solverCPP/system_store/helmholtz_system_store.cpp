@@ -90,22 +90,27 @@ void helmholtz_system_store::add_material(const int& materialid,
 }
 
 void helmholtz_system_store::add_nodeconstraint(const int& node_id, 
+	const bool& isFieldBC,
 	const double& fieldvalue, const double& sourcevalue)
 {
 	// Node constraint addition
 	node_list[node_id].isboundarynode = true;
+	node_list[node_id].isFieldBC = isFieldBC;
 	node_list[node_id].fieldvalue = fieldvalue;
 	node_list[node_id].sourcevalue = sourcevalue;
 
 }
 
 void helmholtz_system_store::add_edgeconstraint(const int& edge_id, 
-	const bool& isSommerfieldBC, const double& fieldvalue, 
+	const bool& isSommerfieldBC, const bool& isFieldBC,
+	const bool& isDerivFieldBC, const double& fieldvalue,
 	const double& normalderivfieldvalue)
 {
 	// Edge constraint addition
 	edge_list[edge_id].isboundaryedge = true;
 	edge_list[edge_id].isSommerfieldBC = isSommerfieldBC;
+	edge_list[edge_id].isFieldBC = isFieldBC;
+	edge_list[edge_id].isDerivFieldBC = isDerivFieldBC;
 	edge_list[edge_id].fieldvalue = fieldvalue;
 	edge_list[edge_id].normalderivfieldvalue = normalderivfieldvalue;
 

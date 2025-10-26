@@ -29,7 +29,19 @@ void helmholtz2d_solver::create_global_matrices()
 	// Set the number of DOF
 	this->numDOF = static_cast<int>(helmholtz_2dsystem.node_list.size());
 
-	// Triangle element
+
+	// Set zeros
+	global_k_matrix.setZero(numDOF, numDOF);
+	global_m_matrix.setZero(numDOF, numDOF);
+	global_kI_matrix.setZero(numDOF, numDOF);
+
+	global_field_vector.setZero(numDOF);
+	global_normalderivfield_vector.setZero(numDOF);
+	global_source_vector.setZero(numDOF);
+
+	global_BC_vector.setZero(numDOF);
+
+	// Triangle elements
 	for (auto& tri_elm_m : helmholtz_2dsystem.trielement_list)
 	{
 		// get the element
@@ -45,44 +57,198 @@ void helmholtz2d_solver::create_global_matrices()
 		int nd2_id = tri_elm.nodeid2; // Node id 2
 		int nd3_id = tri_elm.nodeid3; // Node id 3
 
-		// get the three edge ids of the elemnt
+		// get the three edge ids of the triangle element
 		int edge1_id = get_edge_id(nd1_id, nd2_id); // Edge 1
 		int edge2_id = get_edge_id(nd2_id, nd3_id); // Edge 2
 		int edge3_id = get_edge_id(nd3_id, nd1_id); // Edge 3
 
-		// get the edge lengths
-		double edge1_length = get_line_length(helmholtz_2dsystem.node_list[nd1_id], helmholtz_2dsystem.node_list[nd2_id]);
-		double edge2_length = get_line_length(helmholtz_2dsystem.node_list[nd2_id], helmholtz_2dsystem.node_list[nd3_id]);
-		double edge3_length = get_line_length(helmholtz_2dsystem.node_list[nd3_id], helmholtz_2dsystem.node_list[nd1_id]);
+		// get the edge lengths of triangle element
+		double edge1_length = get_line_length(nd1_id, nd2_id);
+		double edge2_length = get_line_length(nd2_id, nd3_id);
+		double edge3_length = get_line_length(nd3_id, nd1_id);
 
 		// get the material parameters of this element
 		double permeability_mu = helmholtz_2dsystem.material_list[tri_elm.materialid].permeability; // Permeability
 		double permittivity_epsilon = helmholtz_2dsystem.material_list[tri_elm.materialid].permittivity; // Permitivity
-		double elm_area = get_triangle_area(helmholtz_2dsystem.node_list[nd1_id], 
-			helmholtz_2dsystem.node_list[nd2_id], 
-			helmholtz_2dsystem.node_list[nd3_id]);
+		double trielm_area = get_triangle_area(nd1_id, nd2_id, nd3_id);
+		double wave_number = permittivity_epsilon * permeability_mu; // k = epsilon * mu
 
 		//________________________________________________________________________________________________
 		// Step 2: Create element k matrix
 		Eigen::Matrix3d element_k_matrix; // Element k matrix
-		element_k_matrix.setZero();
 
-		//get_trielement_k_matrix(elm.nd1->node_pt,
-		//	elm.nd2->node_pt,
-		//	elm.nd3->node_pt,
-		//	elm_kx,
-		//	elm_ky,
-		//	elm_thickness,
-		//	elm_area,
-		//	Element_conduction_matrix);
+		get_trielement_k_matrix(nd1_id, nd2_id, nd3_id, trielm_area, element_k_matrix);
+
+		//________________________________________________________________________________________________
+		// Step 3: Create element m matrix
+		Eigen::Matrix3d element_m_matrix; // Element m matrix
+
+		get_trielement_m_matrix(nd1_id, nd2_id, nd3_id, trielm_area, element_m_matrix);
+
+		//________________________________________________________________________________________________
+		// Step 4: Create Sommerfield Absorbtion Boundary Condition matrix
+		Eigen::Matrix3d element_kI_matrix; // Element kI matrix
+
+		get_trielement_kI_matrix(edge1_id, edge2_id, edge3_id,
+			edge1_length, edge2_length, edge3_length, wave_number, element_kI_matrix);
+
+		//________________________________________________________________________________________________
+		// Step 5: Create Element field vector
+		Eigen::Vector3d element_field_vector; // Element field vector
+		Eigen::Vector3i element_BC_vector; // Element BC Vector to track the Dirichlet boundary conidtion (For elimination)
+
+		get_trielement_field_vector(nd1_id, nd2_id, nd3_id,
+			edge1_id, edge2_id, edge3_id,
+			edge1_length, edge2_length, edge3_length, element_BC_vector, element_field_vector);
 
 
+		//________________________________________________________________________________________________
+		// Step 6: Create Element normal derivative field vector
+		Eigen::Vector3d element_normderivfield_vector; // Element normal derivative field vector
+
+		get_trielement_normderivfield_vector(edge1_id, edge2_id, edge3_id,
+			edge1_length, edge2_length, edge3_length, element_normderivfield_vector);
+
+		//________________________________________________________________________________________________
+		// Step 7: Create Element source vector
+		Eigen::Vector3d element_source_vector; // Element source vector
+
+		get_trielement_source_vector(nd1_id, nd2_id, nd3_id, element_source_vector);
 
 
+		//________________________________________________________________________________________________
+		// Step 8: Set the global matrix and global vector
 
+		set_trielement_global_matrix(nd1_id, nd2_id, nd3_id,
+			element_k_matrix, global_k_matrix);
+
+		set_trielement_global_matrix(nd1_id, nd2_id, nd3_id,
+			element_m_matrix, global_m_matrix);
+
+		set_trielement_global_matrix(nd1_id, nd2_id, nd3_id,
+			element_kI_matrix, global_kI_matrix);
+
+
+		set_trielement_global_vector(nd1_id, nd2_id, nd3_id,
+			element_field_vector, global_field_vector);
+
+		set_trielement_global_vector(nd1_id, nd2_id, nd3_id,
+			element_normderivfield_vector, global_normalderivfield_vector);
+
+		set_trielement_global_vector(nd1_id, nd2_id, nd3_id,
+			element_source_vector, global_source_vector);
+
+		// BC Vector to track prescribed field vector
+		set_trielement_global_BCvector(nd1_id, nd2_id, nd3_id,
+			element_BC_vector, global_BC_vector);
 
 
 	}
+
+
+
+	// Quadrialteral elements
+	for (auto& quad_elm_m : helmholtz_2dsystem.quadelement_list)
+	{
+		// get the element
+		quadelement_store quad_elm = quad_elm_m.second;
+
+		//_______________________________________________________________________________________________
+		// Step: 1 Get the element data
+		// set the element ID
+		int elm_id = quad_elm.quad_id;
+
+		// get the node ids of the element
+		int nd1_id = quad_elm.nodeid1; // Node id 1
+		int nd2_id = quad_elm.nodeid2; // Node id 2
+		int nd3_id = quad_elm.nodeid3; // Node id 3
+		int nd4_id = quad_elm.nodeid4; // Node id 3
+
+		// get the Four edge ids of the quadrilateral element
+		int edge1_id = get_edge_id(nd1_id, nd2_id); // Edge 1
+		int edge2_id = get_edge_id(nd2_id, nd3_id); // Edge 2
+		int edge3_id = get_edge_id(nd3_id, nd4_id); // Edge 3
+		int edge4_id = get_edge_id(nd4_id, nd1_id); // Edge 4
+
+		// get the edge lengths of quadrilateral element
+		double edge1_length = get_line_length(nd1_id, nd2_id);
+		double edge2_length = get_line_length(nd2_id, nd3_id);
+		double edge3_length = get_line_length(nd3_id, nd4_id);
+		double edge4_length = get_line_length(nd4_id, nd1_id);
+
+		// get the material parameters of this element
+		double permeability_mu = helmholtz_2dsystem.material_list[quad_elm.materialid].permeability; // Permeability
+		double permittivity_epsilon = helmholtz_2dsystem.material_list[quad_elm.materialid].permittivity; // Permitivity
+		// double quadelm_area = get_quadrilateral_area(nd1_id, nd2_id, nd3_id, nd4_id);
+		double k_n = permittivity_epsilon * permeability_mu; // k = epsilon * mu
+
+		//________________________________________________________________________________________________
+		// Step 2: Create element k & m matrix
+		Eigen::Matrix4d element_k_matrix; // Element k matrix
+		Eigen::Matrix4d element_m_matrix; // Element m matrix
+
+		get_quadelement_k_m_matrix(nd1_id, nd2_id, nd3_id, nd4_id, element_k_matrix, element_m_matrix);
+
+		//________________________________________________________________________________________________
+		// Step 4: Create Sommerfield Absorbtion Boundary Condition matrix
+		Eigen::Matrix4d element_kI_matrix; // Element kI matrix
+
+		get_trielement_kI_matrix(edge1_id, edge2_id, edge3_id,
+			edge1_length, edge2_length, edge3_length, k_n, element_kI_matrix);
+
+		//________________________________________________________________________________________________
+		// Step 5: Create Element field vector
+		Eigen::Vector4d element_field_vector; // Element field vector
+		Eigen::Vector4i element_BC_vector; // Element BC Vector to track the Dirichlet boundary conidtion (For elimination)
+
+		get_trielement_field_vector(nd1_id, nd2_id, nd3_id,
+			edge1_id, edge2_id, edge3_id,
+			edge1_length, edge2_length, edge3_length, element_BC_vector, element_field_vector);
+
+
+		//________________________________________________________________________________________________
+		// Step 6: Create Element normal derivative field vector
+		Eigen::Vector4d element_normderivfield_vector; // Element normal derivative field vector
+
+		get_trielement_normderivfield_vector(edge1_id, edge2_id, edge3_id,
+			edge1_length, edge2_length, edge3_length, element_normderivfield_vector);
+
+		//________________________________________________________________________________________________
+		// Step 7: Create Element source vector
+		Eigen::Vector4d element_source_vector; // Element source vector
+
+		get_trielement_source_vector(nd1_id, nd2_id, nd3_id, element_source_vector);
+
+
+		//________________________________________________________________________________________________
+		// Step 8: Set the global matrix and global vector
+
+		set_trielement_global_matrix(nd1_id, nd2_id, nd3_id,
+			element_k_matrix, global_k_matrix);
+
+		set_trielement_global_matrix(nd1_id, nd2_id, nd3_id,
+			element_m_matrix, global_m_matrix);
+
+		set_trielement_global_matrix(nd1_id, nd2_id, nd3_id,
+			element_kI_matrix, global_kI_matrix);
+
+
+		set_trielement_global_vector(nd1_id, nd2_id, nd3_id,
+			element_field_vector, global_field_vector);
+
+		set_trielement_global_vector(nd1_id, nd2_id, nd3_id,
+			element_normderivfield_vector, global_normalderivfield_vector);
+
+		set_trielement_global_vector(nd1_id, nd2_id, nd3_id,
+			element_source_vector, global_source_vector);
+
+		// BC Vector to track prescribed field vector
+		set_trielement_global_BCvector(nd1_id, nd2_id, nd3_id,
+			element_BC_vector, global_BC_vector);
+
+
+	}
+
 
 
 
@@ -117,10 +283,15 @@ int helmholtz2d_solver::get_edge_id(const int& startnodeid, const int& endnodeid
 
 
 
-double helmholtz2d_solver::get_line_length(const node_store& pt1, const node_store& pt2)
+double helmholtz2d_solver::get_line_length(const int& nd1_id, const int& nd2_id)
 {
+	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
+
+	node_store& nd1 = helmholtz_2dsystem.node_list[nd1_id];
+	node_store& nd2 = helmholtz_2dsystem.node_list[nd2_id];
+
 	// Length of line
-	double length = std::sqrt(std::pow(pt1.x_coord - pt2.x_coord, 2) + std::pow(pt1.y_coord - pt2.y_coord, 2));
+	double length = std::sqrt(std::pow(nd1.x_coord - nd2.x_coord, 2) + std::pow(nd1.y_coord - nd2.y_coord, 2));
 
 	return length;
 }
@@ -128,26 +299,67 @@ double helmholtz2d_solver::get_line_length(const node_store& pt1, const node_sto
 
 
 
-double helmholtz2d_solver::get_triangle_area(const node_store& pt1, const node_store& pt2, const node_store& pt3)
+double helmholtz2d_solver::get_triangle_area(const int& nd1_id, const int& nd2_id, const int& nd3_id)
 {
-	double x1 = pt1.x_coord;
-	double y1 = pt1.y_coord;
-	double x2 = pt2.x_coord;
-	double y2 = pt2.y_coord;
-	double x3 = pt3.x_coord;
-	double y3 = pt3.y_coord;
+	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
+
+	node_store& nd1 = helmholtz_2dsystem.node_list[nd1_id];
+	node_store& nd2 = helmholtz_2dsystem.node_list[nd2_id];
+	node_store& nd3 = helmholtz_2dsystem.node_list[nd3_id];
+
+	double x1 = nd1.x_coord;
+	double y1 = nd1.y_coord;
+	double x2 = nd2.x_coord;
+	double y2 = nd2.y_coord;
+	double x3 = nd3.x_coord;
+	double y3 = nd3.y_coord;
 
 	// Shoelace formula
 	double area = 0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
 
-	return area;
+	return std::abs(area);
+
 }
 
-void helmholtz2d_solver::get_trielement_k_matrix(const node_store& nd1, const node_store& nd2, 
-	const node_store& nd3, const double& triarea, Eigen::Matrix3d& element_k_matrix)
+
+double helmholtz2d_solver::get_quadrilateral_area(const int& nd1_id, const int& nd2_id, const int& nd3_id, const int& nd4_id)
+{
+	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
+
+	node_store& nd1 = helmholtz_2dsystem.node_list[nd1_id];
+	node_store& nd2 = helmholtz_2dsystem.node_list[nd2_id];
+	node_store& nd3 = helmholtz_2dsystem.node_list[nd3_id];
+	node_store& nd4 = helmholtz_2dsystem.node_list[nd4_id];
+
+	double x1 = nd1.x_coord;
+	double y1 = nd1.y_coord;
+	double x2 = nd2.x_coord;
+	double y2 = nd2.y_coord;
+	double x3 = nd3.x_coord;
+	double y3 = nd3.y_coord;
+	double x4 = nd4.x_coord;
+	double y4 = nd4.y_coord;
+
+	// Shoelace formula for polygon area
+	double area = 0.5 * (((x1 * y2) + (x2 * y3) + (x3 * y4) + (x4 * y1)) - ((y1 * x2) + (y2 * x3) + (y3 * x4) + (y4 * x1)));
+
+	return std::abs(area);
+
+}
+
+
+
+void helmholtz2d_solver::get_trielement_k_matrix(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+	const double& trielm_area, Eigen::Matrix3d& element_k_matrix)
 {
 	// Element k matrix
 	element_k_matrix = Eigen::Matrix3d::Zero();
+
+	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
+
+	node_store& nd1 = helmholtz_2dsystem.node_list[nd1_id];
+	node_store& nd2 = helmholtz_2dsystem.node_list[nd2_id];
+	node_store& nd3 = helmholtz_2dsystem.node_list[nd3_id];
 
 	// b and c coefficients
 	double b1 = nd2.y_coord - nd3.y_coord;
@@ -163,13 +375,13 @@ void helmholtz2d_solver::get_trielement_k_matrix(const node_store& nd1, const no
 		c1, c2, c3;
 
 	// K = (1 / (4 * Area)) * B^T * B
-	element_k_matrix = (1.0 / (4.0 * triarea)) * (B.transpose() * B);
+	element_k_matrix = (1.0 / (4.0 * trielm_area)) * (B.transpose() * B);
 
 }
 
 
-void helmholtz2d_solver::get_trielement_m_matrix(const node_store& nd1, const node_store& nd2, 
-	const node_store& nd3, const double& triarea, Eigen::Matrix3d& element_m_matrix)
+void helmholtz2d_solver::get_trielement_m_matrix(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+	const double& trielm_area, Eigen::Matrix3d& element_m_matrix)
 {
 	// Element m matrix
 	element_m_matrix = Eigen::Matrix3d::Zero();
@@ -177,14 +389,14 @@ void helmholtz2d_solver::get_trielement_m_matrix(const node_store& nd1, const no
 		1, 2, 1,
 		1, 1, 2;
 
-	element_m_matrix = (triarea / 12.0) * element_m_matrix;
+	element_m_matrix = (trielm_area / 12.0) * element_m_matrix;
 
 }
 
 
-void helmholtz2d_solver::get_trielement_kI_matrix(const int& edge1_id, const int& edge2_id, const int& edge3_id, 
-	const double& edge1_length, const double& edge2_length, const double& edge3_length, 
-	const double& k, Eigen::Matrix3d& element_kI_matrix)
+void helmholtz2d_solver::get_trielement_kI_matrix(const int& edge1_id, const int& edge2_id, const int& edge3_id,
+	const double& edge1_length, const double& edge2_length, const double& edge3_length,
+	const double& wave_number, Eigen::Matrix3d& element_kI_matrix)
 {
 	// Element ABC matrix (Sommerfield absorbtion boundary condition)
 	element_kI_matrix = Eigen::Matrix3d::Zero();
@@ -203,7 +415,7 @@ void helmholtz2d_solver::get_trielement_kI_matrix(const int& edge1_id, const int
 				edge_matrix(n2, n1) += 1.0;
 				edge_matrix(n2, n2) += 2.0;
 
-				edge_matrix *= (k * edge_length / 6.0);
+				edge_matrix *= (wave_number * edge_length / 6.0);
 
 				element_kI_matrix += edge_matrix;
 			}
@@ -217,13 +429,15 @@ void helmholtz2d_solver::get_trielement_kI_matrix(const int& edge1_id, const int
 }
 
 
-void helmholtz2d_solver::get_trielement_field_vector(const node_store& nd1, const node_store& nd2, 
-	const node_store& nd3, const int& edge1_id, const int& edge2_id, const int& edge3_id, 
-	const double& edge1_length, const double& edge2_length, const double& edge3_length, 
+void helmholtz2d_solver::get_trielement_field_vector(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+	const int& edge1_id, const int& edge2_id, const int& edge3_id,
+	const double& edge1_length, const double& edge2_length, const double& edge3_length,
+	Eigen::Vector3i& dirichlet_BC,
 	Eigen::Vector3d& dirichlet_vector)
 {
 	// Element field vector
 	dirichlet_vector = Eigen::Vector3d::Zero();
+	dirichlet_BC = Eigen::Vector3i::Zero();
 
 	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
 
@@ -231,7 +445,7 @@ void helmholtz2d_solver::get_trielement_field_vector(const node_store& nd1, cons
 	auto add_edge_contribution = [&](int edge_id, double edge_length, int n1, int n2)
 		{
 			const auto& edge = helmholtz_2dsystem.edge_list[edge_id];
-			if (edge.isboundaryedge && !edge.isSommerfieldBC)
+			if (edge.isboundaryedge && edge.isFieldBC)
 			{
 				// Dirichlet (field) BC contribution
 				double q_edge = edge.fieldvalue;  // field value
@@ -244,6 +458,10 @@ void helmholtz2d_solver::get_trielement_field_vector(const node_store& nd1, cons
 				edge_vec *= (q_edge * edge_length / 2.0);
 
 				dirichlet_vector += edge_vec;
+
+				// Set the Dirichlet BC to track the index where prescribed field is present
+				dirichlet_BC(n1) = 1;
+				dirichlet_BC(n2) = 1;
 			}
 		};
 
@@ -258,12 +476,30 @@ void helmholtz2d_solver::get_trielement_field_vector(const node_store& nd1, cons
 	// if you’re forming a right-hand side prior to modification.
 	Eigen::Vector3d node_vec = Eigen::Vector3d::Zero();
 
-	if (nd1.isboundarynode)
+	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
+
+	node_store& nd1 = helmholtz_2dsystem.node_list[nd1_id];
+	node_store& nd2 = helmholtz_2dsystem.node_list[nd2_id];
+	node_store& nd3 = helmholtz_2dsystem.node_list[nd3_id];
+
+	if (nd1.isboundarynode && nd1.isFieldBC)
+	{
 		node_vec(0) = nd1.fieldvalue;
-	if (nd2.isboundarynode)
+		dirichlet_BC(0) = 1;
+	}
+
+	if (nd2.isboundarynode && nd2.isFieldBC)
+	{
 		node_vec(1) = nd2.fieldvalue;
-	if (nd3.isboundarynode)
+		dirichlet_BC(1) = 1;
+	}
+
+	if (nd3.isboundarynode && nd3.isFieldBC)
+	{
 		node_vec(2) = nd3.fieldvalue;
+		dirichlet_BC(2) = 1;
+	}
+
 
 	// Add nodal (Dirichlet) field components
 	dirichlet_vector += node_vec;
@@ -271,8 +507,8 @@ void helmholtz2d_solver::get_trielement_field_vector(const node_store& nd1, cons
 }
 
 
-void helmholtz2d_solver::get_trielement_normderivfield_vector(const int& edge1_id, const int& edge2_id, 
-	const int& edge3_id, const double& edge1_length, const double& edge2_length, const double& edge3_length, 
+void helmholtz2d_solver::get_trielement_normderivfield_vector(const int& edge1_id, const int& edge2_id,
+	const int& edge3_id, const double& edge1_length, const double& edge2_length, const double& edge3_length,
 	Eigen::Vector3d& neumann_vector)
 {
 	neumann_vector = Eigen::Vector3d::Zero();
@@ -283,7 +519,7 @@ void helmholtz2d_solver::get_trielement_normderivfield_vector(const int& edge1_i
 	auto add_edge_contribution = [&](int edge_id, double edge_length, int n1, int n2)
 		{
 			const auto& edge = helmholtz_2dsystem.edge_list[edge_id];
-			if (edge.isboundaryedge && !edge.isSommerfieldBC)
+			if (edge.isboundaryedge && edge.isDerivFieldBC)
 			{
 				// Neumann (field flux) BC contribution
 				double q_edge = edge.normalderivfieldvalue;  // prescribed flux value
@@ -306,21 +542,163 @@ void helmholtz2d_solver::get_trielement_normderivfield_vector(const int& edge1_i
 
 }
 
-void helmholtz2d_solver::get_trielement_source_vector(const node_store& nd1, const node_store& nd2, 
-	const node_store& nd3, Eigen::Vector3d& source_vector)
+void helmholtz2d_solver::get_trielement_source_vector(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+	Eigen::Vector3d& source_vector)
 {
 
 	// --- Source (prescribed source) nodes ---
 	source_vector = Eigen::Vector3d::Zero();
 
+	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
+
+	node_store& nd1 = helmholtz_2dsystem.node_list[nd1_id];
+	node_store& nd2 = helmholtz_2dsystem.node_list[nd2_id];
+	node_store& nd3 = helmholtz_2dsystem.node_list[nd3_id];
+
 	// Add nodal source components
-	if (nd1.isboundarynode)
+	if (nd1.isboundarynode && !nd1.isFieldBC)
 		source_vector(0) = nd1.sourcevalue;
-	if (nd2.isboundarynode)
+	if (nd2.isboundarynode && !nd2.isFieldBC)
 		source_vector(1) = nd2.sourcevalue;
-	if (nd3.isboundarynode)
+	if (nd3.isboundarynode && !nd3.isFieldBC)
 		source_vector(2) = nd3.sourcevalue;
 
+
+}
+
+
+void helmholtz2d_solver::set_trielement_global_matrix(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+	const Eigen::Matrix3d& element_matrix, Eigen::MatrixXd& global_matrix)
+{
+	// Set the global matrix
+
+	// Set the row 1
+	global_matrix.coeffRef(nodeid_map[nd1_id], nodeid_map[nd1_id]) += element_matrix.coeff(0, 0);
+	global_matrix.coeffRef(nodeid_map[nd1_id], nodeid_map[nd2_id]) += element_matrix.coeff(0, 1);
+	global_matrix.coeffRef(nodeid_map[nd1_id], nodeid_map[nd3_id]) += element_matrix.coeff(0, 2);
+
+	// Set the row 2
+	global_matrix.coeffRef(nodeid_map[nd2_id], nodeid_map[nd1_id]) += element_matrix.coeff(1, 0);
+	global_matrix.coeffRef(nodeid_map[nd2_id], nodeid_map[nd2_id]) += element_matrix.coeff(1, 1);
+	global_matrix.coeffRef(nodeid_map[nd2_id], nodeid_map[nd3_id]) += element_matrix.coeff(1, 2);
+
+	// Set the row 3
+	global_matrix.coeffRef(nodeid_map[nd3_id], nodeid_map[nd1_id]) += element_matrix.coeff(2, 0);
+	global_matrix.coeffRef(nodeid_map[nd3_id], nodeid_map[nd2_id]) += element_matrix.coeff(2, 1);
+	global_matrix.coeffRef(nodeid_map[nd3_id], nodeid_map[nd3_id]) += element_matrix.coeff(2, 2);
+
+}
+
+
+void helmholtz2d_solver::set_trielement_global_vector(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+	const Eigen::Vector3d& element_vector, Eigen::VectorXd& global_vector)
+{
+	// Set the global vector
+
+	global_vector.coeffRef(nodeid_map[nd1_id]) += element_vector.coeff(0);
+	global_vector.coeffRef(nodeid_map[nd2_id]) += element_vector.coeff(1);
+	global_vector.coeffRef(nodeid_map[nd3_id]) += element_vector.coeff(2);
+
+}
+
+
+
+
+void helmholtz2d_solver::set_trielement_global_BCvector(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+	const Eigen::Vector3i& element_BC_vector, Eigen::VectorXi& global_BC_vector)
+{
+	// Set the global vector to track where the Prescribed boundary conditions are applied.
+
+	global_BC_vector.coeffRef(nodeid_map[nd1_id]) = element_BC_vector.coeff(0);
+	global_BC_vector.coeffRef(nodeid_map[nd2_id]) = element_BC_vector.coeff(1);
+	global_BC_vector.coeffRef(nodeid_map[nd3_id]) = element_BC_vector.coeff(2);
+
+}
+
+
+//__________________________________________________________________________________________________________
+
+
+void helmholtz2d_solver::get_quadelement_k_m_matrix(const int& nd1_id, const int& nd2_id,
+	const int& nd3_id, const int& nd4_id, 
+	Eigen::Matrix4d& element_k_matrix,
+	Eigen::Matrix4d& element_m_matrix)
+{
+	// Element k, m matrix
+	element_k_matrix.setZero();
+	element_m_matrix.setZero();
+
+	helmholtz_system_store& sys = (*this->helmholtz_2dsystem_ptr);
+
+	// Node coordinates
+	const node_store& n1 = sys.node_list[nd1_id];
+	const node_store& n2 = sys.node_list[nd2_id];
+	const node_store& n3 = sys.node_list[nd3_id];
+	const node_store& n4 = sys.node_list[nd4_id];
+
+	double x[4] = { n1.x_coord, n2.x_coord, n3.x_coord, n4.x_coord };
+	double y[4] = { n1.y_coord, n2.y_coord, n3.y_coord, n4.y_coord };
+
+	// 2x2 Gauss quadrature
+	const double gp[2] = { -1.0 / std::sqrt(3.0), 1.0 / std::sqrt(3.0) };
+
+	for (int i = 0; i < 2; ++i)
+	{
+		for (int j = 0; j < 2; ++j)
+		{
+			double s = gp[i];
+			double t = gp[j];
+
+			// Shape functions (bilinear)
+			Eigen::Vector4d N;
+			N << 0.25 * (1 - s) * (1 - t),
+				0.25 * (1 + s) * (1 - t),
+				0.25 * (1 + s) * (1 + t),
+				0.25 * (1 - s) * (1 + t);
+
+			// Derivatives wrt s and t
+			Eigen::Vector4d dNds, dNdt;
+			dNds << -0.25 * (1 - t), 0.25 * (1 - t),
+				0.25 * (1 + t), -0.25 * (1 + t);
+			dNdt << -0.25 * (1 - s), -0.25 * (1 + s),
+				0.25 * (1 + s), 0.25 * (1 - s);
+
+			// Jacobian matrix
+			Eigen::Matrix2d J;
+			J(0, 0) = dNds.dot(Eigen::Vector4d(x[0], x[1], x[2], x[3])); // dx/ds
+			J(0, 1) = dNdt.dot(Eigen::Vector4d(x[0], x[1], x[2], x[3])); // dx/dt
+			J(1, 0) = dNds.dot(Eigen::Vector4d(y[0], y[1], y[2], y[3])); // dy/ds
+			J(1, 1) = dNdt.dot(Eigen::Vector4d(y[0], y[1], y[2], y[3])); // dy/dt
+
+			double detJ = J.determinant();
+
+			//if (detJ <= 0)
+			//	throw std::runtime_error("Jacobian determinant is non-positive!");
+
+			// Inverse of Jacobian
+			Eigen::Matrix2d Jinv = J.inverse();
+
+			// Derivatives wrt x,y
+			Eigen::Matrix<double, 2, 4> dN;
+			dN.row(0) = (Jinv(0, 0) * dNds + Jinv(0, 1) * dNdt).transpose();
+			dN.row(1) = (Jinv(1, 0) * dNds + Jinv(1, 1) * dNdt).transpose();
+
+			// B matrix
+			Eigen::Matrix<double, 2, 4> B = dN;
+
+			// Gradient part
+			Eigen::Matrix4d k_grad = (B.transpose() * B) * detJ;
+
+			element_k_matrix += k_grad;
+
+			// Mass part (Helmholtz term)
+			Eigen::Matrix4d k_mass = (N * N.transpose()) * detJ;
+
+			element_m_matrix += k_mass;
+			
+		}
+
+	}
 
 }
 

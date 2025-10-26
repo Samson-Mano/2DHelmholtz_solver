@@ -335,7 +335,7 @@ namespace _2DHelmholtz_solver.src.events_handler
                         var EdgeConstraintLine = dataLines[j + 1].Trim();
                         var splitValues = EdgeConstraintLine.Split(',');
 
-                        if (splitValues.Length != 7)
+                        if (splitValues.Length != 9)
                             break;
 
                         try
@@ -346,7 +346,9 @@ namespace _2DHelmholtz_solver.src.events_handler
                             int edgeEndptID = int.Parse(splitValues[3]);
                             double EdgeConstraint_fieldvalue = double.Parse(splitValues[4]);
                             double EdgeConstraint_derivfieldvalue = double.Parse(splitValues[5]);
-                            int EdgeConstraint_isSommerfield = int.Parse(splitValues[6]);
+                            int EdgeConstraint_isFieldValue = int.Parse(splitValues[6]);
+                            int EdgeConstraint_isDerivFieldValue = int.Parse(splitValues[7]);
+                            int EdgeConstraint_isSommerfield = int.Parse(splitValues[8]);
 
                             if (!EdgeConstraintSetData.ContainsKey(EdgeConstraintSetId))
                                 EdgeConstraintSetData[EdgeConstraintSetId] = new edgecnst_store();
@@ -361,6 +363,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                             {
                                 constraintEntry.field_value = EdgeConstraint_fieldvalue; // Field value (Dirichlet boundary condition)
                                 constraintEntry.normalderivfield_value = EdgeConstraint_derivfieldvalue; // Derivative field value (Neumann boundary condition)
+                                constraintEntry.isfieldvalue = EdgeConstraint_isFieldValue == 1 ? true : false;
+                                constraintEntry.isnormalderivfieldvalue = EdgeConstraint_isDerivFieldValue == 1 ? true : false;
                                 constraintEntry.isSommerfieldBC = EdgeConstraint_isSommerfield == 1 ? true : false;
                             }
                         }
@@ -407,7 +411,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                         fe_edgeconstraints.add_edgeconstraint(cnst.constraint_edge_ids,
                             cnst.constraint_edge_startpt_ids, cnst.constraint_edge_endpt_ids,
                             cnst.constraint_edge_startpts, cnst.constraint_edge_endpts,
-                            cnst.field_value, cnst.normalderivfield_value, cnst.isSommerfieldBC);
+                            cnst.field_value, cnst.normalderivfield_value, 
+                            cnst.isfieldvalue, cnst.isnormalderivfieldvalue, cnst.isSommerfieldBC);
 
                     }
 
@@ -571,6 +576,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                     writer.Write(cnst.edgecnst_id);
                     writer.Write(cnst.field_value);
                     writer.Write(cnst.normalderivfield_value);
+                    writer.Write(cnst.isfieldvalue);
+                    writer.Write(cnst.isnormalderivfieldvalue);
                     writer.Write(cnst.isSommerfieldBC);
 
                     writer.Write(cnst.constraint_edge_ids.Count);
@@ -785,6 +792,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                     cnst.edgecnst_id = reader.ReadInt32();
                     cnst.field_value = reader.ReadDouble();
                     cnst.normalderivfield_value = reader.ReadDouble();
+                    cnst.isfieldvalue = reader.ReadBoolean();
+                    cnst.isnormalderivfieldvalue = reader.ReadBoolean();
                     cnst.isSommerfieldBC = reader.ReadBoolean();
 
                     int edgeCount = reader.ReadInt32();
@@ -827,7 +836,8 @@ namespace _2DHelmholtz_solver.src.events_handler
                     fe_edgeconstraints.add_edgeconstraint(cnst.constraint_edge_ids,
                         cnst.constraint_edge_startpt_ids, cnst.constraint_edge_endpt_ids,
                         constraint_edge_startpts, constraint_edge_endpts,
-                        cnst.field_value, cnst.normalderivfield_value, cnst.isSommerfieldBC);
+                        cnst.field_value, cnst.normalderivfield_value,
+                        cnst.isfieldvalue, cnst.isnormalderivfieldvalue, cnst.isSommerfieldBC);
 
 
                 }
