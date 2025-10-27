@@ -36,7 +36,7 @@ public:
 
 	void init(helmholtz_system_store* helmholtz_2dsystem_ptr);
 	void create_global_matrices();
-
+	void solve_helmholtz_matrices();
 
 private:
 	helmholtz_system_store* helmholtz_2dsystem_ptr;
@@ -45,14 +45,18 @@ private:
 	std::unordered_map<int, int> nodeid_map; // Node ID map
 
 
-	Eigen::MatrixXd global_k_matrix; // Global k Matrix
-	Eigen::MatrixXd global_m_matrix; // Global m Matrix
+	Eigen::MatrixXd global_k_matrix; // Global k Matrix (Ke - k^2 * Me)
 	Eigen::MatrixXd global_kI_matrix; // Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
+	
 	Eigen::VectorXd global_field_vector; // Global field Vector
 	Eigen::VectorXd global_normalderivfield_vector; // Global derivative normal field Vector
 	Eigen::VectorXd global_source_vector; // Global source Vector
 
-	Eigen::VectorXi global_BC_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
+	Eigen::VectorXi global_dirichlet_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
+
+	// Solution
+	Eigen::VectorXd u_real;
+	Eigen::VectorXd u_imag;
 
 
 	int get_edge_id(const int& startNode_id, const int& endNode_id);
@@ -63,12 +67,8 @@ private:
 
 	double get_quadrilateral_area(const int& nd1_id, const int& nd2_id, const int& nd3_id, const int& nd4_id);
 
-	void get_trielement_k_matrix(const int& nd1_id, const int& nd2_id, const int& nd3_id,
-		const double& trielm_area, Eigen::Matrix3d& element_k_matrix);
-
-
-	void get_trielement_m_matrix(const int& nd1_id, const int& nd2_id, const int& nd3_id,
-		const double& trielm_area, Eigen::Matrix3d& element_m_matrix);
+	void get_trielement_k_grad_k_mass_matrix(const int& nd1_id, const int& nd2_id, const int& nd3_id,
+		const double& trielm_area, Eigen::Matrix3d& element_k_grad_matrix, Eigen::Matrix3d& element_k_mass_matrix);
 
 
 	void get_trielement_kI_matrix(const int& edge1_id, const int& edge2_id, const int& edge3_id,
@@ -103,42 +103,53 @@ private:
 
 	//__________________________________________________________________________________________________________
 
-	void get_quadelement_k_m_matrix(const int& nd1_id, const int& nd2_id,
+	void get_quadelement_k_grad_k_mass_matrix(const int& nd1_id, const int& nd2_id,
 		const int& nd3_id, const int& nd4_id,
-		Eigen::Matrix4d& element_k_matrix,
-		Eigen::Matrix4d& element_m_matrix);
+		Eigen::Matrix4d& element_k_grad_matrix,
+		Eigen::Matrix4d& element_k_mass_matrix);
 
 
-
-	void get_quadelement_kI_matrix(const node_store& nd1, const node_store& nd2, 
-		const node_store& nd3, const node_store& nd4,
-		const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
+	void get_quadelement_kI_matrix(const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
 		const double& edge1_length, const double& edge2_length, 
 		const double& edge3_length, const double& edge4_length,
-		const double& k, Eigen::MatrixXd& element_kI_matrix);
+		const double& wave_number, Eigen::Matrix4d& element_kI_matrix);
 
 
-	void get_quadelement_field_vector(const node_store& nd1, const node_store& nd2, 
-		const node_store& nd3, const node_store& nd4,
+	void get_quadelement_field_vector(const int& nd1_id, const int& nd2_id, const int& nd3_id, const int& nd4_id,
 		const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
-		const double& edge1_length, const double& edge2_length, 
-		const double& edge3_length, const double& edge4_length,
-		Eigen::VectorXd& dirichlet_vector);
+		const double& edge1_length, const double& edge2_length, const double& edge3_length, const double& edge4_length,
+		Eigen::Vector4i& dirichlet_BC,
+		Eigen::Vector4d& dirichlet_vector);
 
 
-	void get_quadelement_normderivfield_vector(const node_store& nd1, const node_store& nd2,
-		const node_store& nd3, const node_store& nd4,
-		const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
-		const double& edge1_length, const double& edge2_length,
-		const double& edge3_length, const double& edge4_length,
-		Eigen::VectorXd& dirichlet_vector);
+	void get_quadelement_normderivfield_vector(const int& edge1_id, const int& edge2_id, const int& edge3_id, const int& edge4_id,
+		const double& edge1_length, const double& edge2_length, const double& edge3_length, const double& edge4_length,
+		Eigen::Vector4d& neumann_vector);
 
 
-	void get_quadelement_source_vector(const node_store& nd1, const node_store& nd2, 
-		const node_store& nd3, const node_store& nd4,
-		Eigen::VectorXd& source_vector);
+	void get_quadelement_source_vector(const int& nd1_id, const int& nd2_id, const int& nd3_id, const int& nd4_id,
+		Eigen::Vector4d& source_vector);
 
 
+	void set_quadelement_global_matrix(const int& nd1_id, const int& nd2_id,
+		const int& nd3_id, const int& nd4_id,
+		const Eigen::Matrix4d& element_matrix, Eigen::MatrixXd& global_matrix);
+
+
+	void set_quadelement_global_vector(const int& nd1_id, const int& nd2_id,
+		const int& nd3_id, const int& nd4_id,
+		const Eigen::Vector4d& element_vector, Eigen::VectorXd& global_vector);
+
+
+	void set_quadelement_global_BCvector(const int& nd1_id, const int& nd2_id,
+		const int& nd3_id, const int& nd4_id,
+		const Eigen::Vector4i& element_BC_vector, Eigen::VectorXi& global_BC_vector);
+
+
+	void apply_dirichlet_BCs_elimination_method(Eigen::MatrixXd& K, Eigen::VectorXd& F);
+
+
+	void apply_dirichlet_BCs_lagrange_method(Eigen::MatrixXd& K, Eigen::VectorXd& F);
 
 
 

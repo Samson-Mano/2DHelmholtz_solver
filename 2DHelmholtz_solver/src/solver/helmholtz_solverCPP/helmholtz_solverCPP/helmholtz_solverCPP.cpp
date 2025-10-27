@@ -316,8 +316,16 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 	msg = "Global matrices created at " + stopwatch_elapsed_str.str() + " secs";
 	if (callback) callback(msg.c_str());
 
+	//_____________________________________________________________________________________
+	// Solve the matrices
+	helmholtz_solver.solve_helmholtz_matrices();
 
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
 
+	msg = "Solve Completed at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
 
 
 
