@@ -21,6 +21,8 @@ namespace _2DHelmholtz_solver.src.global_variables
         public static extern void solve_helmholtzsolverCPP(
             [MarshalAs(UnmanagedType.LPStr)] string inputPath,
             [MarshalAs(UnmanagedType.LPStr)] string outputPath,
+            double[] solver_settings,  
+            int solver_settings_count,
             ref bool isAnalysisSuccess,
             CallbackDelegate callback
         );

@@ -36,7 +36,10 @@ public:
 
 	void init(helmholtz_system_store* helmholtz_2dsystem_ptr);
 	void create_global_matrices();
-	void solve_helmholtz_matrices();
+	void solve_helmholtz_matrices(const int& solver_type);
+
+	double get_result_ureal(const int& node_id);
+	double get_result_uimag(const int& node_id);
 
 private:
 	helmholtz_system_store* helmholtz_2dsystem_ptr;

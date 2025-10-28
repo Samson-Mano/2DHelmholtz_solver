@@ -24,10 +24,15 @@ std::string ReadString(std::ifstream& in)
 
 
 // Function to solve the system setting from C# or Python
-extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input_file, const char* output_file,
+extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
+	const char* input_file, 
+	const char* output_file,
+	const double* solver_settings,   
+	int solver_settings_count,       
 	bool* isAnalysisSuccess,
 	void(*callback)(const char*))
 {
+	std::string msg = "";
 
 	// Example placeholder
 	std::ifstream infile(input_file, std::ios::binary);
@@ -36,18 +41,35 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 	if (callback) callback("Initializing solver...");
 	(*isAnalysisSuccess) = false;
 
+	double frequency_value = 0.0;
+	double solver_type = -1;
+
+	if (solver_settings && solver_settings_count >= 2)
+	{
+		frequency_value = solver_settings[0];
+		solver_type = solver_settings[1];
+
+		msg = "Solver settings received: Frequency = " + std::to_string(frequency_value) +
+			"E+6 Hz, Solver type = " + std::to_string(static_cast<int>(solver_type));
+		if (callback) callback(msg.c_str());
+	}
+	else
+	{
+		msg = "Solver settings error";
+		if (callback) callback(msg.c_str());
+
+		return;
+	}
+
+
 	stopwatch_events stopwatch;
 	std::stringstream stopwatch_elapsed_str;
-	std::string msg = "";
+	
 
 	if (!infile.is_open())
 	{
-		if (callback)
-		{
-			msg = "Error: Unable to open input file: " + std::string(input_file);
-			callback(msg.c_str());
-
-		}
+		msg = "Error: Unable to open input file: " + std::string(input_file);
+		if (callback) callback(msg.c_str());
 
 		(*isAnalysisSuccess) = false;
 
@@ -56,12 +78,8 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 	}
 	if (!outfile.is_open())
 	{
-		if (callback)
-		{
-			msg = "Error: Unable to open output file: " + std::string(output_file);
-			callback(msg.c_str());
-
-		}
+		msg = "Error: Unable to open output file: " + std::string(output_file);
+		if (callback) callback(msg.c_str());
 
 		(*isAnalysisSuccess) = false;
 
@@ -201,8 +219,13 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 		infile.read(reinterpret_cast<char*>(&conductivity), 8);
 		infile.read(reinterpret_cast<char*>(&numelement), 4);
 
+		// Calculate the wave number
+		double angular_freq = 2.0 * 3.1415926535897932384626433 * frequency_value;
+		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
+
+
 		// Add material to the helmholtz system store
-		helmholtz_2dsystem.add_material(materialid, permittivity, permeability);
+		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_number);
 
 	}
 
@@ -318,7 +341,7 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 
 	//_____________________________________________________________________________________
 	// Solve the matrices
-	helmholtz_solver.solve_helmholtz_matrices();
+	helmholtz_solver.solve_helmholtz_matrices(solver_type);
 
 	stopwatch_elapsed_str.str("");       // clear the string content
 	stopwatch_elapsed_str.clear();       // clear any error flags
@@ -328,15 +351,41 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(const char* input
 	if (callback) callback(msg.c_str());
 
 
+	//_____________________________________________________________________________________
+	// Write the binary file results
 
 
+	// Write binary results (helper function)
+	auto write_binary = [&](const auto& value) {
+		outfile.write(reinterpret_cast<const char*>(&value), sizeof(value));
+		};
 
 
+	int32_t rslt_ndCount = static_cast<int32_t>(helmholtz_2dsystem.node_list.size());
+	write_binary(rslt_ndCount);
+
+	for (const auto& [node_id_key, nd] : helmholtz_2dsystem.node_list)
+	{
+		int32_t node_id = nd.node_id;
+		double field_real_value = helmholtz_solver.get_result_ureal(node_id);
+		double field_imag_value = helmholtz_solver.get_result_uimag(node_id);
+
+		write_binary(node_id);
+		write_binary(field_real_value);
+		write_binary(field_imag_value);
+	}
+
+	msg = "Results written to output binary file at " + stopwatch_elapsed_str.str() + " secs";
+	if (callback) callback(msg.c_str());
+
+
+	(*isAnalysisSuccess) = true;
 
 	//_________________________________________________________
 	// Close the files
 	infile.close();
 	outfile.close();
+
 
 }
 

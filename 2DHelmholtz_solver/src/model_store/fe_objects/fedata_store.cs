@@ -552,7 +552,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             {
                 // Material id
                 material_data mat = fe_materials[i];
-                string materiallabel = $"Material ID {mat.material_id}, Material name = {mat.material_name}";
+                double wave_velocity = 1.0 / Math.Sqrt(mat.material_permittivity * mat.material_permeability * Math.Pow(10, -3));
+                string materiallabel = $"Medium name = {mat.material_name}, velocity = {wave_velocity.ToString("F4")} x 10^8";
 
                 materiallabels.add_label(i, materiallabel, new Vector2(geom_center.X , geom_center.Y + (k * label_height)), 
                     mat.material_id);

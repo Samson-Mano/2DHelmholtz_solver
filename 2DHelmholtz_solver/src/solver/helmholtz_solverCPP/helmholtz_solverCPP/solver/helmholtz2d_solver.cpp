@@ -67,10 +67,8 @@ void helmholtz2d_solver::create_global_matrices()
 		double edge3_length = get_line_length(nd3_id, nd1_id);
 
 		// get the material parameters of this element
-		double permeability_mu = helmholtz_2dsystem.material_list[tri_elm.materialid].permeability; // Permeability
-		double permittivity_epsilon = helmholtz_2dsystem.material_list[tri_elm.materialid].permittivity; // Permitivity
 		double trielm_area = get_triangle_area(nd1_id, nd2_id, nd3_id);
-		double wave_number = permittivity_epsilon * permeability_mu; // k = epsilon * mu
+		double wave_number = helmholtz_2dsystem.material_list[tri_elm.materialid].wave_number; // get the material wave number
 
 		//________________________________________________________________________________________________
 		// Step 2: Create element k_grad matrix
@@ -175,10 +173,7 @@ void helmholtz2d_solver::create_global_matrices()
 		double edge4_length = get_line_length(nd4_id, nd1_id);
 
 		// get the material parameters of this element
-		double permeability_mu = helmholtz_2dsystem.material_list[quad_elm.materialid].permeability; // Permeability
-		double permittivity_epsilon = helmholtz_2dsystem.material_list[quad_elm.materialid].permittivity; // Permitivity
-		// double quadelm_area = get_quadrilateral_area(nd1_id, nd2_id, nd3_id, nd4_id);
-		double wave_number = permittivity_epsilon * permeability_mu; // k = epsilon * mu
+		double wave_number = helmholtz_2dsystem.material_list[quad_elm.materialid].wave_number; // get the material wave number
 
 		//________________________________________________________________________________________________
 		// Step 2: Create element k & m matrix
@@ -261,7 +256,7 @@ void helmholtz2d_solver::create_global_matrices()
 }
 
 
-void helmholtz2d_solver::solve_helmholtz_matrices()
+void helmholtz2d_solver::solve_helmholtz_matrices(const int& solver_type)
 {
 	// Solve the helmholtz equation
 	//  ([A] + i[B]) [u] = [f] + [du/dn]
@@ -302,9 +297,7 @@ void helmholtz2d_solver::solve_helmholtz_matrices()
 	this->u_imag = Eigen::VectorXd::Zero(numDOF);
 
 
-	const int BC_method = 0; // 0 = Elimination method, 1 = Lagrange Augmentation method
-
-	if (BC_method == 0)
+	if (solver_type == 0)
 		apply_dirichlet_BCs_elimination_method(RealSystem, RHS);
 	else
 		apply_dirichlet_BCs_lagrange_method(RealSystem, RHS);
@@ -319,6 +312,19 @@ void helmholtz2d_solver::solve_helmholtz_matrices()
 
 }
 
+
+
+double helmholtz2d_solver::get_result_ureal(const int& node_id)
+{
+	return this->u_real[this->nodeid_map[node_id]];
+}
+
+
+double helmholtz2d_solver::get_result_uimag(const int& node_id)
+{
+	return this->u_imag[this->nodeid_map[node_id]];
+
+}
 
 
 void helmholtz2d_solver::apply_dirichlet_BCs_elimination_method(Eigen::MatrixXd& K, Eigen::VectorXd& F)

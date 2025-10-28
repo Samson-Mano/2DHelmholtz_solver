@@ -43,11 +43,11 @@
             this.materialPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.solverToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dHelmholtzSolveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.glControl_main_panel = new OpenTK.GLControl();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_zoom_value = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_IsRefresh = new System.Windows.Forms.ToolStripStatusLabel();
-            this.showResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -149,7 +149,7 @@
             // 
             this.materialPropertiesToolStripMenuItem.Name = "materialPropertiesToolStripMenuItem";
             this.materialPropertiesToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-            this.materialPropertiesToolStripMenuItem.Text = "Material Properties";
+            this.materialPropertiesToolStripMenuItem.Text = "Medium Properties";
             this.materialPropertiesToolStripMenuItem.Click += new System.EventHandler(this.materialPropertiesToolStripMenuItem_Click);
             // 
             // solverToolStripMenuItem
@@ -164,9 +164,16 @@
             // dHelmholtzSolveToolStripMenuItem
             // 
             this.dHelmholtzSolveToolStripMenuItem.Name = "dHelmholtzSolveToolStripMenuItem";
-            this.dHelmholtzSolveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.dHelmholtzSolveToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.dHelmholtzSolveToolStripMenuItem.Text = "2D Helmholtz solve";
             this.dHelmholtzSolveToolStripMenuItem.Click += new System.EventHandler(this.dHelmholtzSolveToolStripMenuItem_Click);
+            // 
+            // showResultsToolStripMenuItem
+            // 
+            this.showResultsToolStripMenuItem.Name = "showResultsToolStripMenuItem";
+            this.showResultsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.showResultsToolStripMenuItem.Text = "Show Results";
+            this.showResultsToolStripMenuItem.Click += new System.EventHandler(this.showResultsToolStripMenuItem_Click);
             // 
             // glControl_main_panel
             // 
@@ -215,13 +222,6 @@
             this.toolStripStatusLabel_IsRefresh.Name = "toolStripStatusLabel_IsRefresh";
             this.toolStripStatusLabel_IsRefresh.Size = new System.Drawing.Size(10, 17);
             this.toolStripStatusLabel_IsRefresh.Text = " ";
-            // 
-            // showResultsToolStripMenuItem
-            // 
-            this.showResultsToolStripMenuItem.Name = "showResultsToolStripMenuItem";
-            this.showResultsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.showResultsToolStripMenuItem.Text = "Show Results";
-            this.showResultsToolStripMenuItem.Click += new System.EventHandler(this.showResultsToolStripMenuItem_Click);
             // 
             // main_frm
             // 

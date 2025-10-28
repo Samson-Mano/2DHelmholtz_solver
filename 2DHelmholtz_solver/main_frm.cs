@@ -773,6 +773,8 @@ namespace _2DHelmholtz_solver
             //fedata.meshdata.isMaterialUpdateInProgress = true;
             //fedata.meshdata.clear_selected_mesh();
 
+            solver_Form.updateTextBox();
+
             // Show the form
             solver_Form.Show(this);
             solver_Form.BringToFront();

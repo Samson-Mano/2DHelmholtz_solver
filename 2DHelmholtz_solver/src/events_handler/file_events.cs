@@ -442,10 +442,21 @@ namespace _2DHelmholtz_solver.src.events_handler
                 var tempMaterial = new material_data
                 {
                     material_id = 0, // material id
-                    material_name = "Default medium", // Default material name
-                    material_permeability = 2.07 * Math.Pow(10, 5), //  MPa
-                    material_permittivity = 0.80 * Math.Pow(10, 5), //  MPa
-                    material_conductivity = 7.83 * Math.Pow(10, -9),
+                    material_name = "Vaccum", // Default material name
+                    material_permeability = 12.5492558291293, // H/m  Mu
+                    material_permittivity = 8.854, // F/m  Epsilon 
+
+                    // Permeability Epsilon = E x 8.854 x 10^-12
+                    // E values for various medium (at 20 deg C) v = c / sqrt(E)
+                    // Vaccum or air 1.0  (c = 10^8 m/s)
+                    // Water (distilled) 80.1
+                    // Ethanol 24.3
+                    // Benzene 2.3
+                    // Glycerin 42.5 
+
+
+
+                    material_conductivity = 0.0 * Math.Pow(10, 1),
                     number_of_elements_appliedto = (fe_tris.elementtri_count + fe_quads.elementquad_count)
                 };
 

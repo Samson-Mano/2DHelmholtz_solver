@@ -17,11 +17,27 @@ namespace _2DHelmholtz_solver.other_windows
     {
         private fedata_store fe_data;
 
+        ToolTip toolTip = new ToolTip();
+
         public matprop_frm(ref fedata_store fe_data)
         {
             InitializeComponent();
 
            this.fe_data = fe_data;
+
+
+            // Assign tool tip to a label
+            toolTip.SetToolTip(label2,
+    "Permittivity (ε): ε = E × 8.854 × 10⁻¹² F/m\n" +
+    "E values for various media (at 20°C): v = c / √E\n" +
+    "\n" +
+    "• Vacuum or Air: 1.0   (c = 3 × 10⁸ m/s)\n" +
+    "• Water (distilled): 80.1\n" +
+    "• Ethanol: 24.3\n" +
+    "• Benzene: 2.3\n" +
+    "• Glycerin: 42.5");
+
+            toolTip.SetToolTip(label3, "Do Not Modify");
 
         }
 
@@ -37,12 +53,14 @@ namespace _2DHelmholtz_solver.other_windows
             // Add rows manually
             foreach (material_data mat in fe_materials)
             {
+                double wavevelocity = 1.0 / Math.Sqrt(mat.material_permittivity * mat.material_permeability * Math.Pow(10,-3));
+
                 dataGridView_MaterialList.Rows.Add(
                     mat.material_id.ToString(),
                     mat.material_name,
                     mat.material_permittivity.ToString("G"),
                     mat.material_permeability.ToString("G"),
-                    mat.material_conductivity.ToString("G")
+                    wavevelocity.ToString("G")
                 );
             }
 
@@ -75,7 +93,7 @@ namespace _2DHelmholtz_solver.other_windows
                 textBox_materialname.Text = selectedRow.Cells["Column2_materialname"].Value?.ToString();
                 textBox_permittivity.Text = selectedRow.Cells["Column3_permittivity"].Value?.ToString();
                 textBox_permeability.Text = selectedRow.Cells["Column4_Permeability"].Value?.ToString();
-                textBox_conductivity.Text = selectedRow.Cells["Column5_Conductivity"].Value?.ToString();
+                textBox_conductivity.Text = "0.0";
 
             }
 
@@ -104,13 +122,16 @@ namespace _2DHelmholtz_solver.other_windows
                 return;
             }
 
+            double wavevelocity = 1.0 / Math.Sqrt(permittivity * permeability * Math.Pow(10, -3));
+
+
             // Add a new row to the DataGridView
             dataGridView_MaterialList.Rows.Add(
                 material_id,
                 material_name,
                 permittivity.ToString("G"),
                 permeability.ToString("G"),
-                conductivity.ToString("G")
+                wavevelocity.ToString("G")
             );
 
             // Create and store the material object
@@ -178,11 +199,13 @@ namespace _2DHelmholtz_solver.other_windows
                 fe_data.fe_materials[material_id].material_permeability = permeability;
                 fe_data.fe_materials[material_id].material_conductivity = conductivity;
 
+                double wavevelocity = 1.0 / Math.Sqrt(permittivity * permeability * Math.Pow(10, -3));
+
                 // Update the DataGridView row
                 selectedRow.Cells["Column2_materialname"].Value = material_name;
                 selectedRow.Cells["Column3_permittivity"].Value = permittivity.ToString("G");
                 selectedRow.Cells["Column4_Permeability"].Value = permeability.ToString("G");
-                selectedRow.Cells["Column5_Conductivity"].Value = conductivity.ToString("G");
+                selectedRow.Cells["Column5_WaveVelocity"].Value = wavevelocity.ToString("G");
 
                 fe_data.updateMaterialIDLabels();
 

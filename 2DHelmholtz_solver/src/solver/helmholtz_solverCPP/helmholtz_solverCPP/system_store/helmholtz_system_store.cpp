@@ -76,13 +76,15 @@ void helmholtz_system_store::add_quadelement(const int& quad_id,
 }
 
 void helmholtz_system_store::add_material(const int& materialid, 
-	const double& permittivity, const double& permeability)
+	const double& permittivity, const double& permeability,
+	const double& wave_number)
 {
 	// Material addition
 	material_store temp_material;
 	temp_material.materialid = materialid;
 	temp_material.permittivity = permittivity;
 	temp_material.permeability = permeability;
+	temp_material.wave_number = wave_number;
 
 	// Insert to the material list
 	material_list.insert({ materialid, temp_material });
