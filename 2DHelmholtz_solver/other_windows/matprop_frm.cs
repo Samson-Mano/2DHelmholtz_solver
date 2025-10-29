@@ -37,6 +37,19 @@ namespace _2DHelmholtz_solver.other_windows
     "• Benzene: 2.3\n" +
     "• Glycerin: 42.5");
 
+
+            toolTip.SetToolTip(textBox_permittivity,
+                    "Permittivity (ε): ε = E × 8.854 × 10⁻¹² F/m\n" +
+    "E values for various media (at 20°C): v = c / √E\n" +
+    "\n" +
+    "• Vacuum or Air: 1.0   (c = 3 × 10⁸ m/s)\n" +
+    "• Water (distilled): 80.1\n" +
+    "• Ethanol: 24.3\n" +
+    "• Benzene: 2.3\n" +
+    "• Glycerin: 42.5");
+
+
+
             toolTip.SetToolTip(label3, "Do Not Modify");
 
         }

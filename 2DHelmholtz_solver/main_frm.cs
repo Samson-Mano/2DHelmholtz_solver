@@ -787,11 +787,97 @@ namespace _2DHelmholtz_solver
 
         private void showResultsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            showResultsToolStripMenuItem.Checked = !showResultsToolStripMenuItem.Checked;
+            // showResultsToolStripMenuItem.Checked = !showResultsToolStripMenuItem.Checked;
 
         }
 
+
+        private void fieldRealPlotToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(1);
+
+        private void fieldImaginaryPlotToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(2);
+
+        private void fieldMagnitudePlotToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(3);
+
+        private void fieldPhasePlotToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(4);
+
+        private void hideResultsToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(0);
+
+
+        private void TrySetResultOption(int option)
+        {
+            if (!fedata.isResultSet)
+                return;
+
+            set_ResultOption(option);
+        }
+
+        public void set_ResultOption(int option = 0)
+        {
+            // Reset menu checks
+            fieldRealPlotToolStripMenuItem.Checked = option == 0 ? true : false;
+            fieldImaginaryPlotToolStripMenuItem.Checked = option == 1 ? true : false;
+            fieldMagnitudePlotToolStripMenuItem.Checked = option == 2 ? true : false;
+            fieldPhasePlotToolStripMenuItem.Checked = option == 3 ? true : false;
+
+            // Reset all flags
+            gvariables_static.is_paint_ureal = false;
+            gvariables_static.is_paint_uimag = false;
+            gvariables_static.is_paint_umag = false;
+            gvariables_static.is_paint_uphi = false;
+
+            // Transparency defaults
+            gvariables_static.geom_transparency = 1.0f;
+            gvariables_static.rslt_transparency = 0.0f;
+
+            // Apply selection
+            switch (option)
+            {
+                case 1:
+                    // Field Real values
+                    gvariables_static.is_paint_ureal = true;
+                    gvariables_static.geom_transparency = 0.2f;
+                    gvariables_static.rslt_transparency = 1.0f;
+                    break;
+
+                case 2:
+                    // Field Imaginary values
+                    gvariables_static.is_paint_uimag = true;
+                    gvariables_static.geom_transparency = 0.2f;
+                    gvariables_static.rslt_transparency = 1.0f;
+                    break;
+
+                case 3:
+                    // Field Magnitude values
+                    gvariables_static.is_paint_umag = true;
+                    gvariables_static.geom_transparency = 0.2f;
+                    gvariables_static.rslt_transparency = 1.0f;
+                    break;
+
+                case 4:
+                    // Field Phase values
+                    gvariables_static.is_paint_uphi = true;
+                    gvariables_static.geom_transparency = 0.2f;
+                    gvariables_static.rslt_transparency = 1.0f;
+                    break;
+                case 0:
+                default:
+                    break;
+            }
+
+            fedata.updateResultType();
+            fedata.update_openTK_uniforms(false, false, true);
+
+            // Refresh 
+            glControl_main_panel.Invalidate();
+
+        }
+
+
         #endregion
+
+
+
+
 
     }
 }

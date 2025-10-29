@@ -166,6 +166,10 @@ namespace _2DHelmholtz_solver.other_windows
 
             bool isAnalysisSuccess = false;
 
+            // Reset the results
+            fe_data.isResultSet = false;
+
+
             // Call the C++ dll solver
             try
             {
@@ -187,16 +191,53 @@ namespace _2DHelmholtz_solver.other_windows
 
                     AppendStatus("Solve completed successfully!\n");
 
+                    // Read the binary result file
+                    string resultFilePath = Path.Combine(outputPath, "model_output.bin"); 
 
+                    if (!File.Exists(resultFilePath))
+                    {
+                        AppendStatus("Result file not found: " + resultFilePath + "\n");
+                        return;
+                    }
 
+                    try
+                    {
+                        using (var reader = new BinaryReader(File.Open(resultFilePath, FileMode.Open, FileAccess.Read)))
+                        {
+                            // Read number of nodes
+                            int nodeCount = reader.ReadInt32();
+                            AppendStatus($"Reading results for {nodeCount} nodes...\n");
 
+                            for (int i = 0; i < nodeCount; i++)
+                            {
+                                int node_id = reader.ReadInt32();
+                                double field_real_value = reader.ReadDouble();
+                                double field_imag_value = reader.ReadDouble();
 
+                                fe_data.fe_nodes.update_results(node_id, field_real_value, field_imag_value);
+                            }
 
+                            fe_data.setResultMesh();
+                            fe_data.setResultExtremes();
+                            fe_data.isResultSet = true; 
+                        }
 
+                        // Call the main form
+                        if (this.Owner is main_frm mainForm)
+                        {
+                            mainForm.set_ResultOption(1);
+                        }
 
-
-
-                    MessageBox.Show("Solve completed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        AppendStatus("Results read complete!\n");
+                        MessageBox.Show("Solve completed successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendStatus("Error reading binary results: " + ex.Message + "\n");
+                        MessageBox.Show("Error reading results file:\n" + ex.Message,
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
 
                 }
                 else

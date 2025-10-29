@@ -31,7 +31,21 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public int number_of_elements_appliedto = 0;
     }
 
+    public struct result_data_extremes
+    {
+        public double u_real_max;
+        public double u_real_min;
 
+        public double u_imag_max;
+        public double u_imag_min;
+
+        public double u_magnitude_max;
+        public double u_magnitude_min;
+
+        public double u_phase_max;
+        public double u_phase_min;
+
+    }
 
 
     public class fedata_store
@@ -50,6 +64,10 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         public meshdata_store meshdata;
         public bool isModelSet = false;
+
+        public meshdata_store resultmeshdata;
+        public result_data_extremes result_extremes;
+        public bool isResultSet = false;
 
 
         // Drawing bound data
@@ -87,6 +105,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             materialids = new List<int>();
 
             meshdata = new meshdata_store();
+            resultmeshdata = new meshdata_store();
 
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
@@ -190,7 +209,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Update the openGL uniform
             meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
-                graphic_events_control.geom_transparency);
+                gvariables_static.geom_transparency);
 
 
             fe_nodeconstraints.update_openTK_uniforms(true, true, true, graphic_events_control);
@@ -292,7 +311,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Update the openGL uniform
             meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
-                graphic_events_control.geom_transparency);
+                gvariables_static.geom_transparency);
 
 
             fe_nodeconstraints.update_openTK_uniforms(true, true, true, graphic_events_control);
@@ -310,6 +329,111 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
               fe_materials);
 
         }
+
+
+        public void setResultMesh()
+        {
+
+            // Create the Result mesh for drawing the results
+            resultmeshdata = new meshdata_store();
+
+            // Add the mesh points
+            foreach (var nd_m in fe_nodes.nodeMap)
+            {
+                node_store nd = nd_m.Value;
+
+                resultmeshdata.add_mesh_point(nd.node_id, nd.node_pt_x_coord, nd.node_pt_y_coord, nd.node_pt_z_coord, -1);
+               
+
+            }
+
+            // Add the mesh tris
+            foreach (var tri_m in fe_tris.elementtriMap)
+            {
+                elementtri_store tri = tri_m.Value;
+
+                resultmeshdata.add_mesh_tris(tri.tri_id, tri.nodeid1, tri.nodeid2, tri.nodeid3, tri.material_id);
+
+            }
+
+            // Add the mesh quads
+            foreach (var quad_m in fe_quads.elementquadMap)
+            {
+                elementquad_store quad = quad_m.Value;
+
+                resultmeshdata.add_mesh_quads(quad.quad_id, quad.nodeid1, quad.nodeid2, quad.nodeid3, quad.nodeid4, quad.material_id);
+
+            }
+
+            // Create the mesh boundaries
+            resultmeshdata.set_mesh_wireframe();
+
+
+            // Set the openTK buffer
+            resultmeshdata.set_shader();
+            resultmeshdata.set_buffer();
+
+            // Update the openGL uniform
+            resultmeshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
+                graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
+                gvariables_static.rslt_transparency);
+
+
+
+        }
+
+        public void setResultExtremes()
+        {
+            // Set the result extremes
+            // Initialize
+            result_extremes.u_real_min = result_extremes.u_imag_min =
+                result_extremes.u_magnitude_min = result_extremes.u_phase_min = double.MaxValue;
+
+            result_extremes.u_real_max = result_extremes.u_imag_max =
+                result_extremes.u_magnitude_max = result_extremes.u_phase_max = double.MinValue;
+
+
+            foreach (var nd in fe_nodes.nodeMap.Values)
+            {
+                result_extremes.u_real_min = Math.Min(result_extremes.u_real_min, nd.node_u_real);
+                result_extremes.u_real_max = Math.Max(result_extremes.u_real_max, nd.node_u_real);
+
+                result_extremes.u_imag_min = Math.Min(result_extremes.u_imag_min, nd.node_u_imag);
+                result_extremes.u_imag_max = Math.Max(result_extremes.u_imag_max, nd.node_u_imag);
+
+                result_extremes.u_magnitude_min = Math.Min(result_extremes.u_magnitude_min, nd.node_u_magnitude);
+                result_extremes.u_magnitude_max = Math.Max(result_extremes.u_magnitude_max, nd.node_u_magnitude);
+
+                result_extremes.u_phase_min = Math.Min(result_extremes.u_phase_min, nd.node_u_phase);
+                result_extremes.u_phase_max = Math.Max(result_extremes.u_phase_max, nd.node_u_phase);
+            }
+
+        }
+
+        public void updateResultType()
+        {
+            // u real value
+            if(gvariables_static.is_paint_ureal == true)
+            {
+                // Update the mesh points
+                foreach (var nd_m in fe_nodes.nodeMap)
+                {
+                    node_store nd = nd_m.Value;
+
+                    resultmeshdata.update_mesh_point(nd.node_id, nd.node_pt_x_coord, nd.node_pt_y_coord, nd.node_pt_z_coord, -1);
+
+
+                }
+
+            }
+
+
+
+
+
+        }
+
+
 
 
         public void paint_model()
@@ -400,6 +524,24 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             }
 
+
+
+            if(isResultSet == true)
+            {
+                // Paint the results
+                if(gvariables_static.is_paint_ureal == true || 
+                    gvariables_static.is_paint_uimag == true ||
+                    gvariables_static.is_paint_umag == true ||
+                    gvariables_static.is_paint_uphi == true)
+                {
+                    // Paint the static mesh
+                    resultmeshdata.paint_static_mesh();
+
+                }
+
+            }
+
+
         }
 
 
@@ -415,7 +557,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix,
                 graphic_events_control.viewMatrix,
-                graphic_events_control.geom_transparency);
+                gvariables_static.geom_transparency);
 
             materiallabels.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
                 graphic_events_control);
@@ -426,6 +568,17 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             fe_edgeconstraints.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
                 graphic_events_control);
 
+
+            if(isResultSet == true)
+            {
+                resultmeshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
+                graphic_events_control.projectionMatrix,
+                graphic_events_control.modelMatrix,
+                graphic_events_control.viewMatrix,
+                gvariables_static.rslt_transparency);
+
+            }
+            
         }
 
 

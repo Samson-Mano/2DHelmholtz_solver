@@ -120,6 +120,8 @@
     </Compile>
     <Compile Include="src\events_handler\file_events.cs" />
     <Compile Include="src\global_variables\gvariables_static.cs" />
+    <Compile Include="src\model_store\rslt_objects\rsltdata_store.cs" />
+    <Compile Include="src\model_store\rslt_objects\rsltnode_list_store.cs" />
     <Compile Include="src\solver\helmholtzSolverInterop.cs" />
     <Compile Include="src\model_store\fe_objects\edgecnst_list_store.cs" />
     <Compile Include="src\model_store\fe_objects\elementtri_list_store.cs" />

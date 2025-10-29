@@ -48,6 +48,12 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_zoom_value = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_IsRefresh = new System.Windows.Forms.ToolStripStatusLabel();
+            this.fieldRealPlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fieldImaginaryPlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fieldMagnitudePlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fieldPhasePlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.hideResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -164,14 +170,21 @@
             // dHelmholtzSolveToolStripMenuItem
             // 
             this.dHelmholtzSolveToolStripMenuItem.Name = "dHelmholtzSolveToolStripMenuItem";
-            this.dHelmholtzSolveToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.dHelmholtzSolveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.dHelmholtzSolveToolStripMenuItem.Text = "2D Helmholtz solve";
             this.dHelmholtzSolveToolStripMenuItem.Click += new System.EventHandler(this.dHelmholtzSolveToolStripMenuItem_Click);
             // 
             // showResultsToolStripMenuItem
             // 
+            this.showResultsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fieldRealPlotToolStripMenuItem,
+            this.fieldImaginaryPlotToolStripMenuItem,
+            this.fieldMagnitudePlotToolStripMenuItem,
+            this.fieldPhasePlotToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.hideResultsToolStripMenuItem});
             this.showResultsToolStripMenuItem.Name = "showResultsToolStripMenuItem";
-            this.showResultsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.showResultsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.showResultsToolStripMenuItem.Text = "Show Results";
             this.showResultsToolStripMenuItem.Click += new System.EventHandler(this.showResultsToolStripMenuItem_Click);
             // 
@@ -223,6 +236,46 @@
             this.toolStripStatusLabel_IsRefresh.Size = new System.Drawing.Size(10, 17);
             this.toolStripStatusLabel_IsRefresh.Text = " ";
             // 
+            // fieldRealPlotToolStripMenuItem
+            // 
+            this.fieldRealPlotToolStripMenuItem.Name = "fieldRealPlotToolStripMenuItem";
+            this.fieldRealPlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldRealPlotToolStripMenuItem.Text = "Field real plot";
+            this.fieldRealPlotToolStripMenuItem.Click += new System.EventHandler(this.fieldRealPlotToolStripMenuItem_Click);
+            // 
+            // fieldImaginaryPlotToolStripMenuItem
+            // 
+            this.fieldImaginaryPlotToolStripMenuItem.Name = "fieldImaginaryPlotToolStripMenuItem";
+            this.fieldImaginaryPlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldImaginaryPlotToolStripMenuItem.Text = "Field imaginary plot";
+            this.fieldImaginaryPlotToolStripMenuItem.Click += new System.EventHandler(this.fieldImaginaryPlotToolStripMenuItem_Click);
+            // 
+            // fieldMagnitudePlotToolStripMenuItem
+            // 
+            this.fieldMagnitudePlotToolStripMenuItem.Name = "fieldMagnitudePlotToolStripMenuItem";
+            this.fieldMagnitudePlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldMagnitudePlotToolStripMenuItem.Text = "Field magnitude plot";
+            this.fieldMagnitudePlotToolStripMenuItem.Click += new System.EventHandler(this.fieldMagnitudePlotToolStripMenuItem_Click);
+            // 
+            // fieldPhasePlotToolStripMenuItem
+            // 
+            this.fieldPhasePlotToolStripMenuItem.Name = "fieldPhasePlotToolStripMenuItem";
+            this.fieldPhasePlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldPhasePlotToolStripMenuItem.Text = "Field phase plot";
+            this.fieldPhasePlotToolStripMenuItem.Click += new System.EventHandler(this.fieldPhasePlotToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(181, 6);
+            // 
+            // hideResultsToolStripMenuItem
+            // 
+            this.hideResultsToolStripMenuItem.Name = "hideResultsToolStripMenuItem";
+            this.hideResultsToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.hideResultsToolStripMenuItem.Text = "Hide results";
+            this.hideResultsToolStripMenuItem.Click += new System.EventHandler(this.hideResultsToolStripMenuItem_Click);
+            // 
             // main_frm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -267,6 +320,12 @@
         private System.Windows.Forms.ToolStripMenuItem dHelmholtzSolveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importTXTFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showResultsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fieldRealPlotToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fieldImaginaryPlotToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fieldMagnitudePlotToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fieldPhasePlotToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem hideResultsToolStripMenuItem;
     }
 }
 

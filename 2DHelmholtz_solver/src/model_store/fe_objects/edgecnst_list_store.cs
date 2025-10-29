@@ -314,7 +314,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix,
                 graphic_events_control.viewMatrix,
-                graphic_events_control.geom_transparency);
+                gvariables_static.geom_transparency);
 
 
             edgecnst_label.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,

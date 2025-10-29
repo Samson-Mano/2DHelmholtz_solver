@@ -15,7 +15,12 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public double node_pt_y_coord { get; set; }
         public double node_pt_z_coord { get; set; }
 
-        //  public Vector3 node_color { get; set; }
+        // Result data
+        public double node_u_real { get; set; }
+        public double node_u_imag { get; set; }
+
+        public double node_u_magnitude { get; set; }
+        public double node_u_phase { get;set; }
 
     }
 
@@ -50,6 +55,24 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             node_count++;
 
         }
+
+
+
+        public void update_results(int node_id, double node_u_real, double node_u_imag)
+        {
+            // Set the real and imaginary field data
+            nodeMap[node_id].node_u_real = node_u_real;
+            nodeMap[node_id].node_u_imag = node_u_imag;
+
+            // Calculate the magnitude and phase
+            double magnitude = Math.Sqrt(node_u_real*node_u_real + node_u_imag*node_u_imag);
+            double phase = Math.Atan2(node_u_imag, node_u_real);
+
+            nodeMap[node_id].node_u_magnitude = magnitude;
+            nodeMap[node_id].node_u_phase = phase;
+
+        }
+
 
 
         //public List<int> IsNodeSelected(Vector2 cornerPt1, Vector2 cornerPt2)

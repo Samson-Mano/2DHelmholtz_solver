@@ -198,7 +198,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             if (set_transparency == true)
             {
                 // Set the transparency float
-                label_shader.SetFloat("vertexTransparency", graphic_events_control.geom_transparency);
+                label_shader.SetFloat("vertexTransparency", gvariables_static.geom_transparency);
 
             }
 

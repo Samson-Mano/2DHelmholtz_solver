@@ -135,6 +135,19 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static fontAtlas main_font = new fontAtlas();
 
+
+        public static float geom_transparency = 1.0f;
+        public static float rslt_transparency = 1.0f;
+
+
+        // Result type (Real, Imaginary, Magnitude, Phase)
+        public static bool is_paint_ureal = false;
+        public static bool is_paint_uimag = false;
+        public static bool is_paint_umag = false;
+        public static bool is_paint_uphi = false;
+
+
+
         public static int RoundOff(this int i)
         {
             // Roundoff to nearest 10 (used to display zoom value)

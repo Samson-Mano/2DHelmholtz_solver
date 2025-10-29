@@ -43,7 +43,6 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
         public Matrix4 viewMatrix { get; private set; } = Matrix4.Identity; // view matrix
         public Matrix4 projectionMatrix { get; private set; } = Matrix4.Identity; // projection matrix
 
-        public float geom_transparency = 1.0f;
 
         // Temporary variables to initiate the zoom to fit animation
         public bool isZoomToFitInProgress = false;

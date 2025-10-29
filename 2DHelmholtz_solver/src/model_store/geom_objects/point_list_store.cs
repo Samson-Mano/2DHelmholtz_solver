@@ -24,7 +24,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public double x_coord { get; set; }
         public double y_coord { get; set; }
         public double z_coord { get; set; } 
-        public int point_index { get; set; }
+        // public int point_index { get; set; }
         public double normalized_defl_scale { get; set; }
         public int color_id { get; set; }
         public Vector3 point_color { get; set; }
@@ -64,7 +64,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 x_coord = x_coord,
                 y_coord = y_coord,
                 z_coord = z_coord,
-                point_index = point_count,
+               //  point_index = point_count,
                 normalized_defl_scale = 0.0,
                 color_id = color_id,
                 point_color = gvariables_static.ColorUtils.MeshGetRandomColor(color_id)
@@ -177,7 +177,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Paint all the static points
             point_shader.Bind();
             point_buffer.Bind();
-            is_DynamicDraw = false;
+            // is_DynamicDraw = false;
 
             GL.DrawElements(PrimitiveType.Points, point_count, DrawElementsType.UnsignedInt, 0);
             point_buffer.UnBind();
@@ -193,7 +193,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             point_buffer.Bind();
 
             // Update the point buffer data for dynamic drawing
-            is_DynamicDraw = true;
+            // is_DynamicDraw = true;
             update_buffer();
 
             GL.DrawElements(PrimitiveType.Points, point_count, DrawElementsType.UnsignedInt, 0);
