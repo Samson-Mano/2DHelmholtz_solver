@@ -42,20 +42,20 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public List<int> selected_edge_ids { get; } = new List<int>();
 
 
-        public meshdata_store()
+        public meshdata_store(bool is_DynamicDraw)
         {
 
             // Initialize the mesh points, lines, triangles and quadrilateral
-            mesh_points = new point_list_store();
-            selected_mesh_points = new point_list_store();
-            mesh_half_edges = new line_list_store(mesh_points);
-            mesh_boundaries = new line_list_store(mesh_points);
-            mesh_lines = new line_list_store(mesh_points);
-            selected_mesh_edges = new line_list_store(mesh_points);
-            mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
-            selected_mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
-            mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
-            selected_mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
+            mesh_points = new point_list_store(is_DynamicDraw);
+            selected_mesh_points = new point_list_store(false);
+            mesh_half_edges = new line_list_store(mesh_points, is_DynamicDraw);
+            mesh_boundaries = new line_list_store(mesh_points, is_DynamicDraw);
+            mesh_lines = new line_list_store(mesh_points, is_DynamicDraw);
+            selected_mesh_edges = new line_list_store(mesh_points, is_DynamicDraw);
+            mesh_tris = new tri_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
+            selected_mesh_tris = new tri_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
+            mesh_quads = new quad_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
+            selected_mesh_quads = new quad_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
 
 
             // Selected mesh is drawn as shrunk triangle
@@ -659,6 +659,29 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             mesh_quads.set_buffer();
             selected_mesh_tris.set_buffer();
             selected_mesh_quads.set_buffer();
+
+        }
+
+        public void update_buffer()
+        {
+
+            // Set the buffer
+            // mesh points
+            mesh_points.update_buffer();
+            selected_mesh_points.update_buffer();
+
+            // mesh boundaries
+            mesh_boundaries.update_buffer();
+            selected_mesh_edges.update_buffer();
+
+            // mesh lines
+            mesh_lines.update_buffer();
+
+            // mesh tris and quads
+            mesh_tris.update_buffer();
+            mesh_quads.update_buffer();
+            selected_mesh_tris.update_buffer();
+            selected_mesh_quads.update_buffer();
 
         }
 

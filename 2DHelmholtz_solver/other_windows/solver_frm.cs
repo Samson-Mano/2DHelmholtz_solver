@@ -192,17 +192,15 @@ namespace _2DHelmholtz_solver.other_windows
                     AppendStatus("Solve completed successfully!\n");
 
                     // Read the binary result file
-                    string resultFilePath = Path.Combine(outputPath, "model_output.bin"); 
-
-                    if (!File.Exists(resultFilePath))
+                    if (!File.Exists(outputPath))
                     {
-                        AppendStatus("Result file not found: " + resultFilePath + "\n");
+                        AppendStatus("Result file not found: " + outputPath + "\n");
                         return;
                     }
 
                     try
                     {
-                        using (var reader = new BinaryReader(File.Open(resultFilePath, FileMode.Open, FileAccess.Read)))
+                        using (var reader = new BinaryReader(File.Open(outputPath, FileMode.Open, FileAccess.Read)))
                         {
                             // Read number of nodes
                             int nodeCount = reader.ReadInt32();

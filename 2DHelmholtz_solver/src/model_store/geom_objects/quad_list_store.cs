@@ -41,7 +41,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private readonly line_list_store _allLines;
 
 
-        public quad_list_store(point_list_store allPts, line_list_store allLines)
+        public quad_list_store(point_list_store allPts, line_list_store allLines, bool is_DynamicDraw)
         {
             // (Re)Initialize the data
             quadMap = new Dictionary<int, quad_store>();
@@ -50,6 +50,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // store the all points data
             _allPts = allPts;
             _allLines = allLines;
+            this.is_DynamicDraw = is_DynamicDraw;
 
         }
 
@@ -172,7 +173,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Paint all the static quadrilaterals
             quad_shader.Bind();
             quad_buffer.Bind();
-            is_DynamicDraw = false;
+            // is_DynamicDraw = false;
 
             GL.DrawElements(PrimitiveType.Triangles, 6 * quad_count, DrawElementsType.UnsignedInt, 0);
             quad_buffer.UnBind();
@@ -188,7 +189,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_buffer.Bind();
 
             // Update the point buffer data for dynamic drawing
-            is_DynamicDraw = true;
+            // is_DynamicDraw = true;
             update_buffer();
 
             GL.DrawElements(PrimitiveType.Triangles, 6 * quad_count, DrawElementsType.UnsignedInt, 0);

@@ -47,11 +47,12 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private graphicBuffers point_buffer;
         public Shader point_shader;
 
-        public point_list_store()
+        public point_list_store(bool is_DynamicDraw)
         {
             // (Re)Initialize the data
             pointMap = new Dictionary<int, point_store>();
             point_count = 0;
+            this.is_DynamicDraw = is_DynamicDraw;
 
         }
 

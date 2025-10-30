@@ -104,8 +104,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             fe_materials = new Dictionary<int, material_data>();
             materialids = new List<int>();
 
-            meshdata = new meshdata_store();
-            resultmeshdata = new meshdata_store();
+            meshdata = new meshdata_store(false);
+            resultmeshdata = new meshdata_store(true);
 
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
@@ -125,6 +125,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         {
             List<Vector3> nodePtsList = new List<Vector3>();
             isModelSet = false;
+            isResultSet = false;
 
             file_events.import_txt_mesh(fileContent, ref fe_nodes, ref fe_tris, ref fe_quads,
                 ref fe_nodeconstraints, ref fe_edgeconstraints, ref fe_loads, 
@@ -150,7 +151,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
             // Create the mesh for drawing
-            meshdata = new meshdata_store();
+            meshdata = new meshdata_store(false);
 
             // Add the mesh points
             foreach (var nd_m in fe_nodes.nodeMap)
@@ -224,6 +225,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         {
             List<Vector3> nodePtsList = new List<Vector3>();
             isModelSet = false;
+            isResultSet = false;
 
             file_events.import_binary_mesh(filePath, ref fe_nodes, ref fe_tris, ref fe_quads,
                 ref fe_nodeconstraints, ref fe_edgeconstraints, ref fe_loads,
@@ -249,7 +251,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
             // Create the mesh for drawing
-            meshdata = new meshdata_store();
+            meshdata = new meshdata_store(false);
 
             // Add the mesh points
             foreach (var nd_m in fe_nodes.nodeMap)
@@ -335,7 +337,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         {
 
             // Create the Result mesh for drawing the results
-            resultmeshdata = new meshdata_store();
+            resultmeshdata = new meshdata_store(true);
 
             // Add the mesh points
             foreach (var nd_m in fe_nodes.nodeMap)
@@ -412,24 +414,72 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         public void updateResultType()
         {
-            // u real value
-            if(gvariables_static.is_paint_ureal == true)
+            // Helper function for normalization
+            double Normalize(double value, double min, double max)
             {
-                // Update the mesh points
-                foreach (var nd_m in fe_nodes.nodeMap)
-                {
-                    node_store nd = nd_m.Value;
-
-                    resultmeshdata.update_mesh_point(nd.node_id, nd.node_pt_x_coord, nd.node_pt_y_coord, nd.node_pt_z_coord, -1);
-
-
-                }
-
+                double range = max - min;
+                if (Math.Abs(range) < 1e-12)  // Prevent division by zero
+                    return 0.5; // Or 0.0 depending on what makes sense visually
+                return (value - min) / range;
             }
 
+            void UpdateMeshValues(Func<node_store, double> valueSelector, double min, double max)
+            {
+                foreach (var nd in fe_nodes.nodeMap.Values)
+                {
+                    double normalized = Normalize(valueSelector(nd), min, max);
+                    resultmeshdata.update_mesh_point(
+                        nd.node_id,
+                        nd.node_pt_x_coord,
+                        nd.node_pt_y_coord,
+                        nd.node_pt_z_coord,
+                        normalized
+                    );
+                }
+            }
 
+            // U real
+            if (gvariables_static.is_paint_ureal)
+            {
+                UpdateMeshValues(
+                    nd => nd.node_u_real,
+                    result_extremes.u_real_min,
+                    result_extremes.u_real_max
+                );
+            }
 
+            // U imaginary
+            if (gvariables_static.is_paint_uimag)
+            {
+                UpdateMeshValues(
+                    nd => nd.node_u_imag,
+                    result_extremes.u_imag_min,
+                    result_extremes.u_imag_max
+                );
+            }
 
+            // U magnitude
+            if (gvariables_static.is_paint_umagnitude)
+            {
+                UpdateMeshValues(
+                    nd => nd.node_u_magnitude,
+                    result_extremes.u_magnitude_min,
+                    result_extremes.u_magnitude_max
+                );
+            }
+
+            // U phase
+            if (gvariables_static.is_paint_uphase)
+            {
+                UpdateMeshValues(
+                    nd => nd.node_u_phase,
+                    result_extremes.u_phase_min,
+                    result_extremes.u_phase_max
+                );
+            }
+
+            // Update the buffers once at the end
+            resultmeshdata.update_buffer();
 
         }
 
@@ -531,8 +581,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 // Paint the results
                 if(gvariables_static.is_paint_ureal == true || 
                     gvariables_static.is_paint_uimag == true ||
-                    gvariables_static.is_paint_umag == true ||
-                    gvariables_static.is_paint_uphi == true)
+                    gvariables_static.is_paint_umagnitude == true ||
+                    gvariables_static.is_paint_uphase == true)
                 {
                     // Paint the static mesh
                     resultmeshdata.paint_static_mesh();

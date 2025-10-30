@@ -60,7 +60,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             edgecnstMap = new Dictionary<int, edgecnst_store>();
             edgecnst_count = 0;
 
-            edgecnst_meshdata = new meshdata_store();
+            edgecnst_meshdata = new meshdata_store(false);
             edgecnst_label = new label_list_store();
 
         }

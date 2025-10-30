@@ -48,7 +48,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             ndcnstMap = new Dictionary<int, nodecnst_data>();
             ndcnst_count = 0;
 
-            ndcnst_meshdata = new meshdata_store();
+            ndcnst_meshdata = new meshdata_store(false);
             ndcnst_label = new label_list_store();
 
         }

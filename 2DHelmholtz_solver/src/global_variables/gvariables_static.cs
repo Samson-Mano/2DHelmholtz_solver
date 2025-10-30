@@ -143,8 +143,8 @@ namespace _2DHelmholtz_solver.global_variables
         // Result type (Real, Imaginary, Magnitude, Phase)
         public static bool is_paint_ureal = false;
         public static bool is_paint_uimag = false;
-        public static bool is_paint_umag = false;
-        public static bool is_paint_uphi = false;
+        public static bool is_paint_umagnitude = false;
+        public static bool is_paint_uphase = false;
 
 
 

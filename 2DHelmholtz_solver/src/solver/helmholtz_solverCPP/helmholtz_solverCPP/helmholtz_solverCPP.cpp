@@ -42,12 +42,12 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 	(*isAnalysisSuccess) = false;
 
 	double frequency_value = 0.0;
-	double solver_type = -1;
+	int solver_type = -1;
 
 	if (solver_settings && solver_settings_count >= 2)
 	{
 		frequency_value = solver_settings[0];
-		solver_type = solver_settings[1];
+		solver_type = static_cast<int>(solver_settings[1]);
 
 		msg = "Solver settings received: Frequency = " + std::to_string(frequency_value) +
 			"E+6 Hz, Solver type = " + std::to_string(static_cast<int>(solver_type));

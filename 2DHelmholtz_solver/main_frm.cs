@@ -814,16 +814,16 @@ namespace _2DHelmholtz_solver
         public void set_ResultOption(int option = 0)
         {
             // Reset menu checks
-            fieldRealPlotToolStripMenuItem.Checked = option == 0 ? true : false;
-            fieldImaginaryPlotToolStripMenuItem.Checked = option == 1 ? true : false;
-            fieldMagnitudePlotToolStripMenuItem.Checked = option == 2 ? true : false;
-            fieldPhasePlotToolStripMenuItem.Checked = option == 3 ? true : false;
+            fieldRealPlotToolStripMenuItem.Checked = option == 1 ? true : false;
+            fieldImaginaryPlotToolStripMenuItem.Checked = option == 2 ? true : false;
+            fieldMagnitudePlotToolStripMenuItem.Checked = option == 3 ? true : false;
+            fieldPhasePlotToolStripMenuItem.Checked = option == 4 ? true : false;
 
             // Reset all flags
             gvariables_static.is_paint_ureal = false;
             gvariables_static.is_paint_uimag = false;
-            gvariables_static.is_paint_umag = false;
-            gvariables_static.is_paint_uphi = false;
+            gvariables_static.is_paint_umagnitude = false;
+            gvariables_static.is_paint_uphase = false;
 
             // Transparency defaults
             gvariables_static.geom_transparency = 1.0f;
@@ -848,14 +848,14 @@ namespace _2DHelmholtz_solver
 
                 case 3:
                     // Field Magnitude values
-                    gvariables_static.is_paint_umag = true;
+                    gvariables_static.is_paint_umagnitude = true;
                     gvariables_static.geom_transparency = 0.2f;
                     gvariables_static.rslt_transparency = 1.0f;
                     break;
 
                 case 4:
                     // Field Phase values
-                    gvariables_static.is_paint_uphi = true;
+                    gvariables_static.is_paint_uphase = true;
                     gvariables_static.geom_transparency = 0.2f;
                     gvariables_static.rslt_transparency = 1.0f;
                     break;
