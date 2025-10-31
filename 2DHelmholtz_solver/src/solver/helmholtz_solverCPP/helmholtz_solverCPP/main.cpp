@@ -12,25 +12,11 @@
 #include "solver/helmholtz2d_solver.h"
 
 
-
-
-// Helper to read C#-style strings (BinaryWriter.Write(string))
-std::string ReadString1(std::ifstream& in)
-{
-	int32_t length = 0;
-	in.read(reinterpret_cast<char*>(&length), 4);
-	if (!in || length <= 0) return "";
-	std::string str(length, '\0');
-	in.read(&str[0], length);
-	return str;
-}
-
-
 int main()
 {
 
-	const char* input_file = "test_input.bin";   // Adjust path here
-	const char* output_file = "test_output.bin"; // Optional
+	const char* input_file = "model_input.bin";   // Adjust path here
+	const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder
 	std::ifstream infile(input_file, std::ios::binary);
@@ -177,7 +163,13 @@ int main()
 
 
 		infile.read(reinterpret_cast<char*>(&materialid), 4);
-		std::string matname = ReadString1(infile);
+		
+		int32_t nameLen;
+		infile.read(reinterpret_cast<char*>(&nameLen), 4);
+
+		std::string matname(nameLen, '\0');
+		infile.read(&matname[0], nameLen);
+
 		infile.read(reinterpret_cast<char*>(&permittivity), 8);
 		infile.read(reinterpret_cast<char*>(&permeability), 8);
 		infile.read(reinterpret_cast<char*>(&conductivity), 8);

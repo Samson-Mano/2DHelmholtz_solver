@@ -31,6 +31,17 @@ struct edge_store
 
 };
 
+//struct  node_edge_lookup_store
+//{
+//	int node_id;
+//
+//	// Store the edges connected to this node
+//	std::vector<int> edge_ids;
+//
+//};
+
+
+
 struct trielement_store
 {
 	int tri_id = 0;
@@ -71,6 +82,8 @@ public:
 	std::unordered_map<int, trielement_store> trielement_list;
 	std::unordered_map<int, quadelement_store> quadelement_list;
 	std::unordered_map<int, material_store> material_list;
+
+	std::unordered_map<int, std::vector<int>> node_edge_map;
 
 
 	helmholtz_system_store();

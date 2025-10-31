@@ -558,7 +558,12 @@ namespace _2DHelmholtz_solver.src.events_handler
                 foreach (var mat in fe_materials.Values)
                 {
                     writer.Write(mat.material_id);
-                    writer.Write(mat.material_name);
+
+                    // write the string length explicitly as a 4-byte integer followed by the raw bytes
+                    var bytes = System.Text.Encoding.UTF8.GetBytes(mat.material_name);
+                    writer.Write(bytes.Length);
+                    writer.Write(bytes);
+
                     writer.Write(mat.material_permittivity);
                     writer.Write(mat.material_permeability);
                     writer.Write(mat.material_conductivity);
@@ -731,7 +736,12 @@ namespace _2DHelmholtz_solver.src.events_handler
                 {
                     material_data mat = new material_data();
                     mat.material_id = reader.ReadInt32();
-                    mat.material_name = reader.ReadString();
+
+                    // Read string length explicitly (4 bytes) and then the raw bytes
+                    int nameLength = reader.ReadInt32();
+                    byte[] nameBytes = reader.ReadBytes(nameLength);
+                    mat.material_name = System.Text.Encoding.UTF8.GetString(nameBytes);
+
                     mat.material_permittivity = reader.ReadDouble();
                     mat.material_permeability = reader.ReadDouble();
                     mat.material_conductivity = reader.ReadDouble();

@@ -12,17 +12,6 @@
 #include "solver/helmholtz2d_solver.h"
 
 
-// Helper to read C#-style strings (BinaryWriter.Write(string))
-std::string ReadString(std::ifstream& in)
-{
-	int32_t length = 0;
-	in.read(reinterpret_cast<char*>(&length), 4);
-	std::string str(length, '\0');
-	in.read(&str[0], length);
-	return str;
-}
-
-
 // Function to solve the system setting from C# or Python
 extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 	const char* input_file, 
@@ -213,7 +202,13 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 
 
 		infile.read(reinterpret_cast<char*>(&materialid), 4);
-		std::string matname = ReadString(infile);
+
+		int32_t nameLen;
+		infile.read(reinterpret_cast<char*>(&nameLen), 4);
+
+		std::string matname(nameLen, '\0');
+		infile.read(&matname[0], nameLen);
+
 		infile.read(reinterpret_cast<char*>(&permittivity), 8);
 		infile.read(reinterpret_cast<char*>(&permeability), 8);
 		infile.read(reinterpret_cast<char*>(&conductivity), 8);

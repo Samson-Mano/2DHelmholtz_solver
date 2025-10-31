@@ -413,23 +413,25 @@ void helmholtz2d_solver::apply_dirichlet_BCs_lagrange_method(Eigen::MatrixXd& K,
 int helmholtz2d_solver::get_edge_id(const int& startnodeid, const int& endnodeid)
 {
 
-	helmholtz_system_store helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
+	helmholtz_system_store& helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
 
-	// Return the edge id
-	for (const auto& line_m : helmholtz_2dsystem.edge_list)
+	// Get the connected edges to start node
+	const std::vector<int>& connected_edges = helmholtz_2dsystem.node_edge_map[startnodeid];
+
+	for (const int& edge_id : connected_edges)
 	{
-		const edge_store& line = line_m.second;
-
-		if ((line.startnodeid == startnodeid && line.endnodeid == endnodeid) ||
-			(line.startnodeid == endnodeid && line.endnodeid == startnodeid))
+		const auto& edge = helmholtz_2dsystem.edge_list[edge_id];
+		if ((edge.startnodeid == startnodeid && edge.endnodeid == endnodeid) ||
+			(edge.startnodeid == endnodeid && edge.endnodeid == startnodeid))
 		{
-			// Line with the same start and end nodes already exists (do not add)
-			return line.edge_id;
+			// Line with the same start and end nodes
+			return edge_id;
 		}
+			
 	}
-
-	// Non found
+	
 	return -1;
+
 }
 
 

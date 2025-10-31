@@ -39,7 +39,12 @@ void helmholtz_system_store::add_edge(const int& edge_id,
 	// Insert to the edge list
 	edge_list.insert({ edge_id, temp_edge });
 
+	// Add edge to node-to-edge map for both start and end nodes
+	node_edge_map[startnodeid].push_back(edge_id);
+	node_edge_map[endnodeid].push_back(edge_id);
+
 }
+
 
 void helmholtz_system_store::add_trielement(const int& tri_id, 
 	const int& nodeid1, const int& nodeid2, const int& nodeid3, 

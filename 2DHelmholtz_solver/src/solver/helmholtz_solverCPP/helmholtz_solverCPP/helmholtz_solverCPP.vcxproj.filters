@@ -42,4 +42,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="model_output.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="model_input.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

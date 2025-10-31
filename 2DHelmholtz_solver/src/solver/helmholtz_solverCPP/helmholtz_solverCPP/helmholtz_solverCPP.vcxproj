@@ -138,6 +138,10 @@
     <ClInclude Include="system_store\helmholtz_system_store.h" />
     <ClInclude Include="system_store\stopwatch_events.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="model_input.bin" />
+    <None Include="model_output.bin" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
