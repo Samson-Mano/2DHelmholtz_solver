@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import initial_condition_profile as inlcond
+import response_linemap_plotter as linemapplot
+import response_heatmap_plotter as heatmapplot
 
 # Basic input parameters
 node_count = 100 # number of nodes
@@ -19,7 +21,7 @@ inl_displ.set_initial_condition_profile(node_start=20, node_end=80, inl_cond_val
 
 # Velocity initial conidtion
 inl_velo = inlcond.InitialConditionData(total_nodes=node_count)
-inl_velo.set_initial_condition_profile(node_start=40, node_end=55, inl_cond_val=2.0)
+inl_velo.set_initial_condition_profile(node_start=40, node_end=55, inl_cond_val=0.0)
 # inl_velo.plot_profile()
 
 # Pulse Force profile
@@ -102,6 +104,81 @@ print(C_ABC[0, 0], C_ABC[N-1, N-1])
 
 
 
+# Assuming M, C_ABC, and K are already defined and M is invertible.
+M_inv = np.linalg.inv(M)
 
+
+def system_rhs(t, y, M_inv, C_ABC, K):
+    # y is the state vector [u, u_dot] (size 2N)
+    u = y[:N]      # Displacement vector (size N)
+    u_dot = y[N:]  # Velocity vector (size N)
+    
+    # Calculate u_ddot = -M_inv * (C_ABC * u_dot + K * u)
+    # 1. Right-hand side of M*u_ddot = RHS: C*u_dot + K*u
+    RHS = np.dot(C_ABC, u_dot) + np.dot(K, u)
+    
+    # 2. Solve for u_ddot
+    u_ddot = -np.dot(M_inv, RHS)
+    
+    # Return the first-order derivative vector: y_dot = [u_dot, u_ddot]
+    y_dot = np.concatenate((u_dot, u_ddot))
+    return y_dot
+
+# --- Example of Integration Setup (using solve_ivp, which is recommended) ---
+# Note: odeint uses y, t order for its function; solve_ivp uses t, y. We use solve_ivp standard.
+
+# Initial State Vector y0: [u(x, 0), u_dot(x, 0)]
+# Ensure inl_displ.profile and inl_velo.profile are NumPy arrays of size N
+u0 = inl_displ.get_initial_condition_profile()
+u_dot0 = inl_velo.get_initial_condition_profile() 
+y0 = np.concatenate((u0, u_dot0))
+
+# Time points for simulation
+T_end = 100.0
+t_span = (0.0, T_end)
+t_points = np.linspace(0, T_end, 1000)
+
+from scipy.integrate import solve_ivp
+
+# Perform the integration
+sol = solve_ivp(
+    fun=system_rhs,
+    t_span=t_span,
+    y0=y0,
+    t_eval=t_points,
+    args=(M_inv, C_ABC, K),
+    method='RK45' # RK45 is the standard Runge-Kutta method in solve_ivp
+)
+
+# sol.y contains the results [u(t), u_dot(t)]
+# sol.y[:N, :] is the displacement u at all time points
+
+displacement_matrix = sol.y[:N,:]   # shape (N, time_steps)
+velocity_matrix = sol.y[N:,:]  # shape (N, time_steps)
+
+# Compute acceleration for each time step
+acceleration_matrix     = np.zeros_like(displacement_matrix)
+
+for i in range(len(sol.t)):
+    u = displacement_matrix[:, i]
+    u_dot = velocity_matrix[:, i]
+    RHS = np.dot(C_ABC, u_dot) + np.dot(K, u)
+    u_ddot = -np.dot(M_inv, RHS)
+    acceleration_matrix[:, i] = u_ddot
+
+
+
+parsed_result = {
+    'time' : t_points,
+    'displacement': displacement_matrix,   # shape (N, time_steps)
+    'velocity' : velocity_matrix,       # shape (N, time_steps)
+    'acceleration': acceleration_matrix    # shape (N, time_steps)
+}
+
+
+
+# linemapplot.plot_linemap(parsed_result, 100)
+
+heatmapplot.plot_heatmap(parsed_result)
 
 
