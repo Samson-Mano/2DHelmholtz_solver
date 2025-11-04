@@ -35,15 +35,15 @@ force_profile.set_initial_condition_profile(node_start=40, node_end=55, inl_cond
 N = node_count
 L = wire_length
 T = wire_tension
-mu = wire_density
-c = np.sqrt(T / mu) # wave speed
+rho = wire_density
+c = np.sqrt(T / rho) # wave speed
 l = L / (N - 1) # Element length
 
 # ----------------------------------------------
 # Create the Global Consistent Mass Matrix (M)
 # ----------------------------------------------
 M = np.zeros((N, N))
-M_coeff = mu * l / 6.0 # mu*l/6
+M_coeff = rho * l / 6.0 # mu*l/6
 
 for i in range(N):
     # Diagonal terms
@@ -91,7 +91,7 @@ print(K[:3, :3])
 C_ABC = np.zeros((N, N))
 
 # Boundary Contribution (Coefficient 1/c)
-C_coeff = 1.0 / c 
+C_coeff = rho / c 
 
 # At x=0 (Node 0): C[0, 0]
 C_ABC[0, 0] = C_coeff 
@@ -124,11 +124,9 @@ def system_rhs(t, y, M_inv, C_ABC, K):
     y_dot = np.concatenate((u_dot, u_ddot))
     return y_dot
 
-# --- Example of Integration Setup (using solve_ivp, which is recommended) ---
-# Note: odeint uses y, t order for its function; solve_ivp uses t, y. We use solve_ivp standard.
+# --- Example of Integration Setup (using solve_ivp) ---
 
 # Initial State Vector y0: [u(x, 0), u_dot(x, 0)]
-# Ensure inl_displ.profile and inl_velo.profile are NumPy arrays of size N
 u0 = inl_displ.get_initial_condition_profile()
 u_dot0 = inl_velo.get_initial_condition_profile() 
 y0 = np.concatenate((u0, u_dot0))
