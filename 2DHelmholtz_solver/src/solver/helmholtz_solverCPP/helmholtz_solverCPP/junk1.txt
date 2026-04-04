@@ -1,0 +1,68 @@
+     if (j == 0) // y = -1
+                {
+					if (i == 0 || i == spectral_order) // x = -1 or x = 1
+                    {
+						// Corner nodes  are handled separately below
+
+                    }
+                    else
+                    {
+                        // Edge 1 (between node 1 and node 2)
+						int node_id = node_id_control.get_unique_id(); // Get a unique node ID
+						create_spectral_nodes(node_id, 
+							x, y, false, false, 0.0, 0.0); // Create edge node and store it
+
+						edge_node_ids.push_back(node_id); // Store the edge node ID
+                    }
+
+                }
+				else if (j == spectral_order) // y = 1
+                {
+					if (i == 0 || i == spectral_order) // x = -1 or x = 1
+                    {
+						// Corner nodes are handled separately below
+                    }
+                    else
+                    {
+                        // Edge 2 (between node 2 and node 3)
+                        int node_id = node_id_control.get_unique_id(); // Get a unique node ID
+                        create_spectral_nodes(node_id,
+                            x, y, false, false, 0.0, 0.0); // Create edge node and store it
+
+                        edge_node_ids.push_back(node_id); // Store the edge node ID
+                    }
+
+                }
+				else if (i == spectral_order) // x = 1
+                {
+                    if (j == 0 || j == spectral_order) // y = -1 or y = 1
+                    {
+						// Corner nodes are handled separately below
+                    }
+                    else
+                    {
+                        // Edge 3 (between node 3 and node 4)
+                        int node_id = node_id_control.get_unique_id(); // Get a unique node ID
+                        create_spectral_nodes(node_id,
+                            x, y, false, false, 0.0, 0.0); // Create edge node and store it
+
+                        edge_node_ids.push_back(node_id); // Store the edge node ID
+                    }
+
+                }
+				else if (i == 0) // x = -1
+                {
+                    if (j == 0 || j == spectral_order) // y = -1 or y = 1
+                    {
+						// Corner nodes are handled separately below
+                    }
+                    else
+                    {
+                        // Edge 4 (between node 4 and node 1)
+                        int node_id = node_id_control.get_unique_id(); // Get a unique node ID
+                        create_spectral_nodes(node_id,
+                            x, y, false, false, 0.0, 0.0); // Create edge node and store it
+
+                        edge_node_ids.push_back(node_id); // Store the edge node ID
+                    }
+                }

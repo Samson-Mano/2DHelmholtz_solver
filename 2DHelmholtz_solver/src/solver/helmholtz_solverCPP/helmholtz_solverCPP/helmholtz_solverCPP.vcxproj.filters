@@ -30,6 +30,15 @@
     <ClCompile Include="solver\helmholtz2d_solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="spectral_elements\spectral_mesh2d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="spectral_elements\gll_utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="spectral_elements\unique_id_control.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system_store\helmholtz_system_store.h">
@@ -41,6 +50,15 @@
     <ClInclude Include="solver\helmholtz2d_solver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="spectral_elements\spectral_mesh2d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spectral_elements\gll_utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spectral_elements\unique_id_control.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="model_output.bin">
@@ -49,5 +67,8 @@
     <None Include="model_input.bin">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="junk1.txt" />
   </ItemGroup>
 </Project>

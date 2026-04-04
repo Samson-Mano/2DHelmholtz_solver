@@ -499,6 +499,7 @@ namespace _2DHelmholtz_solver.src.events_handler
 
 
         public static void export_binary_mesh(string filePath,
+                    int spectral_order_N,
                     node_list_store fe_nodes,
                     elementtri_list_store fe_tris,
                     elementquad_list_store fe_quads,
@@ -511,6 +512,9 @@ namespace _2DHelmholtz_solver.src.events_handler
 
             using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
             {
+                // Write the spectral order as the first piece of information in the file
+                writer.Write(spectral_order_N);
+
                 // Nodes
                 writer.Write(fe_nodes.nodeMap.Count);
                 foreach (var node in fe_nodes.nodeMap.Values)
@@ -616,6 +620,7 @@ namespace _2DHelmholtz_solver.src.events_handler
 
 
         public static void import_binary_mesh(string filePath,
+                    ref int spectral_order_N,
                     ref node_list_store fe_nodes,
                     ref elementtri_list_store fe_tris,
                     ref elementquad_list_store fe_quads,
@@ -644,6 +649,9 @@ namespace _2DHelmholtz_solver.src.events_handler
 
             using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open)))
             {
+                // Read the spectral order
+                spectral_order_N = reader.ReadInt32();
+
                 // --- NODES ---
                 int nodeCount = reader.ReadInt32();
                 for (int i = 0; i < nodeCount; i++)

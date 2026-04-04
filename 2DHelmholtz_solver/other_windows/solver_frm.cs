@@ -58,6 +58,9 @@ namespace _2DHelmholtz_solver.other_windows
 
 
             textBox_xyextent.Text = $"[{formatValue(x_extent)}, {formatValue(y_extent)}]";
+
+            comboBox_spectralorderN.SelectedIndex = (fe_data.spectral_order_N - 1);
+
         }
 
 
@@ -154,6 +157,7 @@ namespace _2DHelmholtz_solver.other_windows
 
             // Write the binary file
             file_events.export_binary_mesh(inputPath,
+                                        comboBox_spectralorderN.SelectedIndex + 1,
                                         fe_data.fe_nodes,
                                         fe_data.fe_tris,
                                         fe_data.fe_quads,

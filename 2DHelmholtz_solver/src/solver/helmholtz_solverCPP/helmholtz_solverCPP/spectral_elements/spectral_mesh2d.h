@@ -1,0 +1,124 @@
+#pragma once
+#include <Eigen/Dense>
+#include <unordered_map>
+#include "../system_store/helmholtz_system_store.h"
+#include "gll_utility.h"
+#include "unique_id_control.h"
+
+struct spectral_node_store
+{
+	int node_id = 0;
+	double x_coord = 0.0;
+	double y_coord = 0.0;
+
+	bool isboundarynode = false;
+	bool isFieldBC = false;
+	double fieldvalue = 0.0; // Field value in the node
+	double sourcevalue = 0.0; // Source value in the node
+
+};
+
+
+
+struct spectral_edge_store
+{
+	int edge_id = 0;
+	int startnodeid = 0;
+	int endnodeid = 0;
+
+	std::vector<int> internal_node_ids; // Internal node IDs on the edge (for higher-order spectral elements)
+
+	bool isboundaryedge = false;
+	bool isSommerfieldBC = false;
+	bool isFieldBC = false;
+	bool isDerivFieldBC = false;
+	double fieldvalue = 0.0;
+	double normalderivfieldvalue = 0.0;
+
+};
+
+
+
+struct spectral_trielement_store
+{
+	int tri_id = 0;
+
+	std::vector<int> corner_nodes; // 3 corner nodes of the triangle element
+	std::vector<int> edge_nodes; // 
+	std::vector<int> internal_nodes; // Internal nodes of the triangle element (for higher-order spectral elements)
+
+	int materialid = 0;
+
+};
+
+struct spectral_quadelement_store
+{
+	int quad_id = 0;
+
+	std::vector<int> corner_nodes; // 4 corner nodes of the quadrilateral element
+	std::vector<int> edge_nodes; //
+	std::vector<int> internal_nodes; // Internal nodes of the quadrialteral element (for higher-order spectral elements)
+
+	int materialid = 0;
+
+};
+
+
+
+
+
+class spectral_mesh2d
+{
+public:
+	int spectral_order = 1; // Spectral order of the finite element method (1 for linear, 2 for quadratic, etc.)
+	std::unordered_map<int, spectral_node_store> spectral_node_list;
+	std::unordered_map<int, spectral_edge_store> spectral_edge_list;
+	std::unordered_map<int, spectral_trielement_store> spectral_trielement_list;
+	std::unordered_map<int, spectral_quadelement_store> spectral_quadelement_list;
+	// std::unordered_map<int, spectral_material_store> material_list;
+
+	std::unordered_map<int, std::vector<int>> spectral_node_edge_map;
+
+
+	spectral_mesh2d();
+	~spectral_mesh2d() = default;
+
+
+	void generate_spectral_mesh(const helmholtz_system_store& linear_mesh);
+
+
+
+private:
+	helmholtz_system_store linear_mesh;
+
+	void create_spectral_nodes(int node_id,
+								double x_coord,
+								double y_coord,
+								bool isboundarynode,
+								bool isFieldBC,
+								double fieldvalue,
+								double sourcevalue);
+
+
+	void create_spectral_edges(int edge_id,
+								int startnodeid,
+								int endnodeid,
+								const std::vector<int>& internal_node_ids,
+								bool isboundaryedge,
+								bool isSommerfieldBC,
+								bool isFieldBC,
+								bool isDerivFieldBC,
+								double fieldvalue,
+								double normalderivfieldvalue);
+
+
+	int get_edge_id(const int& startnodeid, const int& endnodeid);
+
+
+
+
+};
+
+
+
+

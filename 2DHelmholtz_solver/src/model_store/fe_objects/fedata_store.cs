@@ -50,6 +50,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
     public class fedata_store
     {
+        public int spectral_order_N = 6;
+
         public node_list_store fe_nodes;
         public elementtri_list_store fe_tris;
         public elementquad_list_store fe_quads;
@@ -92,6 +94,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
         public fedata_store()
         {
+ 
             // (Re)Initialize the data
             fe_nodes = new node_list_store();
             fe_tris = new elementtri_list_store();
@@ -227,7 +230,9 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             isModelSet = false;
             isResultSet = false;
 
-            file_events.import_binary_mesh(filePath, ref fe_nodes, ref fe_tris, ref fe_quads,
+
+            file_events.import_binary_mesh(filePath, ref spectral_order_N, 
+                ref fe_nodes, ref fe_tris, ref fe_quads,
                 ref fe_nodeconstraints, ref fe_edgeconstraints, ref fe_loads,
                 ref fe_materials, ref materialids, ref nodePtsList, ref isModelSet);
 
@@ -326,7 +331,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public void exportBINFile(string filePath)
         {
             // Export the bindary mesh
-            file_events.export_binary_mesh(filePath, fe_nodes, fe_tris, fe_quads,
+            file_events.export_binary_mesh(filePath, spectral_order_N, fe_nodes, fe_tris, fe_quads,
               fe_nodeconstraints, fe_edgeconstraints, fe_loads, meshdata.mesh_boundaries,
               fe_materials);
 
