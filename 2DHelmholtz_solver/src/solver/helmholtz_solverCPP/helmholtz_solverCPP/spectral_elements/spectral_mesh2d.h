@@ -26,7 +26,10 @@ struct spectral_edge_store
 	int startnodeid = 0;
 	int endnodeid = 0;
 
-	std::vector<int> internal_node_ids; // Internal node IDs on the edge (for higher-order spectral elements)
+	std::vector<int> edge_internal_node_ids; // Internal node IDs on the edge (for higher-order spectral elements)
+
+	int leftfaceid = -1; // The face on the left side of the edge (when looking from start node to end node)
+	int rightfaceid = -1; // The face on the right side of the edge (when looking from start node to end node)
 
 	bool isboundaryedge = false;
 	bool isSommerfieldBC = false;
@@ -44,7 +47,10 @@ struct spectral_trielement_store
 	int tri_id = 0;
 
 	std::vector<int> corner_nodes; // 3 corner nodes of the triangle element
-	std::vector<int> edge_nodes; // 
+	
+	// edge_node_ids[0] for edge 1, edge_node_ids[1] for edge 2, edge_node_ids[2] for edge 3
+	std::vector<std::vector<int>> edge_node_ids{ 3 };
+
 	std::vector<int> internal_nodes; // Internal nodes of the triangle element (for higher-order spectral elements)
 
 	int materialid = 0;
@@ -56,7 +62,10 @@ struct spectral_quadelement_store
 	int quad_id = 0;
 
 	std::vector<int> corner_nodes; // 4 corner nodes of the quadrilateral element
-	std::vector<int> edge_nodes; //
+
+	// edge_node_ids[0] for edge 1, edge_node_ids[1] for edge 2, edge_node_ids[2] for edge 3, edge_node_ids[3] for edge 4
+	std::vector<std::vector<int>> edge_node_ids{4};
+
 	std::vector<int> internal_nodes; // Internal nodes of the quadrialteral element (for higher-order spectral elements)
 
 	int materialid = 0;
@@ -100,16 +109,7 @@ private:
 								double sourcevalue);
 
 
-	void create_spectral_edges(int edge_id,
-								int startnodeid,
-								int endnodeid,
-								const std::vector<int>& internal_node_ids,
-								bool isboundaryedge,
-								bool isSommerfieldBC,
-								bool isFieldBC,
-								bool isDerivFieldBC,
-								double fieldvalue,
-								double normalderivfieldvalue);
+	void create_spectral_edges(edge_store edge, const std::vector<int>& edge_internal_node_ids);
 
 
 	int get_edge_id(const int& startnodeid, const int& endnodeid);

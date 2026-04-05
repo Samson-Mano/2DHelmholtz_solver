@@ -22,6 +22,9 @@ struct edge_store
 	int startnodeid = 0;
 	int endnodeid = 0;
 
+	int leftfaceid = -1; // The face on the left side of the edge (when looking from start node to end node)
+	int rightfaceid = -1; // The face on the right side of the edge (when looking from start node to end node)
+
 	bool isboundaryedge = false;
 	bool isSommerfieldBC = false;
 	bool isFieldBC = false;
@@ -130,6 +133,12 @@ public:
 
 
 private:
+
+	void set_edge_faceid(const int& startnodeid, const int& endnodeid, const int& face_id);
+
+
+	int get_edge_id(const int& startnodeid, const int& endnodeid);
+
 
 
 };

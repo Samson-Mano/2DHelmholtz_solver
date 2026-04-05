@@ -66,3 +66,141 @@
                         edge_node_ids.push_back(node_id); // Store the edge node ID
                     }
                 }
+
+
+
+
+
+                //_________________________________________________________________________________________________________________
+                //__________________________________________________________________________________________________________________
+
+                  int expected_startid, expected_endid;
+
+            if (i == 0) { expected_startid = nd1_id; expected_endid = nd2_id; }
+            else if (i == 1) { expected_startid = nd2_id; expected_endid = nd3_id; }
+            else if (i == 2) { expected_startid = nd3_id; expected_endid = nd4_id; }
+            else if (i == 3) { expected_startid = nd4_id; expected_endid = nd1_id; }
+
+			// Right face check: Check if the edge direction matches the expected 
+            // direction based on the corner nodes of the quadrilateral element
+            bool isrightface = (edge.startnodeid == expected_startid &&
+                    edge.endnodeid == expected_endid);
+
+
+            // Reuse existing edge
+            if(spectral_edge_list.find(edge.edge_id) != spectral_edge_list.end())
+            {
+				// Update the face IDs for the existing spectral edge
+                if(isrightface == true)
+                {
+                    spectral_edge_list[edge.edge_id].rightfaceid = quad_elm.quad_id; // Set the right face ID
+                }
+                else
+                {
+                    spectral_edge_list[edge.edge_id].leftfaceid = quad_elm.quad_id; // Set the left face ID
+				}
+
+                // If the spectral edge already exists, skip to the next edge
+                const auto& existing_edge = spectral_edge_list.at(edge.edge_id);
+                edge_node_ids[i] = existing_edge.edge_internal_node_ids;
+                continue;
+			}
+
+            // Get the start and end nodes of the edge
+            const node_store& start_node = linear_mesh.node_list.at(edge.startnodeid);
+            const node_store& end_node = linear_mesh.node_list.at(edge.endnodeid);
+            
+			std::vector<int> edge_internal_node_ids; // To store internal node IDs for this edge
+
+            // Create edge nodes based on the spectral order
+            for (int j = 1; j < spectral_order; j++)
+            {
+
+                double xi = gll_locations[j];
+                int node_id = node_id_control.get_unique_id(); // Get a unique node ID
+
+                double x = 0.5 * ((1 - xi) * start_node.x_coord +
+                    (1 + xi) * end_node.x_coord);
+
+                double y = 0.5 * ((1 - xi) * start_node.y_coord +
+                    (1 + xi) * end_node.y_coord);
+
+                create_spectral_nodes(node_id,
+                    x, y, false, false, 0.0, 0.0); // Create edge node and store it
+
+                edge_internal_node_ids.push_back(node_id); // Add to this edge's internal node IDs
+                edge_node_ids[i].push_back(node_id); // Add to edge node IDs
+
+            }
+
+            // Add spectral edge to the spectral edge list
+            create_spectral_edges(edge.edge_id, 
+                edge.startnodeid, edge.endnodeid, edge_internal_node_ids,
+                edge.isboundaryedge, edge.isSommerfieldBC, edge.isFieldBC, edge.isDerivFieldBC,
+				edge.fieldvalue, edge.normalderivfieldvalue, isrightface, quad_elm.quad_id);
+
+
+
+
+
+
+                
+void spectral_mesh2d::create_spectral_edges(int edge_id,
+    int startnodeid,
+    int endnodeid,
+    const std::vector<int>& edge_internal_node_ids,
+    bool isboundaryedge,
+    bool isSommerfieldBC,
+    bool isFieldBC,
+    bool isDerivFieldBC,
+    double fieldvalue,
+    double normalderivfieldvalue,								
+    bool isrightface,
+    int faceid)
+{
+
+	// Create spectral edge and store it
+	spectral_edge_store spec_edge;
+
+	spec_edge.edge_id = edge_id;
+	spec_edge.startnodeid = startnodeid;
+	spec_edge.endnodeid = endnodeid;
+
+    spec_edge.edge_internal_node_ids = edge_internal_node_ids;
+
+	spec_edge.isboundaryedge = isboundaryedge;
+	spec_edge.isSommerfieldBC = isSommerfieldBC;
+	spec_edge.isFieldBC = isFieldBC;
+	spec_edge.isDerivFieldBC = isDerivFieldBC;
+	spec_edge.fieldvalue = fieldvalue;
+	spec_edge.normalderivfieldvalue = normalderivfieldvalue;
+
+    if(isrightface == true)
+    {
+        spec_edge.rightfaceid = faceid; // Set the right face ID
+    }
+    else
+    {
+        spec_edge.leftfaceid = faceid; // Set the left face ID
+	}
+
+
+	spectral_edge_list[spec_edge.edge_id] = spec_edge; // Store the edge
+    //
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
