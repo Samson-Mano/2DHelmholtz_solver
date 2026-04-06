@@ -333,8 +333,7 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
             //
         }
 
-        // Create the corner and internal nodes for the triangular element using
-       // Warp & blend nodes or Fekete nodes
+        // Create the corner and internal nodes for the triangular element using Fekete nodes
 
         for (int i = 0; i < (spectral_order + 1); i++)
         {
