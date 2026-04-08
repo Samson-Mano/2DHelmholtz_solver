@@ -2,16 +2,16 @@
 
 const fekete_table& fekete_nodes_table::get_fekete_nodes(int spectral_order)
 {
-    switch (spectral_order)
-    {
-    case 1: return fekete_nodes_order1;
-    case 2: return fekete_nodes_order2;
-    case 3: return fekete_nodes_order3;
-    case 4: return fekete_nodes_order4;
-    case 5: return fekete_nodes_order5;
-    default:
-        // throw std::invalid_argument("Spectral order not supported for Fekete nodes.");
-    }
+    //switch (spectral_order)
+    //{
+    //case 1: return fekete_nodes_order1;
+    //case 2: return fekete_nodes_order2;
+    //case 3: return fekete_nodes_order3;
+    //case 4: return fekete_nodes_order4;
+    //case 5: return fekete_nodes_order5;
+    //default:
+    //    // throw std::invalid_argument("Spectral order not supported for Fekete nodes.");
+    //}
 
 	// TODO: insert return statement here
 }

@@ -130,6 +130,7 @@
     <ClCompile Include="helmholtz_solverCPP.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="solver\helmholtz2d_solver.cpp" />
+    <ClCompile Include="solver\helmholtz2d_spectral_solver.cpp" />
     <ClCompile Include="spectral_elements\fekete_nodes_table.cpp" />
     <ClCompile Include="spectral_elements\gll_utility.cpp" />
     <ClCompile Include="spectral_elements\spectral_mesh2d.cpp" />
@@ -139,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="solver\helmholtz2d_solver.h" />
+    <ClInclude Include="solver\helmholtz2d_spectral_solver.h" />
     <ClInclude Include="spectral_elements\fekete_nodes_table.h" />
     <ClInclude Include="spectral_elements\gll_utility.h" />
     <ClInclude Include="spectral_elements\spectral_mesh2d.h" />

@@ -55,6 +55,9 @@ struct spectral_trielement_store
 
 	int materialid = 0;
 
+	// Store the renderer triangle ID
+	std::vector<renderer_triangle> renderer_tri_elements;
+
 };
 
 struct spectral_quadelement_store
@@ -70,9 +73,17 @@ struct spectral_quadelement_store
 
 	int materialid = 0;
 
+	// Store the renderer triangle ID
+	std::vector<renderer_triangle> renderer_tri_elements;
+
 };
 
 
+// Renderer Triangle
+struct renderer_triangle
+{
+	int n1, n2, n3;
+};
 
 
 
@@ -84,7 +95,7 @@ public:
 	std::unordered_map<int, spectral_edge_store> spectral_edge_list;
 	std::unordered_map<int, spectral_trielement_store> spectral_trielement_list;
 	std::unordered_map<int, spectral_quadelement_store> spectral_quadelement_list;
-	// std::unordered_map<int, spectral_material_store> material_list;
+	std::unordered_map<int, material_store> material_list;
 
 	std::unordered_map<int, std::vector<int>> spectral_node_edge_map;
 

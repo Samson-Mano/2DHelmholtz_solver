@@ -5,6 +5,8 @@ helmholtz2d_solver::helmholtz2d_solver()
 	// Empty constructor
 }
 
+
+
 void helmholtz2d_solver::init(helmholtz_system_store* helmholtz_2dsystem_ptr)
 {
 	// Set the initialized system ptr

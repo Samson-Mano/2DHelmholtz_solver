@@ -17,6 +17,9 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 	spectral_edge_list.clear();
 	spectral_trielement_list.clear();
 	spectral_quadelement_list.clear();
+	material_list.clear();
+
+	this->material_list = linear_mesh.material_list;
 
 
 	// p-Refinement

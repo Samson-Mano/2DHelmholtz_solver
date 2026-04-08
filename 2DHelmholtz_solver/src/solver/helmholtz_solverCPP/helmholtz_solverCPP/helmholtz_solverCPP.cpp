@@ -322,7 +322,8 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 	msg = "Finished reading edge constraints at " + stopwatch_elapsed_str.str() + " secs";
 	if (callback) callback(msg.c_str());
 
-
+	/*
+	* Linear Solver not used
 	//____________ Set the Matrices _________________________
 	helmholtz2d_solver helmholtz_solver;
 
@@ -377,7 +378,7 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 
 	msg = "Results written to output binary file at " + stopwatch_elapsed_str.str() + " secs";
 	if (callback) callback(msg.c_str());
-
+	*/
 
 	(*isAnalysisSuccess) = true;
 
