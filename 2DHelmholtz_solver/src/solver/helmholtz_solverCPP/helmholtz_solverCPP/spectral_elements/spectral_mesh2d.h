@@ -86,6 +86,21 @@ struct renderer_triangle
 };
 
 
+// Renderer Edge
+struct renderer_edge
+{
+	int nstart, nend;
+};
+
+
+// Renderer Node
+struct renderer_node
+{
+	double x,y;
+	double r1, r2, r3, r4; // Scalar Result data
+};
+
+
 
 class spectral_mesh2d
 {
@@ -100,6 +115,11 @@ public:
 	std::unordered_map<int, std::vector<int>> spectral_node_edge_map;
 
 
+	// Store the renderer data
+	std::vector<renderer_edge> renderer_edge_lines;
+	std::vector<renderer_node> renderer_node_points;
+
+
 	spectral_mesh2d();
 	~spectral_mesh2d() = default;
 
@@ -111,6 +131,7 @@ public:
 private:
 	helmholtz_system_store linear_mesh;
 
+	
 	void create_spectral_nodes(int node_id,
 								double x_coord,
 								double y_coord,
@@ -125,8 +146,9 @@ private:
 
 	int get_edge_id(const int& startnodeid, const int& endnodeid);
 
+	void create_spectralquad_renderer_triangles(spectral_quadelement_store& spec_quad);
 
-
+	void create_spectraltri_renderer_triangles(spectral_trielement_store& spec_tri);
 
 };
 

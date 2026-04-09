@@ -94,9 +94,9 @@ def plot_random_triangle(lib):
     for i in range(len(lib.interior)):
         xi = lib.interior[i].xi
         eta= lib.interior[i].eta
-        l1   = 1.0 - xi - eta
+        l3   = 1.0 - xi - eta
         l2   = xi
-        l3   = eta
+        l1   = eta
 
         x = l1*x1 + l2*x2 + l3*x3
         y = l1*y1 + l2*y2 + l3*y3
@@ -111,7 +111,7 @@ def plot_random_triangle(lib):
 
 
 
-lib = populate_tsem(10)
+lib = populate_tsem(2)
 # lib.plot_tsem_library()
 
 plot_random_triangle(lib)

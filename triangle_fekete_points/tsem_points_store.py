@@ -29,39 +29,58 @@ class TSEMLibrary:
     print()
 
   def plot_tsem_library(self):
-    lib = self
-    plt.figure(figsize=(8, 8))
+      lib = self
+      plt.figure(figsize=(8, 8))
 
-    # 1. Extract coordinates for each group
-    c_xi, c_eta = [p.xi for p in lib.corners], [p.eta for p in lib.corners]
+      corner_node_id = 0  # Corner node ids
 
-    e_xi, e_eta = [], []
-    for edge in lib.edges:
-      e_xi.extend([p.xi for p in edge])
-      e_eta.extend([p.eta for p in edge])
+      # --- Corners ---
+      for p in lib.corners:
+          plt.scatter(p.xi, p.eta, c='red', s=100, zorder=5)
+          plt.text(p.xi, p.eta, str(corner_node_id), fontsize=10,
+                  ha='right', va='bottom')
+          corner_node_id += 1
 
-    i_xi, i_eta = [p.xi for p in lib.interior], [p.eta for p in lib.interior]
+      edge_node_id = 0 # Edge node ids
 
-    # 2. Plot with distinct colors and sizes
-    plt.scatter(c_xi, c_eta, c='red', s=100, label='Corners', zorder=5)
-    plt.scatter(e_xi, e_eta, c='blue', s=60, label='Edges', zorder=4)
-    plt.scatter(i_xi, i_eta, c='green', s=40, label='Interior', zorder=3)
+      # --- Edges ---
+      for edge in lib.edges:
+          for p in edge:
+              plt.scatter(p.xi, p.eta, c='blue', s=60, zorder=4)
+              plt.text(p.xi, p.eta, str(edge_node_id), fontsize=9,
+                      ha='right', va='bottom')
+              edge_node_id += 1
 
-    # 3. Draw the triangle boundary for context
-    # Close the triangle by repeating the first point
-    c_xi.append(c_xi[0])
-    c_eta.append(c_eta[0])
 
-    plt.plot(c_xi, c_eta, 'k--', alpha=0.6)
+      interior_node_ids = 0 # Interior node ids
 
-    # 4. Styling
-    plt.title(f"TSEM Nodes - Lobatto interpolation grid over the triangle - Spectral Order {lib.order}")
-    plt.xlabel(r"$\xi$")
-    plt.ylabel(r"$\eta$")
-    plt.legend(loc='upper right')
-    plt.gca().set_aspect('equal')
-    plt.grid(True, linestyle=':', alpha=0.6)
-    plt.show()
+      # --- Interior ---
+      for p in lib.interior:
+          plt.scatter(p.xi, p.eta, c='green', s=40, zorder=3)
+          plt.text(p.xi, p.eta, str(interior_node_ids), fontsize=8,
+                  ha='right', va='bottom')
+          interior_node_ids += 1
+
+      # --- Triangle boundary ---
+      c_xi  = [p.xi for p in lib.corners]
+      c_eta = [p.eta for p in lib.corners]
+
+      plt.plot(c_xi + [c_xi[0]], c_eta + [c_eta[0]], 'k--', alpha=0.6)
+
+      # --- Styling ---
+      plt.title(f"TSEM Nodes (Order {lib.order})")
+      plt.xlabel(r"$\xi$")
+      plt.ylabel(r"$\eta$")
+      plt.gca().set_aspect('equal')
+      plt.grid(True, linestyle=':', alpha=0.6)
+
+      plt.show()
+
+
+
+
+
+
 
 
 

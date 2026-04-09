@@ -95,7 +95,19 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 			{
 				// If the spectral edge already exists, skip to the next edge
 				const auto& existing_edge = spectral_edge_list.at(edge.edge_id);
-				edge_node_ids[i] = existing_edge.edge_internal_node_ids;
+				if (existing_edge.leftfaceid == quad_elm.quad_id)
+				{
+					// Same direction
+					edge_node_ids[i] = existing_edge.edge_internal_node_ids;
+				}
+				else
+				{
+					// reverse the direction before adding
+					edge_node_ids[i] = std::vector<int>(existing_edge.edge_internal_node_ids.rbegin(),
+						existing_edge.edge_internal_node_ids.rend());
+
+				}
+
 				continue;
 			}
 
@@ -245,6 +257,9 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 		spec_quad.edge_node_ids = edge_node_ids;
 		spec_quad.internal_nodes = internal_node_ids;
 
+		// Create the renderer triangle
+		create_spectralquad_renderer_triangles(spec_quad);
+
 		spectral_quadelement_list[spec_quad.quad_id] = spec_quad;
 		//
 	}
@@ -300,7 +315,18 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 			{
 				// If the spectral edge already exists, skip to the next edge
 				const auto& existing_edge = spectral_edge_list.at(edge.edge_id);
-				edge_node_ids[i] = existing_edge.edge_internal_node_ids;
+				if (existing_edge.leftfaceid == tri_elm.tri_id)
+				{
+					// Same direction
+					edge_node_ids[i] = existing_edge.edge_internal_node_ids;
+				}
+				else
+				{
+					// reverse the direction before adding
+					edge_node_ids[i] = std::vector<int>(existing_edge.edge_internal_node_ids.rbegin(),
+						existing_edge.edge_internal_node_ids.rend());
+					
+				}
 				continue;
 			}
 
@@ -403,9 +429,9 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double eta = (1 / 3.0) * (1.0 + (2.0 * vk) - vi - vj);
 				
 				// Converted to global coordinates
-				double l1 = 1 - xi - eta;
+				double l3 = 1.0 - xi - eta;
 				double l2 = xi;
-				double l3 = eta;
+				double l1 = eta;
 
 				int node_id = node_id_control.get_unique_id();
 
@@ -429,6 +455,10 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 		spec_tri.corner_nodes = corner_node_ids;
 		spec_tri.edge_node_ids = edge_node_ids;
 		spec_tri.internal_nodes = internal_node_ids;
+
+		// Create the renderer triangle
+		create_spectraltri_renderer_triangles(spec_tri);
+
 
 		spectral_trielement_list[spec_tri.tri_id] = spec_tri;
 		//
@@ -515,3 +545,205 @@ void spectral_mesh2d::create_spectral_edges(edge_store edge, const std::vector<i
 	spectral_edge_list[spec_edge.edge_id] = spec_edge; // Store the edge
 	//
 }
+
+
+void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelement_store& spec_quad)
+{
+	// Get the spectral order
+	int order = this->spectral_order;
+
+	// Layer count 
+	int layer_count = order + 1;
+
+
+	auto create_renderer_triangles = [this](const std::vector<int>& layer_0, const std::vector<int>& layer_1,
+		spectral_quadelement_store& spec_quad)
+		{
+			// layer_1    c -- d
+			//            |    |
+			// layer_0    a -- b
+
+			int count = static_cast<int>(layer_0.size());
+
+			for (int i = 0; i < count - 1; i++)
+			{
+				renderer_triangle tri1{
+					layer_0[i],
+					layer_0[i + 1],
+					layer_1[i]
+				};
+
+				spec_quad.renderer_tri_elements.push_back(tri1);
+
+				renderer_triangle tri2{
+					layer_0[i + 1],
+					layer_1[i + 1],
+					layer_1[i]
+				};
+
+				spec_quad.renderer_tri_elements.push_back(tri2);
+			}
+			//
+		};
+
+	// Set the first layer nodes
+	std::vector<int> layer_0_nodes;
+
+	layer_0_nodes.push_back(spec_quad.corner_nodes[0]);
+
+	for (const auto& edge0_id : spec_quad.edge_node_ids[0])
+	{
+
+		// First edge nodes (Node 0 -> Node 1)
+		layer_0_nodes.push_back(edge0_id);
+	}
+
+	layer_0_nodes.push_back(spec_quad.corner_nodes[1]);
+
+
+	int interior_node_index = 0;
+	std::vector<int> layer_1_nodes;
+
+	for (int i = 1; i < layer_count; i++)
+	{
+		layer_1_nodes.clear();
+
+		// Start is edge 4 node (Node 3 -> Node 0)
+		layer_1_nodes.push_back(spec_quad.edge_node_ids[3][order - i - 1]);
+
+		// Interior nodes layer 1
+		for (int j = 0; j < order - 1; j++)
+		{
+			layer_1_nodes.push_back(spec_quad.internal_nodes[interior_node_index]);
+
+			interior_node_index++;
+		}
+
+		// End is edge 2 node (Node 1 -> Node 2)
+		layer_1_nodes.push_back(spec_quad.edge_node_ids[1][i - 1]);
+
+		// Using layer_0 and layer 1 create the triangles
+		create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_quad);
+
+		layer_0_nodes = layer_1_nodes;
+		//
+	}
+
+	// Final layer is the final corner node
+	layer_1_nodes.clear();
+
+	layer_1_nodes.push_back(spec_quad.corner_nodes[3]);
+
+	// Add in reverse
+	for (const auto& edge2_id : std::vector<int>(spec_quad.edge_node_ids[2].rbegin(), spec_quad.edge_node_ids[2].rend()))
+	{
+
+		// First edge nodes (Node 1 -> Node 2)
+		layer_0_nodes.push_back(edge2_id);
+	}
+
+	layer_1_nodes.push_back(spec_quad.corner_nodes[2]);
+
+	// Using layer_0 and layer 1 create the triangles
+	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_quad);
+	//
+}
+
+
+
+void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_store& spec_tri)
+{
+	// Get the spectral order
+	int order = this->spectral_order;
+
+	// Layer count 
+	int layer_count = order + 1;
+
+
+	auto create_renderer_triangles = [this](const std::vector<int>& layer_0, const std::vector<int>& layer_1,
+		spectral_trielement_store& spec_tri)
+	{
+			// layer_1    c -- d
+			//            |    |
+			// layer_0    a -- b
+
+			int count = static_cast<int>(layer_0.size());
+
+			for (int i = 0; i < count - 1; i++)
+			{
+				renderer_triangle tri1{
+					layer_0[i],
+					layer_0[i + 1],
+					layer_1[i]
+				};
+
+				spec_tri.renderer_tri_elements.push_back(tri1);
+
+				if (i < count - 2)
+				{
+					renderer_triangle tri2{
+						layer_0[i + 1],
+						layer_1[i + 1],
+						layer_1[i]
+					};
+
+					spec_tri.renderer_tri_elements.push_back(tri2);
+				}
+			}
+			//
+	};
+
+
+	// Set the first layer nodes
+	std::vector<int> layer_0_nodes;
+
+	layer_0_nodes.push_back(spec_tri.corner_nodes[0]);
+
+	for (const auto& edge0_id : spec_tri.edge_node_ids[0])
+	{
+
+		// First edge nodes (Node 0 -> Node 1)
+		layer_0_nodes.push_back(edge0_id);
+	}
+
+	layer_0_nodes.push_back(spec_tri.corner_nodes[1]);
+
+
+	int interior_node_index = 0;
+	std::vector<int> layer_1_nodes;
+
+	for (int i = 1; i < layer_count; i++)
+	{
+		layer_1_nodes.clear();
+
+		// Start is edge node (Node 2 -> Node 0)
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[2][order - i - 1]);
+
+		// Interior nodes layer 1
+		for (int j = 0; j < order - i - 1; j++)
+		{
+			layer_1_nodes.push_back(spec_tri.internal_nodes[interior_node_index]);
+
+			interior_node_index++;
+		}
+
+		// End is edge node (Node 1 -> Node 2)
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[1][i - 1]);
+
+		// Using layer_0 and layer 1 create the triangles
+		create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
+
+		layer_0_nodes = layer_1_nodes;
+		//
+	}
+
+	// Final layer is the final corner node
+	layer_1_nodes.clear();
+	layer_1_nodes.push_back(spec_tri.corner_nodes[2]);
+
+	// Using layer_0 and layer 1 create the triangles
+	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
+//
+}
+
+
