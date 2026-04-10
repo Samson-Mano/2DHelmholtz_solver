@@ -1,6 +1,8 @@
 ﻿using _2DHelmholtz_solver.src.events_handler;
 using _2DHelmholtz_solver.src.global_variables;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
+using _2DHelmholtz_solver.src.model_store.rslt_objects;
+
 using OpenTK.Graphics.ES11;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+
 
 namespace _2DHelmholtz_solver.other_windows
 {
@@ -170,9 +174,6 @@ namespace _2DHelmholtz_solver.other_windows
 
             bool isAnalysisSuccess = false;
 
-            // Reset the results
-            fe_data.isResultSet = false;
-
 
             // Call the C++ dll solver
             try
@@ -206,22 +207,81 @@ namespace _2DHelmholtz_solver.other_windows
                     {
                         using (var reader = new BinaryReader(File.Open(outputPath, FileMode.Open, FileAccess.Read)))
                         {
-                            // Read number of nodes
-                            int nodeCount = reader.ReadInt32();
-                            AppendStatus($"Reading results for {nodeCount} nodes...\n");
+                            fe_data.resultmeshdata = new rsltdata_store();
 
-                            for (int i = 0; i < nodeCount; i++)
+                            // Read number of nodes
+                            int node_points_count = reader.ReadInt32();
+                            AppendStatus($"Reading results started...\n");
+
+                            for (int i = 0; i < node_points_count; i++)
                             {
                                 int node_id = reader.ReadInt32();
-                                double field_real_value = reader.ReadDouble();
-                                double field_imag_value = reader.ReadDouble();
+                                double node_xcoord = reader.ReadDouble();
+                                double node_ycoord = reader.ReadDouble();
+                                double rslt_value = reader.ReadDouble();
+                                // double field_real_value = reader.ReadDouble();
+                                // double field_imag_value = reader.ReadDouble();
 
-                                fe_data.fe_nodes.update_results(node_id, field_real_value, field_imag_value);
+                                fe_data.resultmeshdata.rslt_nodes.Add(node_id, 
+                                    new rsltnode_store { node_id = node_id,
+                                                        node_pt_x_coord = node_xcoord,
+                                                        node_pt_y_coord = node_ycoord,
+                                                        node_u_real = rslt_value,
+                                                        node_u_imag = rslt_value,
+                                                        node_u_magnitude = rslt_value,
+                                                        node_u_phase = rslt_value,
+                                    });
+
                             }
 
-                            fe_data.setResultMesh();
-                            fe_data.setResultExtremes();
-                            fe_data.isResultSet = true; 
+                            AppendStatus($"Reading results for {node_points_count} nodes complete \n");
+
+
+                            // Read number of edges
+                            int edge_lines_count = reader.ReadInt32();
+
+                            for (int i = 0; i < edge_lines_count; i++)
+                            {
+                                int start_nodeid = reader.ReadInt32();
+                                int end_nodeid = reader.ReadInt32();
+
+                                fe_data.resultmeshdata.rslt_edges.Add(new rsltedge_store
+                                {
+                                    startnode = start_nodeid,
+                                    endnode = end_nodeid
+                                });
+                            }
+
+                            AppendStatus($"Reading results for {edge_lines_count} edges complete \n");
+
+
+                            // Read number of triangles
+                            int triangles_count = reader.ReadInt32();
+
+                            for (int i = 0; i < triangles_count; i++)
+                            {
+                                int n1 = reader.ReadInt32();
+                                int n2 = reader.ReadInt32();
+                                int n3 = reader.ReadInt32();
+
+                                fe_data.resultmeshdata.rslt_tris.Add(new rslttri_store
+                                {
+                                    tri_node1 = n1,
+                                    tri_node2 = n2,
+                                    tri_node3 = n3,
+                                });
+                            }
+
+                            AppendStatus($"Reading results for {triangles_count} triangles complete \n");
+
+                            // Set the Result mesh
+
+
+                            fe_data.resultmeshdata.setResultMesh();
+                            fe_data.resultmeshdata.setResultExtremes();
+                            fe_data.resultmeshdata.isResultSet = true;
+
+                            fe_data.update_openTK_uniforms(true, true, true);
                         }
 
                         // Call the main form

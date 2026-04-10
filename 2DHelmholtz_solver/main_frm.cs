@@ -805,7 +805,7 @@ namespace _2DHelmholtz_solver
 
         private void TrySetResultOption(int option)
         {
-            if (!fedata.isResultSet)
+            if (!fedata.resultmeshdata.isResultSet)
                 return;
 
             set_ResultOption(option);
@@ -864,7 +864,7 @@ namespace _2DHelmholtz_solver
                     break;
             }
 
-            fedata.updateResultType();
+            fedata.resultmeshdata.updateResultType();
             fedata.update_openTK_uniforms(false, false, true);
 
             // Refresh 
