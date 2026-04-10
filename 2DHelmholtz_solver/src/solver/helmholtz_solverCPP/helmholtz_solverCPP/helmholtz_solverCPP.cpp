@@ -9,7 +9,8 @@
 
 #include "system_store/helmholtz_system_store.h"
 #include "system_store/stopwatch_events.h"
-#include "solver/helmholtz2d_solver.h"
+// #include "solver/helmholtz2d_solver.h"
+#include "solver/helmholtz2d_spectral_solver.h"
 
 
 // Function to solve the system setting from C# or Python
@@ -379,6 +380,22 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 	msg = "Results written to output binary file at " + stopwatch_elapsed_str.str() + " secs";
 	if (callback) callback(msg.c_str());
 	*/
+
+
+	//_________________________________________________________
+	// Helmholtz spectral solver
+
+	helmholtz2d_spectral_solver helmholtz_spec_solver;
+
+	helmholtz_spec_solver.init(&helmholtz_2dsystem, output_file, &stopwatch, callback);
+
+	// Create spectral mesh and global matrices
+	helmholtz_spec_solver.create_global_matrices();
+
+	// Perform solve
+	helmholtz_spec_solver.solve_helmholtz_matrices(solver_type);
+
+
 
 	(*isAnalysisSuccess) = true;
 

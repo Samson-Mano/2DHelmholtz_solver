@@ -9,18 +9,19 @@
 
 #include "system_store/helmholtz_system_store.h"
 #include "system_store/stopwatch_events.h"
-#include "solver/helmholtz2d_solver.h"
+// #include "solver/helmholtz2d_solver.h"
+#include "solver/helmholtz2d_spectral_solver.h"
 
 
 int main()
 {
 
 	const char* input_file = "model_input.bin";   // Adjust path here
-	const char* output_file = "model_output.bin"; // Optional
+	// const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder
 	std::ifstream infile(input_file, std::ios::binary);
-	std::ofstream outfile(output_file, std::ios::binary);
+	// std::ofstream outfile(output_file, std::ios::binary);
 
 	double frequency_value = 100.0;
 	int solver_type = 0;
@@ -34,11 +35,11 @@ int main()
 		std::cerr << "Error: Unable to open input file: " << input_file << std::endl;
 		return 0;
 	}
-	if (!outfile.is_open())
-	{
-		std::cerr << "Error: Unable to open output file: " << output_file << std::endl;
-		return 0;
-	}
+	//if (!outfile.is_open())
+	//{
+	//	std::cerr << "Error: Unable to open output file: " << output_file << std::endl;
+	//	return 0;
+	//}
 
 	stopwatch.start();
 
@@ -275,7 +276,8 @@ int main()
 
 	std::cout << "Finished reading edge constraints at " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
-
+	/*
+	* Linear Solver not used
 	//____________ Set the Matrices _________________________
 	helmholtz2d_solver helmholtz_solver;
 
@@ -327,12 +329,33 @@ int main()
 	}
 
 	std::cout << "Results written to output binary file at " + stopwatch_elapsed_str.str() + " secs" << std::endl;
+		*/
 
+
+	//_________________________________________________________
+	// Helmholtz spectral solver
+	const char* output_file = "model_output.bin";
+	void(*m_callback)(const char*) = nullptr;
+
+	helmholtz2d_spectral_solver helmholtz_spec_solver;
+
+	helmholtz_spec_solver.init(&helmholtz_2dsystem, output_file, &stopwatch, m_callback);
+
+	
+	// Create spectral mesh and global matrices
+	helmholtz_spec_solver.create_global_matrices();
+
+	std::cout << "Spectral mesh and global matrices complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
+
+	// Perform solve
+	helmholtz_spec_solver.solve_helmholtz_matrices(solver_type);
+
+	std::cout << "Solve complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
 	//_________________________________________________________
 	// Close the files
 	infile.close();
-	outfile.close();
+	// outfile.close();
 
 
 

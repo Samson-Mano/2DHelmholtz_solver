@@ -13,6 +13,8 @@ const fekete_table& fekete_nodes_table::get_fekete_nodes(int spectral_order)
     //    // throw std::invalid_argument("Spectral order not supported for Fekete nodes.");
     //}
 
+    return fekete_nodes_order1;
+
 	// TODO: insert return statement here
 }
 

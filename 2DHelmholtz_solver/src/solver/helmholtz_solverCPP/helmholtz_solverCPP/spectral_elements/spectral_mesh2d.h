@@ -1,9 +1,40 @@
 #pragma once
 #include <Eigen/Dense>
 #include <unordered_map>
+#include <unordered_set>
 #include "../system_store/helmholtz_system_store.h"
 #include "gll_utility.h"
 #include "unique_id_control.h"
+
+
+// Renderer Triangle
+struct renderer_triangle
+{
+	int n1, n2, n3;
+};
+
+
+// Renderer Edge
+struct renderer_edge
+{
+	int nstart, nend;
+
+	bool operator==(const renderer_edge& other) const
+	{
+		return nstart == other.nstart && nend == other.nend;
+	}
+};
+
+
+// Renderer Node
+struct renderer_node
+{
+	int n_id;
+	double x, y;
+	double r1, r2, r3, r4; // Scalar Result data
+};
+
+
 
 struct spectral_node_store
 {
@@ -79,27 +110,6 @@ struct spectral_quadelement_store
 };
 
 
-// Renderer Triangle
-struct renderer_triangle
-{
-	int n1, n2, n3;
-};
-
-
-// Renderer Edge
-struct renderer_edge
-{
-	int nstart, nend;
-};
-
-
-// Renderer Node
-struct renderer_node
-{
-	double x,y;
-	double r1, r2, r3, r4; // Scalar Result data
-};
-
 
 
 class spectral_mesh2d
@@ -118,6 +128,7 @@ public:
 	// Store the renderer data
 	std::vector<renderer_edge> renderer_edge_lines;
 	std::vector<renderer_node> renderer_node_points;
+	std::vector<renderer_triangle> renderer_element_triangles;
 
 
 	spectral_mesh2d();
@@ -146,9 +157,26 @@ private:
 
 	int get_edge_id(const int& startnodeid, const int& endnodeid);
 
+
 	void create_spectralquad_renderer_triangles(spectral_quadelement_store& spec_quad);
 
+
 	void create_spectraltri_renderer_triangles(spectral_trielement_store& spec_tri);
+
+
+	void create_renderer_nodes(std::unordered_set<int>& added_nodes,
+		const std::vector<int>& corner_nodes,
+		const std::vector<std::vector<int>>& edge_node_ids,
+		const std::vector<int>& internal_nodes);
+
+
+	void create_renderer_edges(std::unordered_set<int>& added_edges,
+		const std::vector<int>& corner_nodes,
+		const std::vector<std::vector<int>>& edge_node_ids,
+		const std::vector<int>& internal_nodes,
+		const std::vector<int>& edge_ids,
+		const std::vector<renderer_triangle>& renderer_tri_elements);
+
 
 };
 
