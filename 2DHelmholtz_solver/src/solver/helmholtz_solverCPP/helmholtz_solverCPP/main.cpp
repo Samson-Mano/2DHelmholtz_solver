@@ -49,6 +49,12 @@ int main()
 
 	helmholtz_system_store helmholtz_2dsystem;
 
+	// ---------- Spectral Order ----------
+	int32_t spectral_order;
+	infile.read(reinterpret_cast<char*>(&spectral_order), 4);
+
+	helmholtz_2dsystem.spectral_order = spectral_order;
+
 
 	// ---------- Nodes ----------
 	int32_t nodeCount;

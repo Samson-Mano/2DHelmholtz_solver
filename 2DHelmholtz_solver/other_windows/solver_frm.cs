@@ -159,9 +159,11 @@ namespace _2DHelmholtz_solver.other_windows
             string inputPath = Path.Combine(Application.StartupPath, "model_input.bin");
             string outputPath = Path.Combine(Application.StartupPath, "model_output.bin");
 
+            // fe_data.spectral_order_N = comboBox_spectralorderN.SelectedIndex + 1;
+
             // Write the binary file
             file_events.export_binary_mesh(inputPath,
-                                        comboBox_spectralorderN.SelectedIndex + 1,
+                                        fe_data.spectral_order_N,
                                         fe_data.fe_nodes,
                                         fe_data.fe_tris,
                                         fe_data.fe_quads,
@@ -345,5 +347,9 @@ namespace _2DHelmholtz_solver.other_windows
 
         }
 
+        private void comboBox_spectralorderN_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            fe_data.spectral_order_N = comboBox_spectralorderN.SelectedIndex + 1;
+        }
     }
 }

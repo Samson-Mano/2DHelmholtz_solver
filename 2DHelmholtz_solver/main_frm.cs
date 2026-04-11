@@ -729,6 +729,11 @@ namespace _2DHelmholtz_solver
             {
                 // Perform the shrinkage of the mesh
                 fedata.meshdata.update_mesh_shrinkage();
+
+                if(fedata.resultmeshdata.isResultSet == true)
+                {
+                    fedata.resultmeshdata.rsltmeshdata.update_mesh_shrinkage();
+                }
             }
 
             // Refresh 

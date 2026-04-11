@@ -152,7 +152,12 @@ private:
 								double sourcevalue);
 
 
-	void create_spectral_edges(edge_store edge, const std::vector<int>& edge_internal_node_ids);
+	void create_spectral_edges(edge_store edge, 
+		const int& startnodeid, 
+		const int& endnodeid,
+		const int& leftfaceid,
+		const int& rightfaceid,
+		const std::vector<int>& edge_internal_node_ids);
 
 
 	int get_edge_id(const int& startnodeid, const int& endnodeid);

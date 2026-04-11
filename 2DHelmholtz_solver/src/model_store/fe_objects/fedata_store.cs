@@ -197,6 +197,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             selection_rectangle.set_buffer();
             selection_circle.set_buffer();
 
+            gvariables_static.geom_transparency = 1.0f;
+            gvariables_static.rslt_transparency = 0.0f;
 
             // Update the openGL uniform
             meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
@@ -302,6 +304,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             selection_rectangle.set_buffer();
             selection_circle.set_buffer();
 
+            gvariables_static.geom_transparency = 1.0f;
+            gvariables_static.rslt_transparency = 0.0f;
 
             // Update the openGL uniform
             meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,

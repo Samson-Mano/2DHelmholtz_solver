@@ -92,7 +92,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public void setResultMesh()
         {
             // Create the Result mesh for drawing the results
-            rsltmeshdata = new meshdata_store(false);
+            rsltmeshdata = new meshdata_store(true);
 
             // Add the mesh points
             foreach (var r_nd_m in rslt_nodes)
@@ -248,7 +248,15 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         {
             if (isResultSet == true)
             {
+                
+
                 rsltmeshdata.paint_static_mesh();
+
+                rsltmeshdata.paint_static_mesh_boundaries();
+
+
+                gvariables_static.PointSize = 5.0f;
+                rsltmeshdata.paint_static_mesh_points();
 
             }
         }

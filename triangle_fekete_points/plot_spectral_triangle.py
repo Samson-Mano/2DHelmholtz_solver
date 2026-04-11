@@ -111,7 +111,7 @@ def plot_random_triangle(lib):
 
 
 
-lib = populate_tsem(2)
+lib = populate_tsem(3)
 # lib.plot_tsem_library()
 
 plot_random_triangle(lib)

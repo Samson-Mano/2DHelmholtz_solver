@@ -724,9 +724,12 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void paint_static_mesh_points()
         {
             // Paint the mesh points
+            GL.PointSize(gvariables_static.PointSize);
             mesh_points.paint_static_points();
+            GL.PointSize(1.0f);
 
         }
+
 
         public void paint_dynamic_mesh()
         {

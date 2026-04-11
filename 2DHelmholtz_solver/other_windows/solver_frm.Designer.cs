@@ -73,7 +73,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(69, 375);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(196, 15);
+            this.label1.Size = new System.Drawing.Size(256, 20);
             this.label1.TabIndex = 2;
             this.label1.Text = "Wave field angular frequency (ω): ";
             // 
@@ -82,7 +82,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(118, 346);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(147, 15);
+            this.label2.Size = new System.Drawing.Size(191, 20);
             this.label2.TabIndex = 3;
             this.label2.Text = "Wave field frequency (f): ";
             // 
@@ -90,7 +90,7 @@
             // 
             this.textBox_frequency.Location = new System.Drawing.Point(271, 343);
             this.textBox_frequency.Name = "textBox_frequency";
-            this.textBox_frequency.Size = new System.Drawing.Size(100, 23);
+            this.textBox_frequency.Size = new System.Drawing.Size(100, 27);
             this.textBox_frequency.TabIndex = 4;
             this.textBox_frequency.TextChanged += new System.EventHandler(this.textBox_frequency_TextChanged);
             // 
@@ -99,7 +99,7 @@
             this.textBox_angularfrequency.Enabled = false;
             this.textBox_angularfrequency.Location = new System.Drawing.Point(271, 372);
             this.textBox_angularfrequency.Name = "textBox_angularfrequency";
-            this.textBox_angularfrequency.Size = new System.Drawing.Size(100, 23);
+            this.textBox_angularfrequency.Size = new System.Drawing.Size(100, 27);
             this.textBox_angularfrequency.TabIndex = 5;
             // 
             // label3
@@ -107,7 +107,7 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(34, 404);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(231, 15);
+            this.label3.Size = new System.Drawing.Size(302, 20);
             this.label3.TabIndex = 6;
             this.label3.Text = "If v = 3 × 10⁸ unit/s, wave length λ= v/f : \r\n";
             // 
@@ -116,7 +116,7 @@
             this.textBox_wavelength.Enabled = false;
             this.textBox_wavelength.Location = new System.Drawing.Point(271, 401);
             this.textBox_wavelength.Name = "textBox_wavelength";
-            this.textBox_wavelength.Size = new System.Drawing.Size(100, 23);
+            this.textBox_wavelength.Size = new System.Drawing.Size(100, 27);
             this.textBox_wavelength.TabIndex = 7;
             // 
             // label4
@@ -124,7 +124,7 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(158, 433);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(107, 15);
+            this.label4.Size = new System.Drawing.Size(142, 20);
             this.label4.TabIndex = 8;
             this.label4.Text = "Model X, Y extent: ";
             // 
@@ -133,7 +133,7 @@
             this.textBox_xyextent.Enabled = false;
             this.textBox_xyextent.Location = new System.Drawing.Point(271, 430);
             this.textBox_xyextent.Name = "textBox_xyextent";
-            this.textBox_xyextent.Size = new System.Drawing.Size(100, 23);
+            this.textBox_xyextent.Size = new System.Drawing.Size(100, 27);
             this.textBox_xyextent.TabIndex = 9;
             // 
             // label5
@@ -141,7 +141,7 @@
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(377, 346);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(46, 15);
+            this.label5.Size = new System.Drawing.Size(61, 20);
             this.label5.TabIndex = 10;
             this.label5.Text = "E+6 Hz";
             // 
@@ -150,7 +150,7 @@
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(377, 375);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(73, 15);
+            this.label6.Size = new System.Drawing.Size(96, 20);
             this.label6.TabIndex = 11;
             this.label6.Text = "E+6 rad/sec";
             // 
@@ -159,7 +159,7 @@
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(377, 404);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(35, 15);
+            this.label7.Size = new System.Drawing.Size(45, 20);
             this.label7.TabIndex = 12;
             this.label7.Text = "units";
             // 
@@ -168,7 +168,7 @@
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(377, 433);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(35, 15);
+            this.label8.Size = new System.Drawing.Size(45, 20);
             this.label8.TabIndex = 13;
             this.label8.Text = "units";
             // 
@@ -181,7 +181,7 @@
             "Lagrange Augmentation method"});
             this.comboBox_solvertype.Location = new System.Drawing.Point(271, 285);
             this.comboBox_solvertype.Name = "comboBox_solvertype";
-            this.comboBox_solvertype.Size = new System.Drawing.Size(217, 23);
+            this.comboBox_solvertype.Size = new System.Drawing.Size(217, 27);
             this.comboBox_solvertype.TabIndex = 14;
             // 
             // label9
@@ -189,7 +189,7 @@
             this.label9.AutoSize = true;
             this.label9.Location = new System.Drawing.Point(186, 288);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(79, 15);
+            this.label9.Size = new System.Drawing.Size(103, 20);
             this.label9.TabIndex = 15;
             this.label9.Text = "Solver Type: ";
             // 
@@ -198,7 +198,7 @@
             this.label10.AutoSize = true;
             this.label10.Location = new System.Drawing.Point(153, 317);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(112, 15);
+            this.label10.Size = new System.Drawing.Size(148, 20);
             this.label10.TabIndex = 17;
             this.label10.Text = "Spectral order (N): ";
             // 
@@ -219,14 +219,15 @@
             "10"});
             this.comboBox_spectralorderN.Location = new System.Drawing.Point(271, 314);
             this.comboBox_spectralorderN.Name = "comboBox_spectralorderN";
-            this.comboBox_spectralorderN.Size = new System.Drawing.Size(69, 23);
+            this.comboBox_spectralorderN.Size = new System.Drawing.Size(69, 27);
             this.comboBox_spectralorderN.TabIndex = 18;
+            this.comboBox_spectralorderN.SelectedIndexChanged += new System.EventHandler(this.comboBox_spectralorderN_SelectedIndexChanged);
             // 
             // solver_frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(599, 546);
+            this.ClientSize = new System.Drawing.Size(597, 543);
             this.Controls.Add(this.comboBox_spectralorderN);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.label9);

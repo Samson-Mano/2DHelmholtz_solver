@@ -123,9 +123,32 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				continue;
 			}
 
+			// Get the start and end nodes of the edge to flip based on the direction
+			int startnodeid = -1;
+			int endnodeid = -1;
+			int leftfaceid = -1;
+			int rightfaceid = -1;
+
+			if (edge.leftfaceid == quad_elm.quad_id)
+			{
+				// Same direction
+				startnodeid = edge.startnodeid;
+				endnodeid = edge.endnodeid;
+				leftfaceid = edge.leftfaceid;
+				rightfaceid = edge.rightfaceid;
+			}
+			else
+			{
+				// Flip direction
+				startnodeid = edge.endnodeid;
+				endnodeid = edge.startnodeid;
+				leftfaceid = edge.rightfaceid;
+				rightfaceid = edge.leftfaceid;
+			}
+
 			// Get the start and end nodes of the edge
-			const node_store& start_node = linear_mesh.node_list.at(edge.startnodeid);
-			const node_store& end_node = linear_mesh.node_list.at(edge.endnodeid);
+			const node_store& start_node = linear_mesh.node_list.at(startnodeid);
+			const node_store& end_node = linear_mesh.node_list.at(endnodeid);
 
 			std::vector<int> edge_internal_node_ids; // To store internal node IDs for this edge
 
@@ -151,7 +174,7 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 			}
 
 			// Add spectral edge to the spectral edge list
-			create_spectral_edges(edge, edge_internal_node_ids);
+			create_spectral_edges(edge, startnodeid, endnodeid, leftfaceid, rightfaceid, edge_internal_node_ids);
 			//
 		}
 
@@ -351,9 +374,31 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				continue;
 			}
 
-			// Get the start and end nodes of the edge
-			const node_store& start_node = linear_mesh.node_list.at(edge.startnodeid);
-			const node_store& end_node = linear_mesh.node_list.at(edge.endnodeid);
+			// Get the start and end nodes of the edge to flip based on the direction
+			int startnodeid = -1;
+			int endnodeid = -1;
+			int leftfaceid = -1;
+			int rightfaceid = -1;
+
+			if (edge.leftfaceid == tri_elm.tri_id)
+			{
+				// Same direction
+				startnodeid = edge.startnodeid;
+				endnodeid = edge.endnodeid;
+				leftfaceid = edge.leftfaceid;
+				rightfaceid = edge.rightfaceid;
+			}
+			else
+			{
+				// Flip direction
+				startnodeid = edge.endnodeid;
+				endnodeid = edge.startnodeid;
+				leftfaceid = edge.rightfaceid;
+				rightfaceid = edge.leftfaceid;
+			}
+
+			const node_store& start_node = linear_mesh.node_list.at(startnodeid);
+			const node_store& end_node = linear_mesh.node_list.at(endnodeid);
 
 			std::vector<int> edge_internal_node_ids; // To store internal node IDs for this edge
 
@@ -379,7 +424,7 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 			}
 
 			// Add spectral edge to the spectral edge list
-			create_spectral_edges(edge, edge_internal_node_ids);
+			create_spectral_edges(edge, startnodeid, endnodeid, leftfaceid, rightfaceid, edge_internal_node_ids);
 			//
 		}
 
@@ -552,19 +597,24 @@ void spectral_mesh2d::create_spectral_nodes(int node_id,
 
 
 
-void spectral_mesh2d::create_spectral_edges(edge_store edge, const std::vector<int>& edge_internal_node_ids)
+void spectral_mesh2d::create_spectral_edges(edge_store edge,
+	const int& startnodeid,
+	const int& endnodeid,
+	const int& leftfaceid, 
+	const int& rightfaceid,
+	const std::vector<int>& edge_internal_node_ids)
 {
 	// Create spectral edge and store it
 	spectral_edge_store spec_edge;
 
 	spec_edge.edge_id = edge.edge_id;
-	spec_edge.startnodeid = edge.startnodeid;
-	spec_edge.endnodeid = edge.endnodeid;
+	spec_edge.startnodeid = startnodeid;
+	spec_edge.endnodeid = endnodeid;
 
 	spec_edge.edge_internal_node_ids = edge_internal_node_ids;
 
-	spec_edge.leftfaceid = edge.leftfaceid;
-	spec_edge.rightfaceid = edge.rightfaceid;
+	spec_edge.leftfaceid = leftfaceid;
+	spec_edge.rightfaceid = rightfaceid;
 
 	spec_edge.isboundaryedge = edge.isboundaryedge;
 	spec_edge.isSommerfieldBC = edge.isSommerfieldBC;
@@ -695,7 +745,7 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	int order = this->spectral_order;
 
 	// Layer count 
-	int layer_count = order + 1;
+	// int layer_count = order + 1;
 
 
 	auto create_renderer_triangles = [this](const std::vector<int>& layer_0, const std::vector<int>& layer_1,
@@ -752,9 +802,9 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	int interior_node_index = 0;
 	std::vector<int> layer_1_nodes;
 
-	if (order > 1)
-	{
-		for (int i = 1; i < layer_count; i++)
+	//if (order > 1)
+	//{
+		for (int i = 1; i < order; i++)
 		{
 			layer_1_nodes.clear();
 
@@ -778,7 +828,7 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 			layer_0_nodes = layer_1_nodes;
 			//
 		}
-	}
+	//}
 
 	// Final layer is the final corner node
 	layer_1_nodes.clear();
