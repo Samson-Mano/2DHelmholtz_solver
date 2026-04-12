@@ -77,6 +77,8 @@ struct spectral_trielement_store
 {
 	int tri_id = 0;
 
+	double tri_area = 0.0;
+
 	std::vector<int> corner_nodes; // 3 corner nodes of the triangle element
 	
 	// edge_node_ids[0] for edge 1, edge_node_ids[1] for edge 2, edge_node_ids[2] for edge 3

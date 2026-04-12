@@ -252,15 +252,15 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             if (is_ShrinkTriangle == true)
             {
                 // Shrink the triangle
-                Vector3 midPt = new Vector3((pt1.X + pt2.X + pt3.X) * 0.33f,
-                    (pt1.Y + pt2.Y + pt3.Y) * 0.33f,
-                    (pt1.Z + pt2.Z + pt3.Z) * 0.33f);
+                // Compute centroid
+                Vector3 centroid = (pt1 + pt2 + pt3) / 3.0f;
 
                 float shrink_factor = (float)gvariables_static.mesh_shrink_factor;
 
-                pt1 = gvariables_static.linear_interpolation3d(midPt, pt1, shrink_factor);
-                pt2 = gvariables_static.linear_interpolation3d(midPt, pt2, shrink_factor);
-                pt3 = gvariables_static.linear_interpolation3d(midPt, pt3, shrink_factor);
+                // Shrink toward centroid
+                pt1 = centroid + shrink_factor * (pt1 - centroid);
+                pt2 = centroid + shrink_factor * (pt2 - centroid);
+                pt3 = centroid + shrink_factor * (pt3 - centroid);
 
             }
 

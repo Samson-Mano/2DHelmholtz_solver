@@ -179,32 +179,92 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 		}
 
 
-		// Create the corner and internal nodes for the quadrilateral element using bilinear mapping
+
+		// Corner nodes
+
+		// Node 1 (corner) // [-1,-1]
+		corner_node_ids.push_back(n1.node_id); // Add to corner node IDs
+
+		// Check if the spectral node already exists to avoid duplicates
+		if (spectral_node_list.find(n1.node_id) == spectral_node_list.end())
+		{
+			// If the spectral node does not exists, create it and store it
+			create_spectral_nodes(n1.node_id,
+				n1.x_coord, n1.y_coord, n1.isboundarynode, n1.isFieldBC,
+				n1.fieldvalue, n1.sourcevalue); // Create corner node and store it
+		}
+		//
+
+
+		// Node 2 (corner)// [-1,1]
+		corner_node_ids.push_back(n2.node_id); // Add to corner node IDs
+
+		// Check if the spectral node already exists to avoid duplicates
+		if (spectral_node_list.find(n2.node_id) == spectral_node_list.end())
+		{
+			// If the spectral node does not exists, create it and store it
+			create_spectral_nodes(n2.node_id,
+				n2.x_coord, n2.y_coord, n2.isboundarynode, n2.isFieldBC,
+				n2.fieldvalue, n2.sourcevalue); // Create corner node and store it
+
+		}
+		//
+
+
+		// Node 3 (corner)// [1,1]
+		corner_node_ids.push_back(n3.node_id); // Add to corner node IDs
+
+		// Check if the spectral node already exists to avoid duplicates
+		if (spectral_node_list.find(n3.node_id) == spectral_node_list.end())
+		{
+			// If the spectral node does not exists, create it and store it
+			create_spectral_nodes(n3.node_id,
+				n3.x_coord, n3.y_coord, n3.isboundarynode, n3.isFieldBC,
+				n3.fieldvalue, n3.sourcevalue); // Create corner node and store it
+		}
+		//
+
+		// Node 4 (corner)// [1,-1]
+		corner_node_ids.push_back(n4.node_id); // Add to corner node IDs
+
+		// Check if the spectral node already exists to avoid duplicates
+		if (spectral_node_list.find(n4.node_id) == spectral_node_list.end())
+		{
+			// If the spectral node does not exists, create it and store it
+			create_spectral_nodes(n4.node_id,
+				n4.x_coord, n4.y_coord, n4.isboundarynode, n4.isFieldBC,
+				n4.fieldvalue, n4.sourcevalue); // Create corner node and store it
+		}
+		//
+
+
+		// Create the internal nodes for the quadrilateral element using bilinear mapping
 		for (int i = 0; i < (spectral_order + 1); i++)
 		{
 			for (int j = 0; j < (spectral_order + 1); j++)
 			{
-				double xi = gll_locations[i];
-				double eta = gll_locations[j];
-
-				// Bilinear mapping
-				double x = 0.25 * (
-					(1 - xi) * (1 - eta) * n1.x_coord +
-					(1 + xi) * (1 - eta) * n2.x_coord +
-					(1 + xi) * (1 + eta) * n3.x_coord +
-					(1 - xi) * (1 + eta) * n4.x_coord
-					);
-
-				double y = 0.25 * (
-					(1 - xi) * (1 - eta) * n1.y_coord +
-					(1 + xi) * (1 - eta) * n2.y_coord +
-					(1 + xi) * (1 + eta) * n3.y_coord +
-					(1 - xi) * (1 + eta) * n4.y_coord
-					);
-
 
 				if (i != 0 && i != spectral_order && j != 0 && j != spectral_order)
 				{
+
+					double xi = gll_locations[j];
+					double eta = gll_locations[i];
+
+					// Bilinear mapping
+					double x = 0.25 * (
+						(1 - xi) * (1 - eta) * n1.x_coord +
+						(1 + xi) * (1 - eta) * n2.x_coord +
+						(1 + xi) * (1 + eta) * n3.x_coord +
+						(1 - xi) * (1 + eta) * n4.x_coord
+						);
+
+					double y = 0.25 * (
+						(1 - xi) * (1 - eta) * n1.y_coord +
+						(1 + xi) * (1 - eta) * n2.y_coord +
+						(1 + xi) * (1 + eta) * n3.y_coord +
+						(1 - xi) * (1 + eta) * n4.y_coord
+						);
+
 					// Internal nodes
 					// Create spectral internal node and store it
 					int node_id = node_id_control.get_unique_id(); // Get a unique node ID
@@ -212,70 +272,6 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 						x, y, false, false, 0.0, 0.0); // Create internal node and store it
 
 					internal_node_ids.push_back(node_id); // Add to internal node ID
-				}
-
-
-				// Corner nodes
-				if (i == 0 && j == 0) // [-1,-1]
-				{
-					// Node 1 (corner)
-					corner_node_ids.push_back(n1.node_id); // Add to corner node IDs
-
-					// Check if the spectral node already exists to avoid duplicates
-					if (spectral_node_list.find(n1.node_id) == spectral_node_list.end())
-					{
-						// If the spectral node does not exists, create it and store it
-						create_spectral_nodes(n1.node_id,
-							n1.x_coord, n1.y_coord, n1.isboundarynode, n1.isFieldBC,
-							n1.fieldvalue, n1.sourcevalue); // Create corner node and store it
-					}
-					//
-				}
-				else if (i == 0 && j == spectral_order) // [-1,1]
-				{
-					// Node 2 (corner)
-					corner_node_ids.push_back(n2.node_id); // Add to corner node IDs
-
-					// Check if the spectral node already exists to avoid duplicates
-					if (spectral_node_list.find(n2.node_id) == spectral_node_list.end())
-					{
-						// If the spectral node does not exists, create it and store it
-						create_spectral_nodes(n2.node_id,
-							n2.x_coord, n2.y_coord, n2.isboundarynode, n2.isFieldBC,
-							n2.fieldvalue, n2.sourcevalue); // Create corner node and store it
-
-					}
-					//
-				}
-				else if (i == spectral_order && j == spectral_order) // [1,1]
-				{
-					// Node 3 (corner)
-					corner_node_ids.push_back(n3.node_id); // Add to corner node IDs
-
-					// Check if the spectral node already exists to avoid duplicates
-					if (spectral_node_list.find(n3.node_id) == spectral_node_list.end())
-					{
-						// If the spectral node does not exists, create it and store it
-						create_spectral_nodes(n3.node_id,
-							n3.x_coord, n3.y_coord, n3.isboundarynode, n3.isFieldBC,
-							n3.fieldvalue, n3.sourcevalue); // Create corner node and store it
-					}
-					//
-				}
-				else if (i == spectral_order && j == 0) // [1,-1]
-				{
-					// Node 4 (corner)
-					corner_node_ids.push_back(n4.node_id); // Add to corner node IDs
-
-					// Check if the spectral node already exists to avoid duplicates
-					if (spectral_node_list.find(n4.node_id) == spectral_node_list.end())
-					{
-						// If the spectral node does not exists, create it and store it
-						create_spectral_nodes(n4.node_id,
-							n4.x_coord, n4.y_coord, n4.isboundarynode, n4.isFieldBC,
-							n4.fieldvalue, n4.sourcevalue); // Create corner node and store it
-					}
-					//
 				}
 				//
 			}
@@ -600,7 +596,7 @@ void spectral_mesh2d::create_spectral_nodes(int node_id,
 void spectral_mesh2d::create_spectral_edges(edge_store edge,
 	const int& startnodeid,
 	const int& endnodeid,
-	const int& leftfaceid, 
+	const int& leftfaceid,
 	const int& rightfaceid,
 	const std::vector<int>& edge_internal_node_ids)
 {
@@ -688,33 +684,33 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 	int interior_node_index = 0;
 	std::vector<int> layer_1_nodes;
 
-	if (order > 1)
+
+	for (int i = 1; i < order; i++)
 	{
-		for (int i = 1; i < layer_count; i++)
+		layer_1_nodes.clear();
+
+		// Start is edge 4 node (Node 3 -> Node 0)
+		layer_1_nodes.push_back(spec_quad.edge_node_ids[3][order - i - 1]);
+
+		// Interior nodes layer 1
+		for (int j = 0; j < order - 1; j++)
 		{
-			layer_1_nodes.clear();
+			layer_1_nodes.push_back(spec_quad.internal_nodes[interior_node_index]);
 
-			// Start is edge 4 node (Node 3 -> Node 0)
-			layer_1_nodes.push_back(spec_quad.edge_node_ids[3][order - i - 1]);
-
-			// Interior nodes layer 1
-			for (int j = 0; j < order - 1; j++)
-			{
-				layer_1_nodes.push_back(spec_quad.internal_nodes[interior_node_index]);
-
-				interior_node_index++;
-			}
-
-			// End is edge 2 node (Node 1 -> Node 2)
-			layer_1_nodes.push_back(spec_quad.edge_node_ids[1][i - 1]);
-
-			// Using layer_0 and layer 1 create the triangles
-			create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_quad);
-
-			layer_0_nodes = layer_1_nodes;
-			//
+			interior_node_index++;
 		}
+
+		// End is edge 2 node (Node 1 -> Node 2)
+		layer_1_nodes.push_back(spec_quad.edge_node_ids[1][i - 1]);
+
+		// Using layer_0 and layer 1 create the triangles
+		create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_quad);
+
+		layer_0_nodes = layer_1_nodes;
+		//
 	}
+
+
 
 
 	// Final layer is the final corner node
@@ -727,7 +723,7 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 	{
 
 		// First edge nodes (Node 1 -> Node 2)
-		layer_0_nodes.push_back(edge2_id);
+		layer_1_nodes.push_back(edge2_id);
 	}
 
 	layer_1_nodes.push_back(spec_quad.corner_nodes[2]);
@@ -804,30 +800,30 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 
 	//if (order > 1)
 	//{
-		for (int i = 1; i < order; i++)
+	for (int i = 1; i < order; i++)
+	{
+		layer_1_nodes.clear();
+
+		// Start is edge node (Node 2 -> Node 0)
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[2][order - i - 1]);
+
+		// Interior nodes layer 1
+		for (int j = 0; j < order - i - 1; j++)
 		{
-			layer_1_nodes.clear();
+			layer_1_nodes.push_back(spec_tri.internal_nodes[interior_node_index]);
 
-			// Start is edge node (Node 2 -> Node 0)
-			layer_1_nodes.push_back(spec_tri.edge_node_ids[2][order - i - 1]);
-
-			// Interior nodes layer 1
-			for (int j = 0; j < order - i - 1; j++)
-			{
-				layer_1_nodes.push_back(spec_tri.internal_nodes[interior_node_index]);
-
-				interior_node_index++;
-			}
-
-			// End is edge node (Node 1 -> Node 2)
-			layer_1_nodes.push_back(spec_tri.edge_node_ids[1][i - 1]);
-
-			// Using layer_0 and layer 1 create the triangles
-			create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
-
-			layer_0_nodes = layer_1_nodes;
-			//
+			interior_node_index++;
 		}
+
+		// End is edge node (Node 1 -> Node 2)
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[1][i - 1]);
+
+		// Using layer_0 and layer 1 create the triangles
+		create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
+
+		layer_0_nodes = layer_1_nodes;
+		//
+	}
 	//}
 
 	// Final layer is the final corner node

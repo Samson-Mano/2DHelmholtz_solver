@@ -48,6 +48,142 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 	bin_file.open(output_file, std::ios::binary);
 
 	
+	// Create a node ID map (to create a nodes as ordered and numbered from 0,1,2...n)
+	int i = 0;
+	for (auto& nd : this->spec_mesh2d.spectral_node_list)
+	{
+		nodeid_map[nd.second.node_id] = i;
+		i++;
+	}
+
+
+	// Set the number of DOF
+	this->numDOF = static_cast<int>(spec_mesh2d.spectral_node_list.size());
+
+	global_k_matrix.setZero(numDOF, numDOF);; // Global k Matrix (Ke - k^2 * Me)
+	global_kI_matrix.setZero(numDOF, numDOF);; // Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
+
+	global_field_vector.setZero(numDOF); // Global field Vector
+	global_normalderivfield_vector.setZero(numDOF); // Global derivative normal field Vector
+	global_source_vector.setZero(numDOF); // Global source Vector
+
+	global_dirichlet_BC_flags_vector.setZero(numDOF); // Global boundary condition Vector (To track the nodes where prescribed field is applied)
+
+
+	// get the quadrature points
+	int spectral_order = spec_mesh2d.spectral_order;
+	this->triangle_quadrature_points = gll_utility::get_triangle_quadrature(spectral_order);
+
+
+	// Triangle elements
+	for (auto& tri_elm_m : spec_mesh2d.spectral_trielement_list)
+	{
+		// get the element
+		spectral_trielement_store tri_elm = tri_elm_m.second;
+
+		//_______ Build local node list _______________________________________________
+		std::vector<int> elem_nodes;
+
+		for (int i = 0; i < 3; i++)
+		{
+			// Add the corner i (0, 1, 2)
+			elem_nodes.push_back(tri_elm.corner_nodes[i]);
+
+			// Then the edge i (0, 1, 2)
+			for (const auto& edge1_ndid : tri_elm.edge_node_ids[i])
+			{
+				elem_nodes.push_back(edge1_ndid);
+			}
+			//
+		}
+		
+		// internal nodes
+		for (int internal_ndid : tri_elm.internal_nodes)
+		{
+			elem_nodes.push_back(internal_ndid);
+		}
+
+
+		//________ Get node coordinates ________________________________________________
+		std::vector<Eigen::Vector2d> elem_coords;
+
+		for (int nid : elem_nodes)
+		{
+			const auto& node = spec_mesh2d.spectral_node_list.at(nid);
+			elem_coords.emplace_back(node.x_coord, node.y_coord);
+		}
+
+		//________ Allocate local matices ________________________________________________
+		int nen = static_cast<int>(elem_nodes.size());
+
+		Eigen::MatrixXd element_k_grad_matrix = Eigen::MatrixXd::Zero(nen, nen); // Element k grad matrix
+		Eigen::MatrixXd element_k_mass_matrix = Eigen::MatrixXd::Zero(nen, nen); // Element k mass matrix
+
+
+		get_trielement_k_grad_k_mass_matrix(elem_nodes, elem_coords, tri_elm.tri_area,
+			element_k_grad_matrix, element_k_mass_matrix);
+
+
+		//________ Integration loop  _____________________________________________________
+		
+		for (int gp = 0; gp < num_gauss_points; gp++)
+		{
+			// 1. Get local coords (xi, eta)
+			double xi = 0.0;
+			double eta = 0.0;
+			double w = 0.0;
+
+				// 2. Evaluate shape functions
+			Eigen::VectorXd N(nen);
+			Eigen::MatrixXd dN_dxi(nen, 2);
+
+			evaluate_shape_functions(xi, eta, N, dN_dxi);
+
+			// 3. Compute Jacobian
+			Eigen::Matrix2d J = Eigen::Matrix2d::Zero();
+
+			for (int i = 0; i < nen; i++)
+			{
+				J(0, 0) += dN_dxi(i, 0) * elem_coords[i].x();
+				J(0, 1) += dN_dxi(i, 0) * elem_coords[i].y();
+				J(1, 0) += dN_dxi(i, 1) * elem_coords[i].x();
+				J(1, 1) += dN_dxi(i, 1) * elem_coords[i].y();
+			}
+
+			double detJ = J.determinant();
+			Eigen::Matrix2d invJ = J.inverse();
+
+			// 4. Convert derivatives to physical space
+			Eigen::MatrixXd dN_dx = dN_dxi * invJ;
+
+			// 5. Assemble element matrices
+			for (int i = 0; i < nen; i++)
+			{
+				for (int j = 0; j < nen; j++)
+				{
+					// Mass
+					Me(i, j) += N(i) * N(j) * detJ * w;
+
+					// Stiffness
+					Ke(i, j) += (dN_dx.row(i).dot(dN_dx.row(j))) * detJ * w;
+				}
+			}
+		}
+
+
+		//________ Helmholtz operator _____________________________________________________
+
+
+
+
+	}
+
+
+
+
+
+
+
 	// Write the results
 	store_results();
 
@@ -56,6 +192,71 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 	bin_file.close();
 //
 }
+
+
+void helmholtz2d_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
+	const std::vector<Eigen::Vector2d>& elem_coords,
+	const double& tri_area,
+	Eigen::MatrixXd& element_k_grad_matrix,
+	Eigen::MatrixXd& element_k_mass_matrix)
+{
+	int nen = static_cast<int>(elem_nodes.size());
+
+	// --- 1. Loop over quadrature points ---
+	for (int q = 0; q < static_cast<int>(triangle_quadrature_points.size()); q++)
+	{
+		double xi = triangle_quadrature_points[q].xi;
+		double eta = triangle_quadrature_points[q].eta;
+		double w = triangle_quadrature_points[q].weight; // weights are normalized to 1.0
+
+		// --- 2. Evaluate shape functions ---
+		Eigen::VectorXd N(nen);
+		Eigen::MatrixXd dN_dxi(nen, 2); // [dN/dxi, dN/deta]
+
+		evaluate_triangle_shape_functions(xi, eta, elem_coords, N, dN_dxi);
+
+		// --- 3. Compute Jacobian ---
+		Eigen::Matrix2d J = Eigen::Matrix2d::Zero();
+
+		for (int i = 0; i < nen; i++)
+		{
+			J(0, 0) += dN_dxi(i, 0) * elem_coords;
+			J(0, 1) += dN_dxi(i, 0) * elem_coords;
+			J(1, 0) += dN_dxi(i, 1) * elem_coords;
+			J(1, 1) += dN_dxi(i, 1) * elem_coords;
+		}
+
+		double detJ = J.determinant();
+		Eigen::Matrix2d invJ = J.inverse();
+
+		// --- 4. Transform gradients ---
+		Eigen::MatrixXd dN_dx(nen, 2);
+
+		for (int i = 0; i < nen; i++)
+		{
+			Eigen::Vector2d grad_ref(dN_dxi(i, 0), dN_dxi(i, 1));
+			Eigen::Vector2d grad_phys = invJ.transpose() * grad_ref;
+
+			dN_dx(i, 0) = grad_phys(0);
+			dN_dx(i, 1) = grad_phys(1);
+		}
+
+		// --- 5. Assemble matrices ---
+		for (int i = 0; i < nen; i++)
+		{
+			for (int j = 0; j < nen; j++)
+			{
+				// Gradient (stiffness)
+				element_k_grad_matrix(i, j) += (dN_dx.row(i).dot(dN_dx.row(j))) * detJ * w;
+
+				// Mass
+				element_k_mass_matrix(i, j) += (N(i) * N(j)) * detJ * w;
+			}
+		}
+	}
+	//
+}
+
 
 
 void helmholtz2d_spectral_solver::store_results()

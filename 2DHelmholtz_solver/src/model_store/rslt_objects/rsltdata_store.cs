@@ -255,8 +255,8 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                 rsltmeshdata.paint_static_mesh_boundaries();
 
 
-                gvariables_static.PointSize = 5.0f;
-                rsltmeshdata.paint_static_mesh_points();
+                // gvariables_static.PointSize = 5.0f;
+                // rsltmeshdata.paint_static_mesh_points();
 
             }
         }

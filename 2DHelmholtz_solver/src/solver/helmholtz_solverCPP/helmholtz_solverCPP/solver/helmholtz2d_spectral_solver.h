@@ -29,6 +29,7 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 #include "../spectral_elements/spectral_mesh2d.h"
 #include "../system_store/stopwatch_events.h"
 
+#include "../spectral_elements/gll_utility.h"
 
 #include <fstream>
 
@@ -61,6 +62,41 @@ private:
 
 	const char* output_file = nullptr;
 	std::ofstream bin_file;
+
+
+	int numDOF = 0;
+	std::unordered_map<int, int> nodeid_map; // Node ID map
+
+
+	Eigen::MatrixXd global_k_matrix; // Global k Matrix (Ke - k^2 * Me)
+	Eigen::MatrixXd global_kI_matrix; // Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
+
+	Eigen::VectorXd global_field_vector; // Global field Vector
+	Eigen::VectorXd global_normalderivfield_vector; // Global derivative normal field Vector
+	Eigen::VectorXd global_source_vector; // Global source Vector
+
+	Eigen::VectorXi global_dirichlet_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
+
+	// Solution
+	Eigen::VectorXd u_real;
+	Eigen::VectorXd u_imag;
+
+
+	// Quadrature points
+	std::vector<spectral_point> triangle_quadrature_points;
+
+
+	void get_trielement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		const double& tri_area,
+		Eigen::MatrixXd& element_k_grad_matrix, 
+		Eigen::MatrixXd& element_k_mass_matrix);
+
+	void evaluate_triangle_shape_functions(double xi, double eta,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		Eigen::VectorXd& N,
+		Eigen::MatrixXd& dN_dxi);
+
 
 
 	void store_results();
