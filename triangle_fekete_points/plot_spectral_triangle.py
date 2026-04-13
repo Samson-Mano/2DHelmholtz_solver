@@ -8,7 +8,7 @@ import random
 def populate_tsem(order):
     lib = TSEMLibrary(order)
 
-    # 1. Corners (Barycentric: (1,0,0), (0,1,0), (0,0,1))
+    # 1. Corners (Barycentric: (0,0,1), (1,0,1), (0,1,1))
     lib.corners = [
         TSEMPoint(0.0, 0.0, 1.0), # V1
         TSEMPoint(1.0, 0.0, 1.0), # V2
@@ -111,7 +111,7 @@ def plot_random_triangle(lib):
 
 
 
-lib = populate_tsem(3)
+lib = populate_tsem(4)
 # lib.plot_tsem_library()
 
 plot_random_triangle(lib)

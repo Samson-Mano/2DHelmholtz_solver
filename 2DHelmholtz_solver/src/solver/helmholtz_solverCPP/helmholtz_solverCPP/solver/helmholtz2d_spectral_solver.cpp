@@ -70,10 +70,11 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 	global_dirichlet_BC_flags_vector.setZero(numDOF); // Global boundary condition Vector (To track the nodes where prescribed field is applied)
 
 
-	// get the quadrature points
+	// get the quadrature points and the basis term
 	int spectral_order = spec_mesh2d.spectral_order;
 	this->triangle_quadrature_points = gll_utility::get_triangle_quadrature(spectral_order);
-
+	this->triangle_basis_terms = gll_utility::build_basis_terms(spectral_order);
+	this->inv_vandermonde_matrix = gll_utility::get_inverse_vandermonde_matrix(spectral_order);
 
 	// Triangle elements
 	for (auto& tri_elm_m : spec_mesh2d.spectral_trielement_list)
@@ -81,7 +82,9 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 		// get the element
 		spectral_trielement_store tri_elm = tri_elm_m.second;
 
-		//_______ Build local node list _______________________________________________
+		//________________________________________________________________________________________________
+		// Step 1: Create local node & node coordinate list
+		// Build local node list _______________________________________________
 		std::vector<int> elem_nodes;
 
 		for (int i = 0; i < 3; i++)
@@ -104,7 +107,7 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 		}
 
 
-		//________ Get node coordinates ________________________________________________
+		// Get node coordinates ________________________________________________
 		std::vector<Eigen::Vector2d> elem_coords;
 
 		for (int nid : elem_nodes)
@@ -113,65 +116,57 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 			elem_coords.emplace_back(node.x_coord, node.y_coord);
 		}
 
-		//________ Allocate local matices ________________________________________________
+
+		//________________________________________________________________________________________________
+		// Step 2: Create element k_grad matrix
 		int nen = static_cast<int>(elem_nodes.size());
 
 		Eigen::MatrixXd element_k_grad_matrix = Eigen::MatrixXd::Zero(nen, nen); // Element k grad matrix
 		Eigen::MatrixXd element_k_mass_matrix = Eigen::MatrixXd::Zero(nen, nen); // Element k mass matrix
 
 
-		get_trielement_k_grad_k_mass_matrix(elem_nodes, elem_coords, tri_elm.tri_area,
+		get_trielement_k_grad_k_mass_matrix(elem_nodes, elem_coords, 
 			element_k_grad_matrix, element_k_mass_matrix);
 
+		double wave_number = spec_mesh2d.material_list[tri_elm.materialid].wave_number; // get the material wave number
 
-		//________ Integration loop  _____________________________________________________
-		
-		for (int gp = 0; gp < num_gauss_points; gp++)
-		{
-			// 1. Get local coords (xi, eta)
-			double xi = 0.0;
-			double eta = 0.0;
-			double w = 0.0;
+		// Helmholtz operator
+		Eigen::MatrixXd element_k_matrix;
+		element_k_matrix.setZero();
 
-				// 2. Evaluate shape functions
-			Eigen::VectorXd N(nen);
-			Eigen::MatrixXd dN_dxi(nen, 2);
+		element_k_matrix = element_k_grad_matrix - ((wave_number * wave_number) * element_k_mass_matrix);
 
-			evaluate_shape_functions(xi, eta, N, dN_dxi);
+		//________________________________________________________________________________________________
+		// Step 3: Create Sommerfield Absorbtion Boundary Condition matrix
+		Eigen::MatrixXd element_kI_matrix = Eigen::MatrixXd::Zero(nen, nen);; // Element kI matrix
 
-			// 3. Compute Jacobian
-			Eigen::Matrix2d J = Eigen::Matrix2d::Zero();
+		//get_trielement_kI_matrix(edge1_id, edge2_id, edge3_id,
+		//	edge1_length, edge2_length, edge3_length, wave_number, element_kI_matrix);
 
-			for (int i = 0; i < nen; i++)
-			{
-				J(0, 0) += dN_dxi(i, 0) * elem_coords[i].x();
-				J(0, 1) += dN_dxi(i, 0) * elem_coords[i].y();
-				J(1, 0) += dN_dxi(i, 1) * elem_coords[i].x();
-				J(1, 1) += dN_dxi(i, 1) * elem_coords[i].y();
-			}
+		//________________________________________________________________________________________________
+		// Step 4: Create Element field vector
+		Eigen::VectorXd element_field_vector = Eigen::VectorXd::Zero(nen); // Element field vector
+		Eigen::VectorXi element_dirichlet_BC_flags_vector = Eigen::VectorXi::Zero(nen); // Element BC Vector to track the Dirichlet boundary conidtion (For elimination)
 
-			double detJ = J.determinant();
-			Eigen::Matrix2d invJ = J.inverse();
-
-			// 4. Convert derivatives to physical space
-			Eigen::MatrixXd dN_dx = dN_dxi * invJ;
-
-			// 5. Assemble element matrices
-			for (int i = 0; i < nen; i++)
-			{
-				for (int j = 0; j < nen; j++)
-				{
-					// Mass
-					Me(i, j) += N(i) * N(j) * detJ * w;
-
-					// Stiffness
-					Ke(i, j) += (dN_dx.row(i).dot(dN_dx.row(j))) * detJ * w;
-				}
-			}
-		}
+		//get_trielement_field_vector(nd1_id, nd2_id, nd3_id,
+		//	edge1_id, edge2_id, edge3_id,
+		//	edge1_length, edge2_length, edge3_length,
+		//	element_dirichlet_BC_flags_vector, element_field_vector);
 
 
-		//________ Helmholtz operator _____________________________________________________
+		//________________________________________________________________________________________________
+		// Step 5: Create Element normal derivative field vector
+		Eigen::VectorXd element_normderivfield_vector = Eigen::VectorXd::Zero(nen); // Element normal derivative field vector
+
+		//get_trielement_normderivfield_vector(edge1_id, edge2_id, edge3_id,
+		//	edge1_length, edge2_length, edge3_length, element_normderivfield_vector);
+
+		//________________________________________________________________________________________________
+		// Step 6: Create Element source vector
+		Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
+
+		//get_trielement_source_vector(nd1_id, nd2_id, nd3_id, element_source_vector);
+
 
 
 
@@ -196,7 +191,6 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 
 void helmholtz2d_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
 	const std::vector<Eigen::Vector2d>& elem_coords,
-	const double& tri_area,
 	Eigen::MatrixXd& element_k_grad_matrix,
 	Eigen::MatrixXd& element_k_mass_matrix)
 {
@@ -205,25 +199,26 @@ void helmholtz2d_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std:
 	// --- 1. Loop over quadrature points ---
 	for (int q = 0; q < static_cast<int>(triangle_quadrature_points.size()); q++)
 	{
-		double xi = triangle_quadrature_points[q].xi;
-		double eta = triangle_quadrature_points[q].eta;
+		double quadraturept_xi = triangle_quadrature_points[q].xi;
+		double quadraturept_eta = triangle_quadrature_points[q].eta;
 		double w = triangle_quadrature_points[q].weight; // weights are normalized to 1.0
 
 		// --- 2. Evaluate shape functions ---
 		Eigen::VectorXd N(nen);
 		Eigen::MatrixXd dN_dxi(nen, 2); // [dN/dxi, dN/deta]
 
-		evaluate_triangle_shape_functions(xi, eta, elem_coords, N, dN_dxi);
+		evaluate_triangle_shape_functions(quadraturept_xi, quadraturept_eta, nen, 
+			N, dN_dxi);
 
 		// --- 3. Compute Jacobian ---
 		Eigen::Matrix2d J = Eigen::Matrix2d::Zero();
 
 		for (int i = 0; i < nen; i++)
 		{
-			J(0, 0) += dN_dxi(i, 0) * elem_coords;
-			J(0, 1) += dN_dxi(i, 0) * elem_coords;
-			J(1, 0) += dN_dxi(i, 1) * elem_coords;
-			J(1, 1) += dN_dxi(i, 1) * elem_coords;
+			J(0, 0) += dN_dxi(i, 0) * elem_coords[i].x();
+			J(0, 1) += dN_dxi(i, 0) * elem_coords[i].y();
+			J(1, 0) += dN_dxi(i, 1) * elem_coords[i].x();
+			J(1, 1) += dN_dxi(i, 1) * elem_coords[i].y();
 		}
 
 		double detJ = J.determinant();
@@ -253,6 +248,33 @@ void helmholtz2d_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std:
 				element_k_mass_matrix(i, j) += (N(i) * N(j)) * detJ * w;
 			}
 		}
+	}
+	//
+}
+
+
+void helmholtz2d_spectral_solver::evaluate_triangle_shape_functions(double quadraturept_xi, 
+	double quadraturept_eta, int nen,
+	Eigen::VectorXd& N,
+	Eigen::MatrixXd& dN_dxi)
+{
+	// Calculate the polynomial basis function
+	Eigen::VectorXd phi, dphi_dxi, dphi_deta;
+
+	gll_utility::evaluate_basis_phi(quadraturept_xi, quadraturept_eta, this->triangle_basis_terms, phi);
+	gll_utility::evaluate_basis_derivatives(quadraturept_xi, quadraturept_eta, this->triangle_basis_terms, dphi_dxi, dphi_deta);
+
+	// Shape functions
+	N = this->inv_vandermonde_matrix * phi;
+
+	// Derivatives of Shape functions
+	Eigen::VectorXd dN_dxi_vec = this->inv_vandermonde_matrix * dphi_dxi;
+	Eigen::VectorXd dN_deta_vec = this->inv_vandermonde_matrix * dphi_deta;
+
+	for (int i = 0; i < nen; i++)
+	{
+		dN_dxi(i, 0) = dN_dxi_vec(i);
+		dN_dxi(i, 1) = dN_deta_vec(i);
 	}
 	//
 }

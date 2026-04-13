@@ -85,15 +85,21 @@ private:
 	// Quadrature points
 	std::vector<spectral_point> triangle_quadrature_points;
 
+	// Triangle basis term
+	std::vector<basis_term> triangle_basis_terms;
+
+	// Inverse Vandermonde matrix
+	Eigen::MatrixXd inv_vandermonde_matrix;
+
 
 	void get_trielement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
 		const std::vector<Eigen::Vector2d>& elem_coords,
-		const double& tri_area,
 		Eigen::MatrixXd& element_k_grad_matrix, 
 		Eigen::MatrixXd& element_k_mass_matrix);
 
-	void evaluate_triangle_shape_functions(double xi, double eta,
-		const std::vector<Eigen::Vector2d>& elem_coords,
+
+	void evaluate_triangle_shape_functions(double quadraturept_xi, 
+		double quadraturept_eta, int nen,
 		Eigen::VectorXd& N,
 		Eigen::MatrixXd& dN_dxi);
 

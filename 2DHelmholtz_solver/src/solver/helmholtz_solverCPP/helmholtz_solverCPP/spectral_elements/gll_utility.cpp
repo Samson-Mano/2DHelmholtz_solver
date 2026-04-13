@@ -171,6 +171,9 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 
 
 
+
+
+
 std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int spectral_order)
 {
 	return std::vector<spectral_point>();
@@ -345,5 +348,116 @@ std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_or
 	//
 }
 
+
+
+Eigen::MatrixXd gll_utility::get_inverse_vandermonde_matrix(int spectral_order)
+{
+	
+	// Build Vandermonde Matrix
+	int nen = ((spectral_order + 1) * (spectral_order + 2)) / 2;
+
+	Eigen::MatrixXd vandermonde_matrix(nen, nen);
+
+	// Get the reference triangle element for spectral order
+	std::vector<spectral_point> elem_ref_coords = get_triangle_spectral_element(spectral_order);
+
+	// Get the triangle basis terms
+	std::vector<basis_term> triangle_basis_terms = build_basis_terms(spectral_order);
+
+	for (int i = 0; i < nen; i++)
+	{
+		double xi = elem_ref_coords[i].xi; // reference triangle node x coord
+		double eta = elem_ref_coords[i].eta; // reference triangle node y coord
+
+		for (int j = 0; j < nen; j++)
+		{
+			int a = triangle_basis_terms[j].a;
+			int b = triangle_basis_terms[j].b;
+
+			vandermonde_matrix(i, j) = pow(xi, a) * pow(eta, b);
+		}
+	}
+
+	Eigen::MatrixXd inv_vandermonde_matrix = vandermonde_matrix.inverse();
+
+	// Eigen::MatrixXd inv_vandermonde_matrix = vandermonde_matrix.colPivHouseholderQr().solve(
+	//	Eigen::MatrixXd::Identity(nen, nen));
+
+	return inv_vandermonde_matrix;
+}
+
+
+
+void gll_utility::evaluate_basis_phi(double xi, double eta,
+	const std::vector<basis_term>& basis_terms,
+	Eigen::VectorXd& phi)
+{
+
+	int n = static_cast<int>(basis_terms.size());
+
+	phi.resize(n);
+
+	for (int i = 0; i < n; i++)
+	{
+		int a = basis_terms[i].a;
+		int b = basis_terms[i].b;
+
+		phi(i) = std::pow(xi, a) * std::pow(eta, b);
+	}
+//
+}
+
+
+void gll_utility::evaluate_basis_derivatives(
+	double xi,
+	double eta,
+	const std::vector<basis_term>& basis_terms,
+	Eigen::VectorXd& dphi_dxi,
+	Eigen::VectorXd& dphi_deta)
+{
+	int n = static_cast<int>(basis_terms.size());
+
+	dphi_dxi.resize(n);
+	dphi_deta.resize(n);
+
+	for (int i = 0; i < n; i++)
+	{
+		int a = basis_terms[i].a;
+		int b = basis_terms[i].b;
+
+		// d/dxi
+		if (a == 0)
+			dphi_dxi(i) = 0.0;
+		else
+			dphi_dxi(i) = a * std::pow(xi, a - 1) * std::pow(eta, b);
+
+		// d/deta
+		if (b == 0)
+			dphi_deta(i) = 0.0;
+		else
+			dphi_deta(i) = b * std::pow(xi, a) * std::pow(eta, b - 1);
+	}
+
+}
+
+
+
+std::vector<basis_term> gll_utility::build_basis_terms(int spectral_order)
+{
+	// Monomial basis
+	// Phi_k = (xi^a) (eta^b) with a+b <= spectral order
+
+	std::vector<basis_term> basis_terms;
+
+	for (int a = 0; a <= spectral_order; a++)
+	{
+		for (int b = 0; b <= spectral_order - a; b++)
+		{
+			basis_terms.push_back({ a, b });
+		}
+	}
+
+	return basis_terms;
+}
 
 
