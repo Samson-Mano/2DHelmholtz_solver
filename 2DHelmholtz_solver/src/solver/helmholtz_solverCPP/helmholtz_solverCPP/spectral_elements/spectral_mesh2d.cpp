@@ -284,6 +284,12 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 		spec_quad.quad_id = quad_elm.quad_id;
 		spec_quad.materialid = quad_elm.materialid;
 
+		// Assigne the edge ids
+		spec_quad.edge_ids[0] = edge1_id;
+		spec_quad.edge_ids[1] = edge2_id;
+		spec_quad.edge_ids[2] = edge3_id;
+		spec_quad.edge_ids[3] = edge4_id;
+
 		spec_quad.corner_nodes = corner_node_ids;
 		spec_quad.edge_node_ids = edge_node_ids;
 		spec_quad.internal_nodes = internal_node_ids;
@@ -508,11 +514,16 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 			//
 		}
 
-		// Store spectral quad element
+		// Store spectral tri element
 		spectral_trielement_store spec_tri;
 
 		spec_tri.tri_id = tri_elm.tri_id;
 		spec_tri.materialid = tri_elm.materialid;
+
+		// Assigne the edge ids
+		spec_tri.edge_ids[0] = edge1_id;
+		spec_tri.edge_ids[1] = edge2_id;
+		spec_tri.edge_ids[2] = edge3_id;
 
 		spec_tri.corner_nodes = corner_node_ids;
 		spec_tri.edge_node_ids = edge_node_ids;

@@ -91,6 +91,10 @@ private:
 	// Inverse Vandermonde matrix
 	Eigen::MatrixXd inv_vandermonde_matrix;
 
+	// 1D GLL points
+	std::vector<double> gll_locations;
+	std::vector<double> gll_weights;
+
 
 	void get_trielement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
 		const std::vector<Eigen::Vector2d>& elem_coords,
@@ -102,6 +106,21 @@ private:
 		double quadraturept_eta, int nen,
 		Eigen::VectorXd& N,
 		Eigen::MatrixXd& dN_dxi);
+
+
+	void get_trielement_kI_matrix(const spectral_trielement_store& tri_elm,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		int nen,
+		double wave_number, 
+		Eigen::MatrixXcd& element_kI_matrix);
+	
+
+	void get_trielement_field_vector(const spectral_trielement_store& tri_elm,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		int nen,
+		Eigen::VectorXi& dirichlet_BC,
+		Eigen::VectorXd& dirichlet_vector);
+
 
 
 

@@ -66,8 +66,8 @@ struct spectral_edge_store
 	bool isSommerfieldBC = false;
 	bool isFieldBC = false;
 	bool isDerivFieldBC = false;
-	double fieldvalue = 0.0;
-	double normalderivfieldvalue = 0.0;
+	double fieldvalue = 0.0; // Dirichlet boundary condition
+	double normalderivfieldvalue = 0.0; // Neumann boundary condition
 
 };
 
@@ -88,6 +88,9 @@ struct spectral_trielement_store
 
 	int materialid = 0;
 
+	// Store the edge ids
+	int edge_ids[3];
+
 	// Store the renderer triangle ID
 	std::vector<renderer_triangle> renderer_tri_elements;
 
@@ -105,6 +108,9 @@ struct spectral_quadelement_store
 	std::vector<int> internal_nodes; // Internal nodes of the quadrialteral element (for higher-order spectral elements)
 
 	int materialid = 0;
+
+	// Store the edge ids
+	int edge_ids[4];
 
 	// Store the renderer triangle ID
 	std::vector<renderer_triangle> renderer_tri_elements;
