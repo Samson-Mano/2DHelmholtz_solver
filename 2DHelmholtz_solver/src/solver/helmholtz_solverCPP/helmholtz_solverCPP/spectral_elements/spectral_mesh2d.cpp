@@ -239,41 +239,37 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 
 		// Create the internal nodes for the quadrilateral element using bilinear mapping
-		for (int i = 0; i < (spectral_order + 1); i++)
+		for (int i = 1; i < spectral_order; i++)
 		{
-			for (int j = 0; j < (spectral_order + 1); j++)
+			for (int j = 1; j < spectral_order; j++)
 			{
 
-				if (i != 0 && i != spectral_order && j != 0 && j != spectral_order)
-				{
+				double xi = gll_locations[j];
+				double eta = gll_locations[i];
 
-					double xi = gll_locations[j];
-					double eta = gll_locations[i];
+				// Bilinear mapping
+				double x = 0.25 * (
+					(1 - xi) * (1 - eta) * n1.x_coord +
+					(1 + xi) * (1 - eta) * n2.x_coord +
+					(1 + xi) * (1 + eta) * n3.x_coord +
+					(1 - xi) * (1 + eta) * n4.x_coord
+					);
 
-					// Bilinear mapping
-					double x = 0.25 * (
-						(1 - xi) * (1 - eta) * n1.x_coord +
-						(1 + xi) * (1 - eta) * n2.x_coord +
-						(1 + xi) * (1 + eta) * n3.x_coord +
-						(1 - xi) * (1 + eta) * n4.x_coord
-						);
+				double y = 0.25 * (
+					(1 - xi) * (1 - eta) * n1.y_coord +
+					(1 + xi) * (1 - eta) * n2.y_coord +
+					(1 + xi) * (1 + eta) * n3.y_coord +
+					(1 - xi) * (1 + eta) * n4.y_coord
+					);
 
-					double y = 0.25 * (
-						(1 - xi) * (1 - eta) * n1.y_coord +
-						(1 + xi) * (1 - eta) * n2.y_coord +
-						(1 + xi) * (1 + eta) * n3.y_coord +
-						(1 - xi) * (1 + eta) * n4.y_coord
-						);
+				// Internal nodes
+				// Create spectral internal node and store it
+				int node_id = node_id_control.get_unique_id(); // Get a unique node ID
+				create_spectral_nodes(node_id,
+					x, y, false, false, 0.0, 0.0); // Create internal node and store it
 
-					// Internal nodes
-					// Create spectral internal node and store it
-					int node_id = node_id_control.get_unique_id(); // Get a unique node ID
-					create_spectral_nodes(node_id,
-						x, y, false, false, 0.0, 0.0); // Create internal node and store it
+				internal_node_ids.push_back(node_id); // Add to internal node ID
 
-					internal_node_ids.push_back(node_id); // Add to internal node ID
-				}
-				//
 			}
 			//
 		}

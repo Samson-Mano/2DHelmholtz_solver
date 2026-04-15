@@ -1,8 +1,12 @@
 #pragma once
+#include <numeric>
+
 #include <vector>
 #include <cmath>
 
 #include <Eigen/Dense>
+#include <stdexcept>
+
 
 struct spectral_point
 {
@@ -30,6 +34,9 @@ public:
 
 	static std::vector<spectral_point> get_triangle_quadrature(int spectral_order);
 
+	static std::vector<spectral_point> get_quadrilateral_quadrature(int spectral_order);
+
+
 	static Eigen::MatrixXd get_inverse_vandermonde_matrix(int spectral_order);
 
 
@@ -46,6 +53,13 @@ public:
 		Eigen::VectorXd& phi);
 
 
+	static void evaluate_lagrange_1D(
+		double x,
+		const std::vector<double>& nodes,
+		std::vector<double>& L,
+		std::vector<double>& dL);
+
+
 	static std::vector<basis_term> build_basis_terms(int spectral_order);
 
 
@@ -59,7 +73,11 @@ private:
 
 	static std::vector<spectral_point> get_quadrilateral_spectral_element(int spectral_order);
 
+	static std::vector<double> get_gauss_points(int n);
 
+	static std::vector<double> get_gauss_weights(int n);
+
+	static void gauss_legendre(int n, std::vector<double>& points, std::vector<double>& weights);
 
 };
 

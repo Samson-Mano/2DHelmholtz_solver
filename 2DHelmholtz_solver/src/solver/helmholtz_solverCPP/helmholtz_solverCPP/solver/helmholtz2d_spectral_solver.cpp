@@ -81,8 +81,6 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 	this->gll_weights = gll_utility::get_gll_weights(spectral_order, gll_locations);
 
 
-
-
 	// Triangle elements
 	for (auto& tri_elm_m : spec_mesh2d.spectral_trielement_list)
 	{
@@ -151,26 +149,21 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 		//________________________________________________________________________________________________
 		// Step 4: Create Element field vector
 		Eigen::VectorXd element_field_vector = Eigen::VectorXd::Zero(nen); // Element field vector
-		Eigen::VectorXi element_dirichlet_BC_flags_vector = Eigen::VectorXi::Zero(nen); // Element BC Vector to track the Dirichlet boundary conidtion (For elimination)
-
-		//get_trielement_field_vector(nd1_id, nd2_id, nd3_id,
-		//	edge1_id, edge2_id, edge3_id,
-		//	edge1_length, edge2_length, edge3_length,
-		//	element_dirichlet_BC_flags_vector, element_field_vector);
+	
+		get_trielement_field_vector(tri_elm, element_field_vector);
 
 
 		//________________________________________________________________________________________________
 		// Step 5: Create Element normal derivative field vector
 		Eigen::VectorXd element_normderivfield_vector = Eigen::VectorXd::Zero(nen); // Element normal derivative field vector
 
-		//get_trielement_normderivfield_vector(edge1_id, edge2_id, edge3_id,
-		//	edge1_length, edge2_length, edge3_length, element_normderivfield_vector);
+		get_trielement_normderivfield_vector(tri_elm, elem_coords , nen, element_normderivfield_vector);
 
 		//________________________________________________________________________________________________
 		// Step 6: Create Element source vector
 		Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
 
-		//get_trielement_source_vector(nd1_id, nd2_id, nd3_id, element_source_vector);
+		get_trielement_source_vector(tri_elm, element_field_vector, element_source_vector);
 
 
 
@@ -178,8 +171,98 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 
 	}
 
+	this->quadrilateral_quadrature_points = gll_utility::get_quadrilateral_quadrature(spectral_order);
 
 
+	// Quadrilateral elements
+	for (auto& quad_elm_m : spec_mesh2d.spectral_quadelement_list)
+	{
+		// get the element
+		spectral_quadelement_store quad_elm = quad_elm_m.second;
+
+		//________________________________________________________________________________________________
+		// Step 1: Create local node & node coordinate list
+		// Build local node list _______________________________________________
+		std::vector<int> elem_nodes;
+
+		for (int i = 0; i < 4; i++)
+		{
+			// Add the corner i (0, 1, 2, 3)
+			elem_nodes.push_back(quad_elm.corner_nodes[i]);
+
+			// Then the edge i (0, 1, 2, 3)
+			for (const auto& edge1_ndid : quad_elm.edge_node_ids[i])
+			{
+				elem_nodes.push_back(edge1_ndid);
+			}
+			//
+		}
+
+		// internal nodes
+		for (int internal_ndid : quad_elm.internal_nodes)
+		{
+			elem_nodes.push_back(internal_ndid);
+		}
+
+
+		// Get node coordinates ________________________________________________
+		std::vector<Eigen::Vector2d> elem_coords;
+
+		for (int nid : elem_nodes)
+		{
+			const auto& node = spec_mesh2d.spectral_node_list.at(nid);
+			elem_coords.emplace_back(node.x_coord, node.y_coord);
+		}
+
+
+		//________________________________________________________________________________________________
+		// Step 2: Create element k_grad matrix
+		int nen = static_cast<int>(elem_nodes.size());
+
+		Eigen::MatrixXd element_k_grad_matrix = Eigen::MatrixXd::Zero(nen, nen); // Element k grad matrix
+		Eigen::MatrixXd element_k_mass_matrix = Eigen::MatrixXd::Zero(nen, nen); // Element k mass matrix
+
+
+		get_quadelement_k_grad_k_mass_matrix(elem_nodes, elem_coords,
+			element_k_grad_matrix, element_k_mass_matrix);
+
+		double wave_number = spec_mesh2d.material_list[quad_elm.materialid].wave_number; // get the material wave number
+
+		// Helmholtz operator
+		Eigen::MatrixXd element_k_matrix = Eigen::MatrixXd::Zero(nen, nen);
+
+		element_k_matrix = element_k_grad_matrix - ((wave_number * wave_number) * element_k_mass_matrix);
+
+		//________________________________________________________________________________________________
+		// Step 3: Create Sommerfield Absorbtion Boundary Condition matrix
+		Eigen::MatrixXcd element_kI_matrix = Eigen::MatrixXcd::Zero(nen, nen); // Element kI matrix
+
+		get_quadelement_kI_matrix(quad_elm, elem_coords, nen, wave_number, element_kI_matrix);
+
+		//________________________________________________________________________________________________
+		// Step 4: Create Element field vector
+		Eigen::VectorXd element_field_vector = Eigen::VectorXd::Zero(nen); // Element field vector
+
+		get_quadelement_field_vector(quad_elm, element_field_vector);
+
+
+		//________________________________________________________________________________________________
+		// Step 5: Create Element normal derivative field vector
+		Eigen::VectorXd element_normderivfield_vector = Eigen::VectorXd::Zero(nen); // Element normal derivative field vector
+
+		get_quadelement_normderivfield_vector(quad_elm, elem_coords, nen, element_normderivfield_vector);
+
+		//________________________________________________________________________________________________
+		// Step 6: Create Element source vector
+		Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
+
+		get_quadelement_source_vector(quad_elm, element_field_vector, element_source_vector);
+
+
+
+
+
+	}
 
 
 
@@ -377,9 +460,6 @@ void helmholtz2d_spectral_solver::get_trielement_kI_matrix(const spectral_triele
 
 
 void helmholtz2d_spectral_solver::get_trielement_field_vector(const spectral_trielement_store& tri_elm,
-	const std::vector<Eigen::Vector2d>& elem_coords,
-	int nen,
-	Eigen::VectorXi& dirichlet_BC,
 	Eigen::VectorXd& dirichlet_vector)
 {
 
@@ -391,6 +471,37 @@ void helmholtz2d_spectral_solver::get_trielement_field_vector(const spectral_tri
 		const spectral_edge_store& edge = spec_mesh2d.spectral_edge_list[edge_id];
 
 		if (edge.isboundaryedge == true && edge.isFieldBC == true)
+		{
+			// --- Assembly ---
+			// Dirichlet (field) BC contribution
+			double q_edge = edge.fieldvalue;  // field value
+
+			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			{
+				int local_idx = (i * spec_mesh2d.spectral_order) + j;
+				dirichlet_vector(local_idx) = q_edge;
+			}
+			//
+		}
+		//
+	}
+	//
+}
+
+
+void helmholtz2d_spectral_solver::get_trielement_normderivfield_vector(const spectral_trielement_store& tri_elm,
+	const std::vector<Eigen::Vector2d>& elem_coords,
+	int nen,
+	Eigen::VectorXd& neumann_vector)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		// Get the edge id
+		int edge_id = tri_elm.edge_ids[i];
+
+		const spectral_edge_store& edge = spec_mesh2d.spectral_edge_list[edge_id];
+
+		if (edge.isboundaryedge == true && edge.isDerivFieldBC == true)
 		{
 			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
 			{
@@ -432,7 +543,8 @@ void helmholtz2d_spectral_solver::get_trielement_field_vector(const spectral_tri
 				Eigen::Vector2d dx_ds = Eigen::Vector2d::Zero();
 
 				// chain rule: dx/ds = dx/dxi * dxi/ds + dx/deta * deta/ds
-				double dxi_ds, deta_ds;
+				double dxi_ds = 0.0;
+				double deta_ds = 0.0;
 
 				if (edge_id == 0) { dxi_ds = 1.0;  deta_ds = 0.0; }
 				else if (edge_id == 1) { dxi_ds = -1.0; deta_ds = 1.0; }
@@ -448,12 +560,12 @@ void helmholtz2d_spectral_solver::get_trielement_field_vector(const spectral_tri
 				double J_edge = dx_ds.norm();
 
 				// --- Assembly ---
-			    // Dirichlet (field) BC contribution
-				double q_edge = edge.fieldvalue;  // field value
+				// Neumann (flux) BC contribution
+				double dq_edge = edge.normalderivfieldvalue;  // flux value
 
 				for (int a = 0; a < nen; a++)
 				{
-					dirichlet_BC(a) += q_edge *	N(a) * J_edge * w;
+					neumann_vector(a) += dq_edge * N(a) * J_edge * w;
 				}
 				//
 			}
@@ -462,10 +574,186 @@ void helmholtz2d_spectral_solver::get_trielement_field_vector(const spectral_tri
 		//
 	}
 	//
+}
 
+
+void helmholtz2d_spectral_solver::get_trielement_source_vector(const spectral_trielement_store& tri_elm,
+	Eigen::VectorXd& dirichlet_vector,
+	Eigen::VectorXd& source_vector)
+{
+	// Get the corner nodes
+	const std::vector<int>& corner_nodes = tri_elm.corner_nodes;
+
+	for (int i = 0; i < 3; i++)
+	{
+		const spectral_node_store& nd = spec_mesh2d.spectral_node_list[corner_nodes[i]];
+
+		if (nd.isboundarynode == true)
+		{
+			int local_idx = (i * spec_mesh2d.spectral_order);
+
+			if (nd.isFieldBC == true)
+			{
+				// Apply field value at the node
+				dirichlet_vector(local_idx) = nd.fieldvalue;
+			}
+			else
+			{
+				// Apply source value at the node
+				source_vector(local_idx) = nd.sourcevalue;
+			}
+		}
+
+	}
+	//
+}
+
+
+
+
+//________________________________________________________________________________________________
+
+void helmholtz2d_spectral_solver::get_quadelement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
+	const std::vector<Eigen::Vector2d>& elem_coords,
+	Eigen::MatrixXd& element_k_grad_matrix,
+	Eigen::MatrixXd& element_k_mass_matrix)
+{
+	int nen = static_cast<int>(elem_nodes.size());
+
+	// --- 1. Loop over quadrature points ---
+	for (int q = 0; q < static_cast<int>(quadrilateral_quadrature_points.size()); q++)
+	{
+		double quadraturept_xi = quadrilateral_quadrature_points[q].xi;
+		double quadraturept_eta = quadrilateral_quadrature_points[q].eta;
+		double w = quadrilateral_quadrature_points[q].weight;
+
+		// --- 2. Evaluate shape functions ---
+		Eigen::VectorXd N(nen);
+		Eigen::MatrixXd dN_dxi(nen, 2); // [dN/dxi, dN/deta]
+
+		evaluate_quadrilateral_shape_functions(quadraturept_xi, quadraturept_eta, nen,
+			N, dN_dxi);
+
+		// --- 3. Compute Jacobian ---
+		Eigen::Matrix2d J = Eigen::Matrix2d::Zero();
+
+		for (int i = 0; i < nen; i++)
+		{
+			J(0, 0) += dN_dxi(i, 0) * elem_coords[i].x();
+			J(0, 1) += dN_dxi(i, 0) * elem_coords[i].y();
+			J(1, 0) += dN_dxi(i, 1) * elem_coords[i].x();
+			J(1, 1) += dN_dxi(i, 1) * elem_coords[i].y();
+		}
+
+		double detJ = J.determinant();
+		Eigen::Matrix2d invJ = J.inverse();
+
+		// --- 4. Transform gradients ---
+		Eigen::MatrixXd dN_dx(nen, 2);
+
+		for (int i = 0; i < nen; i++)
+		{
+			Eigen::Vector2d grad_ref(dN_dxi(i, 0), dN_dxi(i, 1));
+			Eigen::Vector2d grad_phys = invJ.transpose() * grad_ref;
+
+			dN_dx(i, 0) = grad_phys(0);
+			dN_dx(i, 1) = grad_phys(1);
+		}
+
+		// --- 5. Assemble matrices ---
+		// element_k_grad_matrix += (dN_dx * dN_dx.transpose()) * detJ * w;
+		// element_k_mass_matrix += (N * N.transpose()) * detJ * w;
+
+		for (int i = 0; i < nen; i++)
+		{
+			for (int j = 0; j < nen; j++)
+			{
+				// Gradient (stiffness)
+				element_k_grad_matrix(i, j) += (dN_dx.row(i).dot(dN_dx.row(j))) * detJ * w;
+
+				// Mass
+				element_k_mass_matrix(i, j) += (N(i) * N(j)) * detJ * w;
+			}
+		}
+	}
+	//
+}
+
+
+
+void helmholtz2d_spectral_solver::evaluate_quadrilateral_shape_functions(double quadraturept_xi,
+	double quadraturept_eta, int nen,
+	Eigen::VectorXd& N,
+	Eigen::MatrixXd& dN_dxi)
+{
+	int p = spec_mesh2d.spectral_order;
+	int n1d = p + 1;
+
+	// --- 1D shape functions ---
+	std::vector<double> lx(n1d), d_lx(n1d);
+	std::vector<double> ly(n1d), d_ly(n1d);
+
+	// Evaluate 1D Lagrange basis at xi and eta
+	gll_utility::evaluate_lagrange_1D(quadraturept_xi, gll_locations, lx, d_lx);
+	gll_utility::evaluate_lagrange_1D(quadraturept_eta, gll_locations, ly, d_ly);
+
+	// --- Allocate ---
+	N.resize(nen);
+	dN_dxi.resize(nen, 2);
+
+	// --- Tensor product assembly ---
+	int idx = 0;
+
+	for (int j = 0; j < n1d; j++)
+	{
+		for (int i = 0; i < n1d; i++)
+		{
+			// Shape function
+			N(idx) = lx[i] * ly[j];
+
+			// Derivatives
+			dN_dxi(idx, 0) = d_lx[i] * ly[j]; // d/dxi
+			dN_dxi(idx, 1) = lx[i] * d_ly[j]; // d/deta
+
+			idx++;
+		}
+	}
+//
+}
+
+
+void helmholtz2d_spectral_solver::get_quadelement_kI_matrix(const spectral_quadelement_store& quad_elm,
+	const std::vector<Eigen::Vector2d>& elem_coords,
+	int nen,
+	double wave_number,
+	Eigen::MatrixXcd& element_kI_matrix)
+{
 
 }
 
+
+void helmholtz2d_spectral_solver::get_quadelement_field_vector(const spectral_quadelement_store& quad_elm,
+	Eigen::VectorXd& dirichlet_vector)
+{
+
+}
+
+void helmholtz2d_spectral_solver::get_quadelement_normderivfield_vector(const spectral_quadelement_store& quad_elm,
+	const std::vector<Eigen::Vector2d>& elem_coords,
+	int nen,
+	Eigen::VectorXd& neumann_vector)
+{
+
+}
+
+
+void helmholtz2d_spectral_solver::get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
+	Eigen::VectorXd& dirichlet_vector,
+	Eigen::VectorXd& source_vector)
+{
+
+
+}
 
 
 

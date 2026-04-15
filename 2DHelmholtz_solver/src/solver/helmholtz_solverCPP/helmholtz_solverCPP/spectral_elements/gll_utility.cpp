@@ -176,7 +176,84 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 
 std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int spectral_order)
 {
-	return std::vector<spectral_point>();
+	// 4-----3     
+	// |     |
+	// |     | 
+	// |     |
+	// 1-----2
+
+
+	// Get the GLL points of 1D edges
+	std::vector<double> gll_points = get_gll_locations(spectral_order);
+
+
+	// Quadrilateral spectral element points
+	std::vector<spectral_point> quad_spectral_points;
+
+	// Create the corner points
+	std::vector<spectral_point> corner_points;
+
+	corner_points.emplace_back(-1.0, -1.0, 1.0); // Point 1
+	corner_points.emplace_back(1.0, -1.0, 1.0); // Point 2
+	corner_points.emplace_back(1.0, 1.0, 1.0); // Point 3
+	corner_points.emplace_back(-1.0, 1.0, 1.0); // Point 4
+
+	for (int i = 0; i < 4; i++)
+	{
+		spectral_point v_start = corner_points[i];
+		spectral_point v_end = corner_points[(i + 1) % 4];
+
+
+		// Add the corner
+		quad_spectral_points.emplace_back(v_start.xi, v_start.eta, v_start.weight);
+
+		// Add the edges
+		for (int j = 1; j < spectral_order; j++) // Exclude the end point -1 and 1
+		{
+			// Get the GLL Point -1 to 1
+			double s = gll_points[j];
+
+			double x_coord = ((1.0 - s) * v_start.xi) + (s * v_end.xi);
+			double y_coord = ((1.0 - s) * v_start.eta) + (s * v_end.eta);
+
+			quad_spectral_points.emplace_back(x_coord, y_coord, 1.0);
+		}
+
+	}
+
+
+	// Create the internal nodes for the quadrilateral element using bilinear mapping
+	for (int i = 1; i < spectral_order; i++)
+	{
+		for (int j = 1; j < spectral_order; j++)
+		{
+
+			double xi = gll_points[j];
+			double eta = gll_points[i];
+
+			// Bilinear mapping
+			double x = 0.25 * (
+				(1 - xi) * (1 - eta) * corner_points[0].xi +
+				(1 + xi) * (1 - eta) * corner_points[1].xi +
+				(1 + xi) * (1 + eta) * corner_points[2].xi +
+				(1 - xi) * (1 + eta) * corner_points[3].xi
+				);
+
+			double y = 0.25 * (
+				(1 - xi) * (1 - eta) * corner_points[0].eta +
+				(1 + xi) * (1 - eta) * corner_points[1].eta +
+				(1 + xi) * (1 + eta) * corner_points[2].eta +
+				(1 - xi) * (1 + eta) * corner_points[3].eta
+				);
+
+			// Internal nodes
+			quad_spectral_points.emplace_back(x, y, 1.0);
+		}
+		//
+	}
+
+	return quad_spectral_points;
+	//
 }
 
 
@@ -184,26 +261,29 @@ std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int 
 
 std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_order)
 {
+
+	// Dunavant Quadrature for Area Coordinate Triangle
+
 	std::vector<spectral_point> quadrature_points;
 
 	if (spectral_order == 1)
 	{
 		quadrature_points = {
-			{1.0/3.0, 1.0/3.0, 1.0}
+			{1.0 / 3.0, 1.0 / 3.0, 1.0}
 		};
 	}
 	else if (spectral_order == 2)
 	{
 		quadrature_points = {
-			{1.0/6.0, 2.0/3.0, 1.0/3.0},
-			{1.0/6.0, 1.0/6.0, 1.0/3.0},
-			{2.0/3.0, 1.0/6.0, 1.0/3.0}
+			{1.0 / 6.0, 2.0 / 3.0, 1.0 / 3.0},
+			{1.0 / 6.0, 1.0 / 6.0, 1.0 / 3.0},
+			{2.0 / 3.0, 1.0 / 6.0, 1.0 / 3.0}
 		};
 	}
 	else if (spectral_order == 3)
 	{
 		quadrature_points = {
-			{1.0/3.0, 1.0/3.0, -0.5625},
+			{1.0 / 3.0, 1.0 / 3.0, -0.5625},
 			{0.2, 0.6, 0.520833333333333},
 			{0.2, 0.2, 0.520833333333333},
 			{0.6, 0.6, 0.520833333333333}
@@ -349,10 +429,41 @@ std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_or
 }
 
 
+std::vector<spectral_point> gll_utility::get_quadrilateral_quadrature(int spectral_order)
+{
+	// Gauss - Legendre points/ weights
+
+	std::vector<spectral_point> quadrature_points;
+
+	int n = spectral_order + 1;
+
+	std::vector<double> gp = get_gauss_points(n);
+	std::vector<double> gw = get_gauss_weights(n);
+
+
+	for (int j = 0; j < n; j++)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			spectral_point pt;
+			pt.xi = gp[i];
+			pt.eta = gp[j];
+			pt.weight = gw[i] * gw[j];  // tensor product
+
+			quadrature_points.push_back(pt);
+		}
+	}
+
+	return quadrature_points;
+	//
+
+}
+
+
 
 Eigen::MatrixXd gll_utility::get_inverse_vandermonde_matrix(int spectral_order)
 {
-	
+
 	// Build Vandermonde Matrix
 	int nen = ((spectral_order + 1) * (spectral_order + 2)) / 2;
 
@@ -404,7 +515,7 @@ void gll_utility::evaluate_basis_phi(double xi, double eta,
 
 		phi(i) = std::pow(xi, a) * std::pow(eta, b);
 	}
-//
+	//
 }
 
 
@@ -441,6 +552,52 @@ void gll_utility::evaluate_basis_derivatives(
 }
 
 
+void gll_utility::evaluate_lagrange_1D(double x,
+	const std::vector<double>& nodes,
+	std::vector<double>& L,
+	std::vector<double>& dL)
+{
+	int n = nodes.size();
+
+	L.resize(n);
+	dL.resize(n);
+
+	for (int i = 0; i < n; i++)
+	{
+		double li = 1.0;
+		double dli = 0.0;
+
+		for (int j = 0; j < n; j++)
+		{
+			if (j == i) continue;
+
+			double denom = nodes[i] - nodes[j];
+			li *= (x - nodes[j]) / denom;
+		}
+
+		// Derivative
+		for (int j = 0; j < n; j++)
+		{
+			if (j == i) continue;
+
+			double term = 1.0 / (nodes[i] - nodes[j]);
+
+			for (int k = 0; k < n; k++)
+			{
+				if (k == i || k == j) continue;
+
+				term *= (x - nodes[k]) / (nodes[i] - nodes[k]);
+			}
+
+			dli += term;
+		}
+
+		L[i] = li;
+		dL[i] = dli;
+	}
+
+}
+
 
 std::vector<basis_term> gll_utility::build_basis_terms(int spectral_order)
 {
@@ -460,4 +617,75 @@ std::vector<basis_term> gll_utility::build_basis_terms(int spectral_order)
 	return basis_terms;
 }
 
+
+std::vector<double> gll_utility::get_gauss_points(int n)
+{
+	std::vector<double> pts, wts;
+	gauss_legendre(n, pts, wts);
+	return pts;
+}
+
+
+
+std::vector<double> gll_utility::get_gauss_weights(int n)
+{
+	std::vector<double> pts, wts;
+	gauss_legendre(n, pts, wts);
+	return wts;
+}
+
+
+
+void gll_utility::gauss_legendre(int n,	std::vector<double>& points, std::vector<double>& weights)
+{
+	//if (n <= 0)
+	//	throw std::invalid_argument("Gauss order must be > 0");
+
+	Eigen::MatrixXd J = Eigen::MatrixXd::Zero(n, n);
+
+	// --- Build Jacobi matrix ---
+	for (int i = 0; i < n - 1; i++)
+	{
+		double a = (i + 1.0) / std::sqrt((2.0 * i + 1.0) * (2.0 * i + 3.0));
+		J(i, i + 1) = a;
+		J(i + 1, i) = a;
+	}
+
+	// --- Eigen decomposition ---
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(J);
+
+	//if (solver.info() != Eigen::Success)
+	//	throw std::runtime_error("Eigen decomposition failed");
+
+	Eigen::VectorXd x = solver.eigenvalues();
+	Eigen::MatrixXd V = solver.eigenvectors();
+
+	points.resize(n);
+	weights.resize(n);
+
+	// --- Sort + weights ---
+	for (int i = 0; i < n; i++)
+	{
+		points[i] = x(i);
+		weights[i] = 2.0 * V(0, i) * V(0, i);
+	}
+
+	// --- Ensure ordering (-1 to 1 increasing) ---
+	std::vector<int> idx(n);
+	std::iota(idx.begin(), idx.end(), 0);
+
+	std::sort(idx.begin(), idx.end(),
+		[&](int a, int b) { return points[a] < points[b]; });
+
+	std::vector<double> p_sorted(n), w_sorted(n);
+
+	for (int i = 0; i < n; i++)
+	{
+		p_sorted[i] = points[idx[i]];
+		w_sorted[i] = weights[idx[i]];
+	}
+
+	points = p_sorted;
+	weights = w_sorted;
+}
 

@@ -82,7 +82,7 @@ private:
 	Eigen::VectorXd u_imag;
 
 
-	// Quadrature points
+	// Quadrature points for triangle element
 	std::vector<spectral_point> triangle_quadrature_points;
 
 	// Triangle basis term
@@ -95,6 +95,12 @@ private:
 	std::vector<double> gll_locations;
 	std::vector<double> gll_weights;
 
+
+	// Quadrature points for quadrilateral element
+	std::vector<spectral_point> quadrilateral_quadrature_points;
+
+
+	//________________________________________________________________________________________________
 
 	void get_trielement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
 		const std::vector<Eigen::Vector2d>& elem_coords,
@@ -116,12 +122,63 @@ private:
 	
 
 	void get_trielement_field_vector(const spectral_trielement_store& tri_elm,
-		const std::vector<Eigen::Vector2d>& elem_coords,
-		int nen,
-		Eigen::VectorXi& dirichlet_BC,
 		Eigen::VectorXd& dirichlet_vector);
 
+	void get_trielement_normderivfield_vector(const spectral_trielement_store& tri_elm,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		int nen,
+		Eigen::VectorXd& neumann_vector);
 
+
+	void get_trielement_source_vector(const spectral_trielement_store& tri_elm,
+		Eigen::VectorXd& dirichlet_vector,
+		Eigen::VectorXd& source_vector);
+
+
+
+
+
+
+	//________________________________________________________________________________________________
+
+	void get_quadelement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		Eigen::MatrixXd& element_k_grad_matrix,
+		Eigen::MatrixXd& element_k_mass_matrix);
+
+
+	void evaluate_quadrilateral_shape_functions(double quadraturept_xi,
+		double quadraturept_eta, int nen,
+		Eigen::VectorXd& N,
+		Eigen::MatrixXd& dN_dxi);
+
+
+
+	void get_quadelement_kI_matrix(const spectral_quadelement_store& quad_elm,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		int nen,
+		double wave_number,
+		Eigen::MatrixXcd& element_kI_matrix);
+
+
+	void get_quadelement_field_vector(const spectral_quadelement_store& quad_elm,
+		Eigen::VectorXd& dirichlet_vector);
+
+	void get_quadelement_normderivfield_vector(const spectral_quadelement_store& quad_elm,
+		const std::vector<Eigen::Vector2d>& elem_coords,
+		int nen,
+		Eigen::VectorXd& neumann_vector);
+
+
+	void get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
+		Eigen::VectorXd& dirichlet_vector,
+		Eigen::VectorXd& source_vector);
+
+
+
+
+
+	//________________________________________________________________________________________________
 
 
 	void store_results();
