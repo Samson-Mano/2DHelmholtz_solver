@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 
-struct spectral_point
+static struct spectral_point
 {
 	double xi;
 	double eta;
@@ -16,7 +16,7 @@ struct spectral_point
 };
 
 
-struct basis_term
+static struct basis_term
 {
 	int a; // power of xi
 	int b; // power of eta

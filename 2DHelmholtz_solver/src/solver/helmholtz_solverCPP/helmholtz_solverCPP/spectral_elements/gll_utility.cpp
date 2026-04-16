@@ -112,9 +112,9 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 	// Create the corner points
 	std::vector<spectral_point> corner_points;
 
-	corner_points.emplace_back(0.0, 0.0, 1.0); // Point 1
-	corner_points.emplace_back(1.0, 0.0, 1.0); // Point 2
-	corner_points.emplace_back(0.0, 1.0, 1.0); // Point 3
+	corner_points.emplace_back(spectral_point{ 0.0, 0.0, 1.0 }); // Point 1
+	corner_points.emplace_back(spectral_point{ 1.0, 0.0, 1.0 }); // Point 2
+	corner_points.emplace_back(spectral_point{0.0, 1.0, 1.0 }); // Point 3
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -123,7 +123,7 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 
 
 		// Add the corner
-		tri_spectral_points.emplace_back(v_start.xi, v_start.eta, v_start.weight);
+		tri_spectral_points.emplace_back(spectral_point{ v_start.xi, v_start.eta, v_start.weight });
 
 		// Add the edges
 		for (int j = 1; j < spectral_order; j++) // Exclude the end point -1 and 1
@@ -134,7 +134,7 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 			double x_coord = ((1.0 - s) * v_start.xi) + (s * v_end.xi);
 			double y_coord = ((1.0 - s) * v_start.eta) + (s * v_end.eta);
 
-			tri_spectral_points.emplace_back(x_coord, y_coord, 1.0);
+			tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
 		}
 
 	}
@@ -159,7 +159,7 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 				double x_coord = (1.0 / 3.0) * (1.0 + (2.0 * vj) - vi - vk);
 				double y_coord = (1.0 / 3.0) * (1.0 - (2.0 * vk) - vi - vj);
 
-				tri_spectral_points.emplace_back(x_coord, y_coord, 1.0);
+				tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
 			}
 		}
 		//
@@ -193,10 +193,10 @@ std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int 
 	// Create the corner points
 	std::vector<spectral_point> corner_points;
 
-	corner_points.emplace_back(-1.0, -1.0, 1.0); // Point 1
-	corner_points.emplace_back(1.0, -1.0, 1.0); // Point 2
-	corner_points.emplace_back(1.0, 1.0, 1.0); // Point 3
-	corner_points.emplace_back(-1.0, 1.0, 1.0); // Point 4
+	corner_points.emplace_back(spectral_point{ -1.0, -1.0, 1.0 }); // Point 1
+	corner_points.emplace_back(spectral_point{ 1.0, -1.0, 1.0 }); // Point 2
+	corner_points.emplace_back(spectral_point{ 1.0, 1.0, 1.0 }); // Point 3
+	corner_points.emplace_back(spectral_point{ -1.0, 1.0, 1.0 }); // Point 4
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -205,7 +205,7 @@ std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int 
 
 
 		// Add the corner
-		quad_spectral_points.emplace_back(v_start.xi, v_start.eta, v_start.weight);
+		quad_spectral_points.emplace_back(spectral_point{ v_start.xi, v_start.eta, v_start.weight });
 
 		// Add the edges
 		for (int j = 1; j < spectral_order; j++) // Exclude the end point -1 and 1
@@ -216,7 +216,7 @@ std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int 
 			double x_coord = ((1.0 - s) * v_start.xi) + (s * v_end.xi);
 			double y_coord = ((1.0 - s) * v_start.eta) + (s * v_end.eta);
 
-			quad_spectral_points.emplace_back(x_coord, y_coord, 1.0);
+			quad_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
 		}
 
 	}
@@ -247,7 +247,7 @@ std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int 
 				);
 
 			// Internal nodes
-			quad_spectral_points.emplace_back(x, y, 1.0);
+			quad_spectral_points.emplace_back(spectral_point{ x, y, 1.0 });
 		}
 		//
 	}

@@ -68,8 +68,9 @@ private:
 	std::unordered_map<int, int> nodeid_map; // Node ID map
 
 
-	Eigen::MatrixXd global_k_matrix; // Global k Matrix (Ke - k^2 * Me)
-	Eigen::MatrixXd global_kI_matrix; // Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
+	// Eigen::SparseMatrix<double> global_k_matrix; // Global k Matrix (Ke - k^2 * Me)
+	// Eigen::SparseMatrix<std::complex<double>> global_kI_matrix; // kI Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
+	Eigen::SparseMatrix<std::complex<double>> global_system_matrix; // (Ke - k^2 * Me) + kI 
 
 	Eigen::VectorXd global_field_vector; // Global field Vector
 	Eigen::VectorXd global_normalderivfield_vector; // Global derivative normal field Vector
@@ -78,6 +79,7 @@ private:
 	Eigen::VectorXi global_dirichlet_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
 
 	// Solution
+	Eigen::VectorXcd u_complex;
 	Eigen::VectorXd u_real;
 	Eigen::VectorXd u_imag;
 
@@ -122,6 +124,7 @@ private:
 	
 
 	void get_trielement_field_vector(const spectral_trielement_store& tri_elm,
+		Eigen::VectorXi& dirichlet_BC_flag,
 		Eigen::VectorXd& dirichlet_vector);
 
 	void get_trielement_normderivfield_vector(const spectral_trielement_store& tri_elm,
@@ -131,12 +134,35 @@ private:
 
 
 	void get_trielement_source_vector(const spectral_trielement_store& tri_elm,
+		Eigen::VectorXi& dirichlet_BC_flag,
 		Eigen::VectorXd& dirichlet_vector,
 		Eigen::VectorXd& source_vector);
 
 
 
+	//void set_global_matrix(const std::vector<int>& elem_nodes,
+	//	int nen,
+	//	const Eigen::MatrixXd& element_k_matrix, std::vector<Eigen::Triplet<double>>& triplets_k);
 
+
+
+	void set_complex_global_matrix(const std::vector<int>& elem_nodes,
+		int nen,
+		const Eigen::MatrixXd& element_k_matrix,
+		const Eigen::MatrixXcd& element_kI_matrix,
+		std::vector<Eigen::Triplet<std::complex<double>>>& triplets_system);
+
+
+
+	void set_global_vector(const std::vector<int>& elem_nodes,
+		int nen,
+		const Eigen::VectorXd& element_vector, Eigen::VectorXd& global_vector);
+
+
+	void set_global_BC_flag_vector(const std::vector<int>& elem_nodes,
+		int nen,
+		const Eigen::VectorXi& element_BC_flag_vector, Eigen::VectorXi& global_BC_flag_vector);
+	
 
 
 	//________________________________________________________________________________________________
@@ -162,6 +188,7 @@ private:
 
 
 	void get_quadelement_field_vector(const spectral_quadelement_store& quad_elm,
+		Eigen::VectorXi& dirichlet_BC_flag,
 		Eigen::VectorXd& dirichlet_vector);
 
 	void get_quadelement_normderivfield_vector(const spectral_quadelement_store& quad_elm,
@@ -171,6 +198,7 @@ private:
 
 
 	void get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
+		Eigen::VectorXi& dirichlet_BC_flag,
 		Eigen::VectorXd& dirichlet_vector,
 		Eigen::VectorXd& source_vector);
 
@@ -179,6 +207,13 @@ private:
 
 
 	//________________________________________________________________________________________________
+
+
+	void solve_dirichlet_BCs_elimination_method(Eigen::VectorXcd& u);
+
+
+	void solve_dirichlet_BCs_lagrange_method(Eigen::VectorXcd& u);
+
 
 
 	void store_results();
