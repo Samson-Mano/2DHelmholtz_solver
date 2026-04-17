@@ -212,6 +212,7 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 		
 		// Get the gll locations and gll weights for the given spectral order 
 		this->gll_locations = gll_utility::get_gll_locations(spectral_order);
+		this->gll_weights = gll_utility::get_gll_weights(spectral_order, gll_locations);
 
 		report("Quadrilateral Element Quadrature Points Created");
 
@@ -1446,7 +1447,7 @@ void helmholtz2d_spectral_solver::report(const char* msg)
 	stopwatch_elapsed_str << std::fixed << std::setprecision(6)
 		<< this->m_stopwatch->elapsed();
 
-	std::string final_msg = std::string(msg) +
+	std::string final_msg = std::string(msg) + " " +
 		stopwatch_elapsed_str.str() +
 		" secs";
 

@@ -220,18 +220,19 @@ namespace _2DHelmholtz_solver.other_windows
                                 int node_id = reader.ReadInt32();
                                 double node_xcoord = reader.ReadDouble();
                                 double node_ycoord = reader.ReadDouble();
-                                double rslt_value = reader.ReadDouble();
-                                // double field_real_value = reader.ReadDouble();
-                                // double field_imag_value = reader.ReadDouble();
+                                double field_u_real = reader.ReadDouble();
+                                double field_u_imag = reader.ReadDouble();
+                                double field_u_mag =  reader.ReadDouble();
+                                double field_u_phase = reader.ReadDouble();
 
                                 fe_data.resultmeshdata.rslt_nodes.Add(node_id, 
                                     new rsltnode_store { node_id = node_id,
                                                         node_pt_x_coord = node_xcoord,
                                                         node_pt_y_coord = node_ycoord,
-                                                        node_u_real = rslt_value,
-                                                        node_u_imag = rslt_value,
-                                                        node_u_magnitude = rslt_value,
-                                                        node_u_phase = rslt_value,
+                                                        node_u_real = field_u_real,
+                                                        node_u_imag = field_u_imag,
+                                                        node_u_magnitude = field_u_mag,
+                                                        node_u_phase = field_u_phase,
                                     });
 
                             }
