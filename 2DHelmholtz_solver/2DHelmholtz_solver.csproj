@@ -120,6 +120,7 @@
     </Compile>
     <Compile Include="src\events_handler\file_events.cs" />
     <Compile Include="src\global_variables\gvariables_static.cs" />
+    <Compile Include="src\model_store\rslt_objects\modal_rsltdata_store.cs" />
     <Compile Include="src\model_store\rslt_objects\rsltdata_store.cs" />
     <Compile Include="src\solver\helmholtzSolverInterop.cs" />
     <Compile Include="src\model_store\fe_objects\edgecnst_list_store.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="src\opentk_control\opentk_buffer\VertexBufferLayout.cs" />
     <Compile Include="src\opentk_control\shader_compiler\Shader.cs" />
     <Compile Include="src\opentk_control\shader_compiler\ShaderLibrary.cs" />
+    <Compile Include="src\solver\modalSolverInterop.cs" />
     <EmbeddedResource Include="main_frm.resx">
       <DependentUpon>main_frm.cs</DependentUpon>
     </EmbeddedResource>

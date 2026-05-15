@@ -1,0 +1,156 @@
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.model_store.geom_objects;
+using OpenTK;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace _2DHelmholtz_solver.src.model_store.rslt_objects
+{
+
+    public class modal_rsltnode_store
+    {
+        public int node_id { get; set; }
+        public double node_pt_x_coord { get; set; }
+        public double node_pt_y_coord { get; set; }
+
+        public List<double> node_modal_displ_magnitude { get; set; }
+    }
+
+
+    public class modal_rsltdata_store
+    {
+
+        public Dictionary<int, modal_rsltnode_store> modal_rslt_nodes;
+        public List<rsltedge_store> rslt_edges;
+        public List<rslttri_store> rslt_tris;
+
+        public meshdata_store modal_rsltmeshdata;
+
+        public bool isResultSet = false;
+
+
+        public modal_rsltdata_store()
+        {
+            modal_rslt_nodes = new Dictionary<int, modal_rsltnode_store>();
+            rslt_edges = new List<rsltedge_store>();
+            rslt_tris = new List<rslttri_store>();
+
+            isResultSet = false;
+
+        }
+
+        public void setResultMesh()
+        {
+            // Create the Result mesh for drawing the results
+            modal_rsltmeshdata = new meshdata_store(true);
+
+            // Add the mesh points
+            foreach (var r_nd_m in modal_rslt_nodes)
+            {
+                modal_rsltnode_store r_nd = r_nd_m.Value;
+
+                modal_rsltmeshdata.add_mesh_point(r_nd.node_id,
+                    r_nd.node_pt_x_coord,
+                    r_nd.node_pt_y_coord, 0.0, -1);
+
+
+            }
+
+            // Add the mesh tris
+            int tri_id = 0;
+            foreach (rslttri_store r_tri in rslt_tris)
+            {
+
+                modal_rsltmeshdata.add_mesh_tris(tri_id,
+                    r_tri.tri_node1, r_tri.tri_node2, r_tri.tri_node3, 0);
+                tri_id++;
+
+            }
+
+            // Create the mesh boundaries
+            modal_rsltmeshdata.set_mesh_wireframe();
+
+
+            // Set the openTK buffer
+            modal_rsltmeshdata.set_shader();
+            modal_rsltmeshdata.set_buffer();
+
+
+        }
+
+
+        public void updateSelectedMode(int selected_mode)
+        {
+
+
+            // Add the mesh points
+            foreach (var r_nd_m in modal_rslt_nodes)
+            {
+                modal_rsltnode_store r_nd = r_nd_m.Value;
+
+                double modal_rslt_value = r_nd.node_modal_displ_magnitude[selected_mode];
+
+                modal_rsltmeshdata.update_mesh_point(r_nd.node_id,
+                    r_nd.node_pt_x_coord,
+                    r_nd.node_pt_y_coord, 0.0, modal_rslt_value);
+
+
+            }
+
+
+            // Update the buffers once at the end
+            modal_rsltmeshdata.update_buffer();
+
+        }
+
+
+
+
+        public void paint_modalresult_mesh()
+        {
+            if (isResultSet == true)
+            {
+
+
+                modal_rsltmeshdata.paint_static_mesh();
+
+                modal_rsltmeshdata.paint_static_mesh_boundaries();
+
+            }
+        }
+
+
+        public void update_modal_animation(double animation_time)
+        {
+
+
+        }
+
+
+        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency,
+           Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
+        {
+            if (isResultSet == true)
+            {
+                modal_rsltmeshdata.update_openTK_uniforms(
+                    set_modelmatrix,
+                    set_viewmatrix,
+                    set_transparency,
+                    projectionMatrix,
+                    modelMatrix,
+                    viewMatrix,
+                    gvariables_static.rslt_transparency);
+
+
+            }
+
+        }
+
+        //
+
+
+    }
+}
