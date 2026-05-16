@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="modalspectral_solverCPP/modalspectral_solverCPP.vcxproj" Id="5e388ece-7c9a-4b8d-bdb3-f80bcee2b7f3" />
+</Solution>
