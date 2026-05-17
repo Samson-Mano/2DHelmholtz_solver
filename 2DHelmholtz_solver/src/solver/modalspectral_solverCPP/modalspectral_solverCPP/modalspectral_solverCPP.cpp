@@ -30,16 +30,15 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	if (callback) callback("Initializing solver...");
 	(*isAnalysisSuccess) = false;
 
-	double frequency_value = 0.0;
-	int solver_type = -1;
+
+	int number_of_modes = -1;
 
 	if (solver_settings && solver_settings_count >= 2)
 	{
-		frequency_value = solver_settings[0];
-		solver_type = static_cast<int>(solver_settings[1]);
+		number_of_modes = static_cast<int>(solver_settings[0]);
 
-		msg = "Solver settings received: Frequency = " + std::to_string(frequency_value) +
-			"E+6 Hz, Solver type = " + std::to_string(static_cast<int>(solver_type));
+		msg = "Solver settings received: Number of modes requested = " + std::to_string(number_of_modes);
+
 		if (callback) callback(msg.c_str());
 	}
 	else
@@ -220,7 +219,7 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 		infile.read(reinterpret_cast<char*>(&numelement), 4);
 
 		// Calculate the wave number
-		double angular_freq = 2.0 * 3.1415926535897932384626433 * frequency_value;
+		double angular_freq = 2.0 * 3.1415926535897932384626433 * 1.0;
 		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
 
 
@@ -335,7 +334,7 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	modal_spec_solver.create_global_matrices();
 
 	// Perform modal analysis solve
-	modal_spec_solver.solve_modal_analysis();
+	modal_spec_solver.solve_modal_analysis(number_of_modes);
 
 
 

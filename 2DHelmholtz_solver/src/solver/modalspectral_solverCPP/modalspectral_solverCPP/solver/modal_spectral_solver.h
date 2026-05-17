@@ -11,6 +11,8 @@
 #pragma warning (disable : 6294)
 #pragma warning (disable : 26813)
 #pragma warning (disable : 26454)
+#pragma warning (disable : 4244)
+
 
 // Optimization for Eigen Library
 // 1) OpenMP (Yes (/openmp)
@@ -24,7 +26,21 @@
 #include <Eigen/Eigenvalues>
 // Define the sparse matrix type for the reduced global stiffness matrix
 typedef Eigen::SparseMatrix<double> SparseMatrix;
+
+#include <Eigen/Core>
+#include <Eigen/SparseCore>
+
+// Spectra
+#include <Spectra/SymEigsSolver.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
+#include <Spectra/MatOp/SparseCholesky.h>
+
+#include <Spectra/GenEigsSolver.h>
+
+using namespace Spectra;
+
 #pragma warning(pop)
+
 
 #include "../system_store/helmholtz_system_store.h"
 #include "../spectral_elements/spectral_mesh2d.h"
@@ -35,6 +51,9 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 #include <fstream>
 
 #include <iomanip> // to get std::setprecision()
+
+
+#include "MinvKOp.h"
 
 
 
@@ -51,12 +70,15 @@ public:
 
 	void create_global_matrices();
 
-	void solve_modal_analysis();
+	void solve_modal_analysis(int inpt_num_modes);
 
 
 
 
 private:
+	const double M_PI = 3.14159265;
+
+
 	helmholtz_system_store* helmholtz_2dsystem_ptr;
 	spectral_mesh2d spec_mesh2d;
 

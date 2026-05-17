@@ -271,7 +271,7 @@ void modal_spectral_solver::create_global_matrices()
 
 
 
-void modal_spectral_solver::solve_modal_analysis()
+void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes)
 {
 	// 1) Build the free-DOF index (apply Dirichlet BC)
 
@@ -288,6 +288,16 @@ void modal_spectral_solver::solve_modal_analysis()
 
 	// 2) Extract reduced matrices Kff, Mff
 	int n_free = static_cast<int>(free_dofs.size());
+
+	// Set the number of modes
+	int num_modes = inpt_num_modes;
+	if (inpt_num_modes > n_free)
+	{
+		num_modes = n_free;
+	}
+
+	std::string msg = "Number of modes: " + std::to_string(num_modes);
+	report(msg.c_str());
 
 	Eigen::SparseMatrix<double> K_ff(n_free, n_free);
 	Eigen::SparseMatrix<double> M_ff(n_free, n_free);
@@ -329,12 +339,49 @@ void modal_spectral_solver::solve_modal_analysis()
 	K_ff.setFromTriplets(Kt.begin(), Kt.end());
 	M_ff.setFromTriplets(Mt.begin(), Mt.end());
 
+	report("K_ff, M_ff reduced matrices created");
 
 	// 3) Solve the generalized eigenvalue problem
 	// Spectra (Eigen - based)
 	// ARPACK (eigsh equivalent)
 
+	// K and M are your reduced matrices (K_ff, M_ff)
 
+	Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> chol(M_ff);
+
+	if (chol.info() != Eigen::Success)
+	{
+		report("Cholesky failed!");
+		return;
+	}
+
+	report("Cholesky successful!");
+
+
+	MinvKOp op(K_ff, chol);
+
+	SymEigsSolver<MinvKOp> eigs(op, num_modes, 2 * num_modes);
+
+
+	eigs.init();
+	int nconv = eigs.compute(SortRule::SmallestAlge);
+
+	Eigen::VectorXd eigenvalues;
+	Eigen::MatrixXd eigenvectors;
+
+
+	if (eigs.info() == CompInfo::Successful)
+	{
+		eigenvalues = eigs.eigenvalues();
+		eigenvectors = eigs.eigenvectors();
+	}
+	else
+	{
+		report("Eigen solver failed!");
+		return;
+	}
+
+	report("Eigen solve successful!");
 
 	// 4) Convert eigenvalues => frequencies
 	std::vector<double> frequencies;
@@ -357,7 +404,7 @@ void modal_spectral_solver::solve_modal_analysis()
 	{
 		Eigen::VectorXd phi = eigenvectors.col(i);
 
-		double norm = std::sqrt(phi.transpose() * Md * phi);
+		double norm = std::sqrt(phi.transpose() * M_ff * phi);
 		eigenvectors.col(i) /= norm;
 	}
 
@@ -371,6 +418,9 @@ void modal_spectral_solver::solve_modal_analysis()
 		full_modes.row(free_dofs[i]) = eigenvectors.row(i);
 	}
 
+
+
+	report("Eigen vectors stored!");
 
 }
 

@@ -23,8 +23,7 @@ int main()
 	std::ifstream infile(input_file, std::ios::binary);
 	// std::ofstream outfile(output_file, std::ios::binary);
 
-	double frequency_value = 100.0;
-	int solver_type = 0;
+	int number_of_modes = 10;
 
 	stopwatch_events stopwatch;
 	std::stringstream stopwatch_elapsed_str;
@@ -183,7 +182,7 @@ int main()
 		infile.read(reinterpret_cast<char*>(&numelement), 4);
 
 		// Calculate the wave number
-		double angular_freq = 2.0 * 3.1415926535897932384626433 * frequency_value;
+		double angular_freq = 2.0 * 3.1415926535897932384626433 * 1.0;
 		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
 
 
@@ -299,7 +298,7 @@ int main()
 	std::cout << "Spectral mesh and global matrices complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
 	// Perform modal analysis solve
-	modal_spec_solver.solve_modal_analysis();
+	modal_spec_solver.solve_modal_analysis(number_of_modes);
 
 	std::cout << "Solve complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 

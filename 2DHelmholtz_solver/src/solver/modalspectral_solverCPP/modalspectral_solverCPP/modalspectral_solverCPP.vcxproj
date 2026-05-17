@@ -111,7 +111,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\openGL\boost_1_84_0;C:\openGL\eigen-3.4.0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\openGL\boost_1_84_0;C:\openGL\eigen-3.4.0;C:\openGL\spectra-1.2.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,7 +130,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\openGL\boost_1_84_0;C:\openGL\eigen-3.4.0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\openGL\boost_1_84_0;C:\openGL\eigen-3.4.0;C:\openGL\spectra-1.2.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modalspectral_solverCPP.cpp" />
+    <ClCompile Include="solver\MinvKOp.cpp" />
     <ClCompile Include="solver\modal_spectral_solver.cpp" />
     <ClCompile Include="spectral_elements\fekete_nodes_table.cpp" />
     <ClCompile Include="spectral_elements\gll_utility.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="system_store\stopwatch_events.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="solver\MinvKOp.h" />
     <ClInclude Include="solver\modal_spectral_solver.h" />
     <ClInclude Include="spectral_elements\fekete_nodes_table.h" />
     <ClInclude Include="spectral_elements\gll_utility.h" />

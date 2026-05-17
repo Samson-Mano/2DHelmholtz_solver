@@ -42,6 +42,9 @@
     <ClCompile Include="solver\modal_spectral_solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="solver\MinvKOp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system_store\stopwatch_events.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="solver\modal_spectral_solver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="solver\MinvKOp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
