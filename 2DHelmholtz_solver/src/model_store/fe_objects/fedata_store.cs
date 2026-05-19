@@ -53,7 +53,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public bool isModelSet = false;
 
         public rsltdata_store resultmeshdata;
-
+        public modal_rsltdata_store modalresultmeshdata;
 
 
         // Drawing bound data

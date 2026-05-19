@@ -43,7 +43,7 @@ namespace _2DHelmholtz_solver
         private nodalconstraint_frm nodalconstraint_Form;
         private edgeconstraint_frm edgeconstraint_Form;
         private solver_frm solver_Form;
-
+        private modalsolver_frm modalsolver_Form;
 
         public main_frm()
         {
@@ -790,6 +790,45 @@ namespace _2DHelmholtz_solver
         }
 
 
+        private void dModalSolveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // 2D Modal Solver
+            if (fedata.isModelSet == false)
+                return;
+
+            // Check if modalsolver_Form is null or disposed
+            if (modalsolver_Form == null || modalsolver_Form.IsDisposed)
+            {
+                modalsolver_Form = new modalsolver_frm(ref fedata);
+
+                // Make it behave like a tool window
+                modalsolver_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                modalsolver_Form.ShowInTaskbar = false;
+                modalsolver_Form.TopLevel = true;
+                modalsolver_Form.Owner = this;
+
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - modalsolver_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - modalsolver_Form.Height) / 2;
+                modalsolver_Form.StartPosition = FormStartPosition.Manual;
+                modalsolver_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+            }
+
+            //// Turn on Flag Material update form is open
+            //fedata.meshdata.isMaterialUpdateInProgress = true;
+            //fedata.meshdata.clear_selected_mesh();
+
+            modalsolver_Form.updateTextBox();
+
+            // Show the form
+            modalsolver_Form.Show(this);
+            modalsolver_Form.BringToFront();
+
+            glControl_main_panel.Invalidate();
+
+        }
+
         private void showResultsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // showResultsToolStripMenuItem.Checked = !showResultsToolStripMenuItem.Checked;
@@ -805,7 +844,25 @@ namespace _2DHelmholtz_solver
 
         private void fieldPhasePlotToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(4);
 
+        private void modalResultsToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(5);
+
         private void hideResultsToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(0);
+
+
+        private void nextModeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (gvariables_static.is_paint_modalresults == false)
+                return;
+
+
+        }
+
+        private void previousModeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (gvariables_static.is_paint_modalresults == false)
+                return;
+
+        }
 
 
         private void TrySetResultOption(int option)
@@ -823,12 +880,14 @@ namespace _2DHelmholtz_solver
             fieldImaginaryPlotToolStripMenuItem.Checked = option == 2 ? true : false;
             fieldMagnitudePlotToolStripMenuItem.Checked = option == 3 ? true : false;
             fieldPhasePlotToolStripMenuItem.Checked = option == 4 ? true : false;
+            modalResultsToolStripMenuItem.Checked = option == 5 ? true : false;
 
             // Reset all flags
             gvariables_static.is_paint_ureal = false;
             gvariables_static.is_paint_uimag = false;
             gvariables_static.is_paint_umagnitude = false;
             gvariables_static.is_paint_uphase = false;
+            gvariables_static.is_paint_modalresults = false;
 
             // Transparency defaults
             gvariables_static.geom_transparency = 1.0f;
@@ -864,6 +923,12 @@ namespace _2DHelmholtz_solver
                     gvariables_static.geom_transparency = 0.2f;
                     gvariables_static.rslt_transparency = 1.0f;
                     break;
+                case 5:
+                    // Paint modal results
+                    gvariables_static.is_paint_modalresults = true;
+                    gvariables_static.geom_transparency = 0.2f;
+                    gvariables_static.rslt_transparency = 1.0f;
+                    break;
                 case 0:
                 default:
                     break;
@@ -878,11 +943,11 @@ namespace _2DHelmholtz_solver
         }
 
 
+
+
+
+
         #endregion
-
-
-
-
 
     }
 }

@@ -44,16 +44,20 @@
             this.solverToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dHelmholtzSolveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.glControl_main_panel = new OpenTK.GLControl();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLabel_zoom_value = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel_IsRefresh = new System.Windows.Forms.ToolStripStatusLabel();
             this.fieldRealPlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fieldImaginaryPlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fieldMagnitudePlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fieldPhasePlotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.hideResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.glControl_main_panel = new OpenTK.GLControl();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel_zoom_value = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabel_IsRefresh = new System.Windows.Forms.ToolStripStatusLabel();
+            this.modalResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.dModalSolveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.nextModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.previousModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -162,6 +166,7 @@
             // 
             this.solverToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.dHelmholtzSolveToolStripMenuItem,
+            this.dModalSolveToolStripMenuItem,
             this.showResultsToolStripMenuItem});
             this.solverToolStripMenuItem.Name = "solverToolStripMenuItem";
             this.solverToolStripMenuItem.Size = new System.Drawing.Size(51, 22);
@@ -181,12 +186,53 @@
             this.fieldImaginaryPlotToolStripMenuItem,
             this.fieldMagnitudePlotToolStripMenuItem,
             this.fieldPhasePlotToolStripMenuItem,
+            this.modalResultsToolStripMenuItem,
             this.toolStripSeparator1,
             this.hideResultsToolStripMenuItem});
             this.showResultsToolStripMenuItem.Name = "showResultsToolStripMenuItem";
             this.showResultsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.showResultsToolStripMenuItem.Text = "Show Results";
             this.showResultsToolStripMenuItem.Click += new System.EventHandler(this.showResultsToolStripMenuItem_Click);
+            // 
+            // fieldRealPlotToolStripMenuItem
+            // 
+            this.fieldRealPlotToolStripMenuItem.Name = "fieldRealPlotToolStripMenuItem";
+            this.fieldRealPlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldRealPlotToolStripMenuItem.Text = "Field real plot";
+            this.fieldRealPlotToolStripMenuItem.Click += new System.EventHandler(this.fieldRealPlotToolStripMenuItem_Click);
+            // 
+            // fieldImaginaryPlotToolStripMenuItem
+            // 
+            this.fieldImaginaryPlotToolStripMenuItem.Name = "fieldImaginaryPlotToolStripMenuItem";
+            this.fieldImaginaryPlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldImaginaryPlotToolStripMenuItem.Text = "Field imaginary plot";
+            this.fieldImaginaryPlotToolStripMenuItem.Click += new System.EventHandler(this.fieldImaginaryPlotToolStripMenuItem_Click);
+            // 
+            // fieldMagnitudePlotToolStripMenuItem
+            // 
+            this.fieldMagnitudePlotToolStripMenuItem.Name = "fieldMagnitudePlotToolStripMenuItem";
+            this.fieldMagnitudePlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldMagnitudePlotToolStripMenuItem.Text = "Field magnitude plot";
+            this.fieldMagnitudePlotToolStripMenuItem.Click += new System.EventHandler(this.fieldMagnitudePlotToolStripMenuItem_Click);
+            // 
+            // fieldPhasePlotToolStripMenuItem
+            // 
+            this.fieldPhasePlotToolStripMenuItem.Name = "fieldPhasePlotToolStripMenuItem";
+            this.fieldPhasePlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.fieldPhasePlotToolStripMenuItem.Text = "Field phase plot";
+            this.fieldPhasePlotToolStripMenuItem.Click += new System.EventHandler(this.fieldPhasePlotToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(181, 6);
+            // 
+            // hideResultsToolStripMenuItem
+            // 
+            this.hideResultsToolStripMenuItem.Name = "hideResultsToolStripMenuItem";
+            this.hideResultsToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.hideResultsToolStripMenuItem.Text = "Hide results";
+            this.hideResultsToolStripMenuItem.Click += new System.EventHandler(this.hideResultsToolStripMenuItem_Click);
             // 
             // glControl_main_panel
             // 
@@ -236,45 +282,36 @@
             this.toolStripStatusLabel_IsRefresh.Size = new System.Drawing.Size(10, 17);
             this.toolStripStatusLabel_IsRefresh.Text = " ";
             // 
-            // fieldRealPlotToolStripMenuItem
+            // modalResultsToolStripMenuItem
             // 
-            this.fieldRealPlotToolStripMenuItem.Name = "fieldRealPlotToolStripMenuItem";
-            this.fieldRealPlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.fieldRealPlotToolStripMenuItem.Text = "Field real plot";
-            this.fieldRealPlotToolStripMenuItem.Click += new System.EventHandler(this.fieldRealPlotToolStripMenuItem_Click);
+            this.modalResultsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.nextModeToolStripMenuItem,
+            this.previousModeToolStripMenuItem});
+            this.modalResultsToolStripMenuItem.Name = "modalResultsToolStripMenuItem";
+            this.modalResultsToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.modalResultsToolStripMenuItem.Text = "Modal Results";
+            this.modalResultsToolStripMenuItem.Click += new System.EventHandler(this.modalResultsToolStripMenuItem_Click);
             // 
-            // fieldImaginaryPlotToolStripMenuItem
+            // dModalSolveToolStripMenuItem
             // 
-            this.fieldImaginaryPlotToolStripMenuItem.Name = "fieldImaginaryPlotToolStripMenuItem";
-            this.fieldImaginaryPlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.fieldImaginaryPlotToolStripMenuItem.Text = "Field imaginary plot";
-            this.fieldImaginaryPlotToolStripMenuItem.Click += new System.EventHandler(this.fieldImaginaryPlotToolStripMenuItem_Click);
+            this.dModalSolveToolStripMenuItem.Name = "dModalSolveToolStripMenuItem";
+            this.dModalSolveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.dModalSolveToolStripMenuItem.Text = "2D Modal solve";
+            this.dModalSolveToolStripMenuItem.Click += new System.EventHandler(this.dModalSolveToolStripMenuItem_Click);
             // 
-            // fieldMagnitudePlotToolStripMenuItem
+            // nextModeToolStripMenuItem
             // 
-            this.fieldMagnitudePlotToolStripMenuItem.Name = "fieldMagnitudePlotToolStripMenuItem";
-            this.fieldMagnitudePlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.fieldMagnitudePlotToolStripMenuItem.Text = "Field magnitude plot";
-            this.fieldMagnitudePlotToolStripMenuItem.Click += new System.EventHandler(this.fieldMagnitudePlotToolStripMenuItem_Click);
+            this.nextModeToolStripMenuItem.Name = "nextModeToolStripMenuItem";
+            this.nextModeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.nextModeToolStripMenuItem.Text = "Next Mode";
+            this.nextModeToolStripMenuItem.Click += new System.EventHandler(this.nextModeToolStripMenuItem_Click);
             // 
-            // fieldPhasePlotToolStripMenuItem
+            // previousModeToolStripMenuItem
             // 
-            this.fieldPhasePlotToolStripMenuItem.Name = "fieldPhasePlotToolStripMenuItem";
-            this.fieldPhasePlotToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.fieldPhasePlotToolStripMenuItem.Text = "Field phase plot";
-            this.fieldPhasePlotToolStripMenuItem.Click += new System.EventHandler(this.fieldPhasePlotToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(181, 6);
-            // 
-            // hideResultsToolStripMenuItem
-            // 
-            this.hideResultsToolStripMenuItem.Name = "hideResultsToolStripMenuItem";
-            this.hideResultsToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.hideResultsToolStripMenuItem.Text = "Hide results";
-            this.hideResultsToolStripMenuItem.Click += new System.EventHandler(this.hideResultsToolStripMenuItem_Click);
+            this.previousModeToolStripMenuItem.Name = "previousModeToolStripMenuItem";
+            this.previousModeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.previousModeToolStripMenuItem.Text = "Previous Mode";
+            this.previousModeToolStripMenuItem.Click += new System.EventHandler(this.previousModeToolStripMenuItem_Click);
             // 
             // main_frm
             // 
@@ -326,6 +363,10 @@
         private System.Windows.Forms.ToolStripMenuItem fieldPhasePlotToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem hideResultsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem dModalSolveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem modalResultsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem nextModeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem previousModeToolStripMenuItem;
     }
 }
 

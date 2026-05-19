@@ -53,7 +53,7 @@ int main()
 	int32_t spectral_order;
 	infile.read(reinterpret_cast<char*>(&spectral_order), 4);
 
-	helmholtz_2dsystem.spectral_order = spectral_order;
+	helmholtz_2dsystem.spectral_order = 3; // spectral_order;
 
 
 	// ---------- Nodes ----------

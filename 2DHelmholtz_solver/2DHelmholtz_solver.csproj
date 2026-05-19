@@ -105,6 +105,12 @@
     <Compile Include="other_windows\option_frm.Designer.cs">
       <DependentUpon>option_frm.cs</DependentUpon>
     </Compile>
+    <Compile Include="other_windows\modalsolver_frm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="other_windows\modalsolver_frm.Designer.cs">
+      <DependentUpon>modalsolver_frm.cs</DependentUpon>
+    </Compile>
     <Compile Include="other_windows\solver_frm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -169,6 +175,9 @@
     <EmbeddedResource Include="other_windows\option_frm.resx">
       <DependentUpon>option_frm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="other_windows\modalsolver_frm.resx">
+      <DependentUpon>modalsolver_frm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="other_windows\solver_frm.resx">
       <DependentUpon>solver_frm.cs</DependentUpon>
     </EmbeddedResource>
@@ -219,6 +228,15 @@
     <None Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP\x64\Release\main.obj" />
     <None Include="src\solver\helmholtz_solverCPP\x64\Release\helmholtz_solverCPP.exp" />
     <None Include="src\solver\helmholtz_solverCPP\x64\Release\helmholtz_solverCPP.lib" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\modalspectral_solverCPP.vcxproj" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\MinvKOp.obj" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspe.5e388ece.tlog\CL.command.1.tlog" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspe.5e388ece.tlog\CL.read.1.tlog" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspe.5e388ece.tlog\CL.write.1.tlog" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspe.5e388ece.tlog\modalspectral_solverCPP.lastbuildstate" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspe.5e388ece.tlog\unsuccessfulbuild" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspectral_solverCPP.log" />
+    <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\vc145.idb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -244,12 +262,37 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="src\solver\helmholtz_solverCPP\x64\Release\helmholtz_solverCPP.pdb" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP.slnx" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\main.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\modalspectral_solverCPP.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\modalspectral_solverCPP.vcxproj.filters" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\modalspectral_solverCPP.vcxproj.user" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\solver\MinvKOp.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\solver\MinvKOp.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\solver\modal_spectral_solver.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\solver\modal_spectral_solver.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\fekete_nodes_table.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\fekete_nodes_table.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\gll_utility.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\gll_utility.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\spectral_mesh2d.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\spectral_mesh2d.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\unique_id_control.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\spectral_elements\unique_id_control.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\system_store\helmholtz_system_store.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\system_store\helmholtz_system_store.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\system_store\stopwatch_events.cpp" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\system_store\stopwatch_events.h" />
+    <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\vc145.pdb" />
     <None Include="Resources\automorphism_view_polar_2.png" />
     <Content Include="src\global_variables\Junk_code.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP\solver\" />
     <Folder Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP\system_store\" />
+    <Folder Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\microsoft\STL\" />
+    <Folder Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspe.5e388ece_MD.tlog\" />
+    <Folder Include="src\solver\modalspectral_solverCPP\x64\Debug\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

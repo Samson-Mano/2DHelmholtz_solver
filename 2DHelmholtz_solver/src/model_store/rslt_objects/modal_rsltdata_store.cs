@@ -27,6 +27,8 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public List<rsltedge_store> rslt_edges;
         public List<rslttri_store> rslt_tris;
 
+        public List<double> natural_Frequencies;
+
         public meshdata_store modal_rsltmeshdata;
 
         public bool isResultSet = false;

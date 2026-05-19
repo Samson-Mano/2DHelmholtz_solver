@@ -146,7 +146,7 @@ namespace _2DHelmholtz_solver.global_variables
         public static bool is_paint_umagnitude = false;
         public static bool is_paint_uphase = false;
 
-
+        public static bool is_paint_modalresults = false;
 
         public static int RoundOff(this int i)
         {

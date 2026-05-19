@@ -8,7 +8,7 @@ helmholtz2d_spectral_solver::helmholtz2d_spectral_solver()
 
 
 void helmholtz2d_spectral_solver::init(helmholtz_system_store* helmholtz_2dsystem_ptr,
-	const char* output_file,
+	const char* output_file_char,
 	stopwatch_events* stopwatch,
 	void(*callback)(const char*))
 {
@@ -23,7 +23,11 @@ void helmholtz2d_spectral_solver::init(helmholtz_system_store* helmholtz_2dsyste
 	this->m_callback = callback;
 
 	// Store the output file name
-	this->output_file = output_file;
+		// CRITICAL: Copy the string to std::string for permanent storage
+	this->output_file = std::string(output_file_char);
+
+	std::string msg = "Output file set to: " + this->output_file;
+	report(msg.c_str());
 
 }
 
@@ -339,10 +343,6 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_type)
 {
-	// open the bin file
-	bin_file.open(output_file, std::ios::binary);
-
-
 
 	// Matrix formation end
 	// Solve the helmholtz equation
@@ -362,7 +362,7 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 
 	}
 
-
+	
 	// post - process
 	this->u_complex = u;
 	this->u_real.resize(numDOF);
@@ -370,18 +370,18 @@ void helmholtz2d_spectral_solver::solve_helmholtz_matrices(const int& solver_typ
 
 	for (int i = 0; i < numDOF; i++)
 	{
-		u_real(i) = std::real(u(i));
-		u_imag(i) = std::imag(u(i));
+		double real_part = std::real(u(i));
+		double imag_part = std::imag(u(i));
+
+		u_real(i) = real_part;
+		u_imag(i) = imag_part;
+
 	}
 
 
 	// Write the results
 	store_results();
 
-
-	// close the bin file
-	bin_file.close();
-	//
 }
 
 
@@ -1377,6 +1377,16 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_lagrange_method(Eigen::Vec
 void helmholtz2d_spectral_solver::store_results()
 {
 
+	std::ofstream bin_file(this->output_file.c_str(), std::ios::binary);
+
+	if (!bin_file.is_open())
+	{
+		std::string error_msg = "Failed to open output file: " + this->output_file;
+		report(error_msg.c_str());
+		throw std::runtime_error(error_msg);
+	}
+
+
 	int32_t node_points_count = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
 	bin_file.write(reinterpret_cast<const char*>(&node_points_count), sizeof(int32_t));
 
@@ -1435,6 +1445,22 @@ void helmholtz2d_spectral_solver::store_results()
 	}
 
 	report("Results: Triangles written");
+
+
+	bin_file.flush();
+
+	auto file_size = bin_file.tellp();  // tellp() for output file (tellg() is for input)
+
+	bin_file.close();
+
+	// Report Success and file size
+	std::string success_msg = "Results stored successfully: " +
+		this->output_file +
+		" (" + std::to_string(node_points_count) + " nodes, " +
+		std::to_string(triangles_count) + " triangles)";
+	report(success_msg.c_str());
+
+
 
 	//
 }

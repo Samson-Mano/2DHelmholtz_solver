@@ -44,7 +44,7 @@ public:
 	~helmholtz2d_spectral_solver() = default;
 
 	void init(helmholtz_system_store* helmholtz_2dsystem_ptr,
-		const char* output_file,
+		const char* output_file_char,
 		stopwatch_events* stopwatch,
 		void(*callback)(const char*));
 
@@ -60,8 +60,7 @@ private:
 
 	stopwatch_events* m_stopwatch;
 
-	const char* output_file = nullptr;
-	std::ofstream bin_file;
+	std::string output_file;
 
 
 	int numDOF = 0;

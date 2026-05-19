@@ -136,8 +136,8 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
             else
             {
                 // Right mouse button release
-                isCtrlDown = false;
-                isShiftDown = false;
+                // isCtrlDown = false;
+                // isShiftDown = false;
 
                 // Right mouse button release
                 if (is_pan == true)
