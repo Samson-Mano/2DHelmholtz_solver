@@ -52,16 +52,8 @@ public:
 	void solve_helmholtz_matrices(const int& solver_type);
 
 
-
-
-private:
-	helmholtz_system_store* helmholtz_2dsystem_ptr;
+	// Temporarily made public for debugging
 	spectral_mesh2d spec_mesh2d;
-
-	stopwatch_events* m_stopwatch;
-
-	std::string output_file;
-
 
 	int numDOF = 0;
 	std::unordered_map<int, int> nodeid_map; // Node ID map
@@ -76,6 +68,22 @@ private:
 	Eigen::VectorXd global_source_vector; // Global source Vector
 
 	Eigen::VectorXi global_dirichlet_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
+
+
+	Eigen::SparseMatrix<std::complex<double>> K_ff;
+	Eigen::VectorXcd F_f; 
+
+	Eigen::SparseMatrix<std::complex<double>> K_aug;
+	Eigen::VectorXcd F_aug;
+
+private:
+	helmholtz_system_store* helmholtz_2dsystem_ptr;
+	
+	stopwatch_events* m_stopwatch;
+
+	std::string output_file;
+
+
 
 	// Solution
 	Eigen::VectorXcd u_complex;

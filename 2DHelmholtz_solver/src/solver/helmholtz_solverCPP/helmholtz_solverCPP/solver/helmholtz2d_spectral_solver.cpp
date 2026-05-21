@@ -1228,8 +1228,8 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_elimination_method(Eigen::
 
 
 	// Main system
-	Eigen::SparseMatrix<std::complex<double>> K_ff(free_dofs.size(), free_dofs.size());	// Main system
-	K_ff.setFromTriplets(triplets_ff.begin(), triplets_ff.end());
+	this->K_ff.resize(free_dofs.size(), free_dofs.size());	// Main system
+	this->K_ff.setFromTriplets(triplets_ff.begin(), triplets_ff.end());
 
 
 
@@ -1255,11 +1255,11 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_elimination_method(Eigen::
 	}
 
 
-	Eigen::VectorXcd F_f(free_dofs.size()); // Source + Deriv Field
+	this->F_f.resize(free_dofs.size()); // Source + Deriv Field
 
 	for (int i = 0; i < free_dofs.size(); ++i)
 	{
-		F_f(i) = F(free_dofs[i]);
+		this->F_f(i) = F(free_dofs[i]);
 	}
 
 
@@ -1335,12 +1335,14 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_lagrange_method(Eigen::Vec
 		triplets_K.emplace_back(dof, N + j, 1.0);
 	}
 
-	Eigen::SparseMatrix<std::complex<double>> K_aug(N + m, N + m);
-	K_aug.setFromTriplets(triplets_K.begin(), triplets_K.end());
+	this->K_aug.resize(N + m, N + m);
+	this->K_aug.setFromTriplets(triplets_K.begin(), triplets_K.end());
 
 
 	// Buld the Augmented F matrix
-	Eigen::VectorXcd F_aug = Eigen::VectorXcd::Zero(N + m);
+	this->F_aug.resize(N + m);
+	this->F_aug.setZero();
+	// Eigen::VectorXcd F_aug = Eigen::VectorXcd::Zero(N + m);
 
 	Eigen::VectorXcd F = global_source_vector.cast<std::complex<double>>()
 		+ global_normalderivfield_vector.cast<std::complex<double>>();

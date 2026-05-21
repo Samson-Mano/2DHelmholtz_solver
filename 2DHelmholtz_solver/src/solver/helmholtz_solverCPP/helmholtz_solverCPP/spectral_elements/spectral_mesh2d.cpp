@@ -152,6 +152,35 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 			std::vector<int> edge_internal_node_ids; // To store internal node IDs for this edge
 
+			bool edge_isboundarynode = false;
+			bool edge_isFieldBC = false;
+			double edge_startnode_fieldvalue = 0.0;
+			double edge_endnode_fieldvalue = 0.0;
+
+			double edge_startnode_sourcevalue = 0.0;
+			double edge_endnode_sourcevalue = 0.0;
+
+			if (start_node.isboundarynode == true && end_node.isboundarynode == true)
+			{
+				edge_isboundarynode = true;
+
+				// If both start and end nodes are boundary nodes 
+				// then distribute the boundary condition to the edge nodes
+				if (start_node.isFieldBC == true && end_node.isFieldBC == true)
+				{
+					edge_isFieldBC = true;
+
+					// Get the field value
+					edge_startnode_fieldvalue = start_node.fieldvalue;
+					edge_endnode_fieldvalue = end_node.fieldvalue;
+				}
+
+				// Get the source value
+				edge_startnode_sourcevalue = start_node.sourcevalue;
+				edge_endnode_sourcevalue = end_node.sourcevalue;
+			}
+
+
 			// Create edge nodes based on the spectral order
 			for (int j = 1; j < spectral_order; j++)
 			{
@@ -165,8 +194,27 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double y = 0.5 * ((1 - xi) * start_node.y_coord +
 					(1 + xi) * end_node.y_coord);
 
+				// Linear interpolation for field value (if edge has field BC)
+				double edge_node_fieldvalue = 0.0;
+				double edge_node_sourcevalue = 0.0;
+
+				if (edge_isboundarynode == true)
+				{
+					if (edge_isFieldBC == true)
+					{
+						// Linear interpolation between start and end field values
+						edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
+							(1 + xi) * edge_endnode_fieldvalue);
+					}
+
+					// Linear interpolation for source value
+					edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
+						(1 + xi) * edge_endnode_sourcevalue);
+				}
+
+
 				create_spectral_nodes(node_id,
-					x, y, false, false, 0.0, 0.0); // Create edge node and store it
+					x, y, edge_isboundarynode, edge_isFieldBC, edge_node_fieldvalue, edge_node_sourcevalue); // Create edge node and store it
 
 				edge_internal_node_ids.push_back(node_id); // Add to this edge's internal node IDs
 				edge_node_ids[i].push_back(node_id); // Add to edge node IDs
@@ -400,6 +448,35 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 			std::vector<int> edge_internal_node_ids; // To store internal node IDs for this edge
 
+			bool edge_isboundarynode = false;
+			bool edge_isFieldBC = false;
+			double edge_startnode_fieldvalue= 0.0;
+			double edge_endnode_fieldvalue = 0.0;
+
+			double edge_startnode_sourcevalue = 0.0;
+			double edge_endnode_sourcevalue = 0.0;
+
+			if (start_node.isboundarynode == true && end_node.isboundarynode == true)
+			{
+				edge_isboundarynode = true;
+
+				// If both start and end nodes are boundary nodes 
+				// then distribute the boundary condition to the edge nodes
+				if (start_node.isFieldBC == true && end_node.isFieldBC == true)
+				{
+					edge_isFieldBC = true;
+					
+					// Get the field value
+					edge_startnode_fieldvalue = start_node.fieldvalue;
+					edge_endnode_fieldvalue = end_node.fieldvalue;
+				}
+
+				// Get the source value
+				edge_startnode_sourcevalue = start_node.sourcevalue;
+				edge_endnode_sourcevalue = end_node.sourcevalue;
+			}
+
+
 			// Create edge nodes based on the spectral order
 			for (int j = 1; j < spectral_order; j++)
 			{
@@ -413,8 +490,27 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double y = 0.5 * ((1 - xi) * start_node.y_coord +
 					(1 + xi) * end_node.y_coord);
 
+				// Linear interpolation for field value (if edge has field BC)
+				double edge_node_fieldvalue = 0.0;
+				double edge_node_sourcevalue = 0.0;
+
+				if (edge_isboundarynode == true)
+				{
+					if (edge_isFieldBC == true)
+					{
+						// Linear interpolation between start and end field values
+						edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
+							(1 + xi) * edge_endnode_fieldvalue);
+					}
+
+					// Linear interpolation for source value
+					edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
+						(1 + xi) * edge_endnode_sourcevalue);
+				}
+
+
 				create_spectral_nodes(node_id,
-					x, y, false, false, 0.0, 0.0); // Create edge node and store it
+					x, y, edge_isboundarynode, edge_isFieldBC, edge_node_fieldvalue, edge_node_sourcevalue); // Create edge node and store it
 
 				edge_internal_node_ids.push_back(node_id); // Add to this edge's internal node IDs
 				edge_node_ids[i].push_back(node_id); // Add to edge node IDs
