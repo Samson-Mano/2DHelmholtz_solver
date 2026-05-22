@@ -1,0 +1,7 @@
+=== Matrix Debug Summary ===
+Global system matrix: 16x16, non-zeros: 256
+Global field vector size: 16
+Dirichlet BC flags size: 16
+K_ff matrix: 12x12
+F_f vector size: 12
+Number of spectral nodes: 16

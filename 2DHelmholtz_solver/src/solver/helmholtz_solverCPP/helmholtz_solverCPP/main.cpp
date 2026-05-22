@@ -261,7 +261,7 @@ int main()
 	int32_t spectral_order;
 	infile.read(reinterpret_cast<char*>(&spectral_order), 4);
 
-	helmholtz_2dsystem.spectral_order = 3; // spectral_order;
+	helmholtz_2dsystem.spectral_order = 4; // spectral_order;
 
 
 	// ---------- Nodes ----------
@@ -561,14 +561,15 @@ int main()
 
 	std::cout << "Spectral mesh and global matrices complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
-	
-	print_matrices(helmholtz_spec_solver, stopwatch);
-
 
 	// Perform solve
 	helmholtz_spec_solver.solve_helmholtz_matrices(solver_type);
 
 	std::cout << "Solve complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
+
+
+	print_matrices(helmholtz_spec_solver, stopwatch);
+
 
 	//_________________________________________________________
 	// Close the files
