@@ -32,6 +32,7 @@ public:
 
 	static std::vector<double> get_gll_weights(int spectral_order, const std::vector<double>& gll_points_xi);
 
+
 	static std::vector<spectral_point> get_triangle_quadrature(int spectral_order);
 
 	static std::vector<spectral_point> get_quadrilateral_quadrature(int spectral_order);
@@ -76,6 +77,8 @@ private:
 	static std::vector<double> get_gauss_points(int n);
 
 	static std::vector<double> get_gauss_weights(int n);
+
+	static std::vector<spectral_point> get_unsorted_triangle_quadrature(int spectral_order);
 
 	static void gauss_legendre(int n, std::vector<double>& points, std::vector<double>& weights);
 

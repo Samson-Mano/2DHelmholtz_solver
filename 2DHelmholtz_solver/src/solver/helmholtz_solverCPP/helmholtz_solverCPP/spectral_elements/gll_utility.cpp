@@ -257,9 +257,25 @@ std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int 
 }
 
 
-
-
 std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_order)
+{
+	auto quadrature_points = get_unsorted_triangle_quadrature(spectral_order);  // Your existing function
+
+	// Sort lexicographically for consistency
+	std::sort(quadrature_points.begin(), quadrature_points.end(),
+		[](const spectral_point& a, const spectral_point& b) {
+			if (a.xi != b.xi) return a.xi < b.xi;
+			return a.eta < b.eta;
+		});
+
+	return quadrature_points;
+
+	//
+}
+
+
+
+std::vector<spectral_point> gll_utility::get_unsorted_triangle_quadrature(int spectral_order)
 {
 
 	// Dunavant Quadrature for Area Coordinate Triangle
@@ -423,6 +439,7 @@ std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_or
 			{	0.781036849029926,	0.109481575485037,	0.045321059435528	}
 		};
 	}
+
 
 	return quadrature_points;
 	//

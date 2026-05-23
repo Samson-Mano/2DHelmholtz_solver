@@ -86,10 +86,13 @@ struct spectral_trielement_store
 
 	std::vector<int> internal_nodes; // Internal nodes of the triangle element (for higher-order spectral elements)
 
+	// lexi ordered nodes
+	std::vector<int> lexi_ordered_node_ids; // lexicographic pattern based on barycentric coordinates
+
 	int materialid = 0;
 
 	// Store the edge ids
-	int edge_ids[3];
+	int edge_ids[3] = { 0, 0, 0 };
 
 	// Store the renderer triangle ID
 	std::vector<renderer_triangle> renderer_tri_elements;
@@ -107,10 +110,13 @@ struct spectral_quadelement_store
 
 	std::vector<int> internal_nodes; // Internal nodes of the quadrialteral element (for higher-order spectral elements)
 
+	// Row ordered nodes
+	std::vector<int> row_ordered_node_ids; // Row ordered node ids
+
 	int materialid = 0;
 
 	// Store the edge ids
-	int edge_ids[4];
+	int edge_ids[4] = {0, 0, 0, 0};
 
 	// Store the renderer triangle ID
 	std::vector<renderer_triangle> renderer_tri_elements;

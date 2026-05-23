@@ -8,11 +8,11 @@ import random
 def populate_tsem(order):
     lib = TSEMLibrary(order)
 
-    # 1. Corners (Barycentric: (0,0,1), (1,0,1), (0,1,1))
+    # 1. Corners (counter-clockwise) (Barycentric: (1,0,0), (0,1,0), (0,0,1))
     lib.corners = [
-        TSEMPoint(0.0, 0.0, 1.0), # V1
-        TSEMPoint(1.0, 0.0, 1.0), # V2
-        TSEMPoint(0.0, 1.0, 1.0)  # V3
+        TSEMPoint(1.0, 0.0, 1.0), # V1: (L1=1, L2=0, L3=0)
+        TSEMPoint(0.0, 1.0, 1.0), # V2: (L1=0, L2=1, L3=0)
+        TSEMPoint(0.0, 0.0, 1.0)  # V3: (L1=0, L2=0, L3=1)
     ]
 
     if order < 1: return lib
@@ -40,16 +40,24 @@ def populate_tsem(order):
     # M.G. Blyth and C. Pozrikidis
 
     if order >= 3:
-        for i in range(1, order):
+        for i in range(1, order - 1):
             for j in range(1, order - i):
                 k = order - i - j
+
+                # vi = (gll[i] + 1)*0.5
+                # vj = (gll[j] + 1)*0.5
+                # vk = (gll[k] + 1)*0.5
+
+                # xi  = (1/3.0)*(1 + 2*vj - vi - vk)
+                # eta = (1/3.0)*(1 + 2*vk - vi - vj)
 
                 vi = (gll[i] + 1)*0.5
                 vj = (gll[j] + 1)*0.5
                 vk = (gll[k] + 1)*0.5
 
-                xi  = (1/3.0)*(1 + 2*vj - vi - vk)
-                eta = (1/3.0)*(1 + 2*vk - vi - vj)
+                xi  = (1/3.0)*(1 + 2*vj - vk - vi)
+                eta = (1/3.0)*(1 + 2*vi - vk - vj)
+
 
                 lib.interior.append(TSEMPoint(xi, eta, 1.0))
 
@@ -81,9 +89,9 @@ def plot_random_triangle(lib):
         for j in range(0, order-1):  # skip corners if needed
             xi   = lib.edges[i][j].xi
             eta  = lib.edges[i][j].eta
-            l1   = 1.0 - xi - eta
-            l2   = xi
-            l3   = eta
+            l1   = xi
+            l2   = eta
+            l3   = 1.0 - xi - eta
 
             x = l1*x1 + l2*x2 + l3*x3
             y = l1*y1 + l2*y2 + l3*y3
@@ -95,8 +103,8 @@ def plot_random_triangle(lib):
         xi = lib.interior[i].xi
         eta= lib.interior[i].eta
         l3   = 1.0 - xi - eta
-        l2   = xi
-        l1   = eta
+        l2   = eta
+        l1   = xi
 
         x = l1*x1 + l2*x2 + l3*x3
         y = l1*y1 + l2*y2 + l3*y3
@@ -109,12 +117,51 @@ def plot_random_triangle(lib):
 
 
 
+def print_node_ordering(order):
+    """Print the node ordering for verification with correct indices"""
+    lib = populate_tsem(order)
+    
+    print(f"\nNode ordering for order {order} (total nodes: {3 + 3*(order-1) + (order-2)*(order-1)//2}):")
+    print("="*60)
+    
+    # Print corners
+    print("\nCorners (3 nodes):")
+    for i, corner in enumerate(lib.corners):
+        L3 = 1.0 - corner.xi - corner.eta
+        print(f"  Node {i}: (L1={corner.xi:.3f}, L2={corner.eta:.3f}, L3={L3:.3f}) - Corner {i}")
+    
+    node_idx = 3
+    
+    # Print edges
+    for edge_idx in range(3):
+        print(f"\nEdge {edge_idx} ({len(lib.edges[edge_idx])} nodes):")
+        for i, point in enumerate(lib.edges[edge_idx]):
+            L3 = 1.0 - point.xi - point.eta
+            print(f"  Node {node_idx}: (L1={point.xi:.3f}, L2={point.eta:.3f}, L3={L3:.3f}) - Edge {edge_idx}, point {i}")
+            node_idx += 1
+    
+    # Print interior
+    if lib.interior:
+        print(f"\nInterior ({len(lib.interior)} nodes):")
+        for i, point in enumerate(lib.interior):
+            L3 = 1.0 - point.xi - point.eta
+            print(f"  Node {node_idx}: (L1={point.xi:.3f}, L2={point.eta:.3f}, L3={L3:.3f}) - Interior {i}")
+            node_idx += 1
+    
+    print(f"\nTotal nodes accounted for: {node_idx}")
+    return lib
 
 
-lib = populate_tsem(4)
+
+
+
+
+lib = populate_tsem(6)
 # lib.plot_tsem_library()
 
 plot_random_triangle(lib)
+
+print_node_ordering(6)
 
 
 

@@ -102,26 +102,26 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 1: Create local node & node coordinate list
 			// Build local node list _______________________________________________
-			std::vector<int> elem_nodes;
+			std::vector<int> elem_nodes = tri_elm.lexi_ordered_node_ids;
 
-			for (int i = 0; i < 3; i++)
-			{
-				// Add the corner i (0, 1, 2)
-				elem_nodes.push_back(tri_elm.corner_nodes[i]);
+			//for (int i = 0; i < 3; i++)
+			//{
+			//	// Add the corner i (0, 1, 2)
+			//	elem_nodes.push_back(tri_elm.corner_nodes[i]);
 
-				// Then the edge i (0, 1, 2)
-				for (const auto& edge1_ndid : tri_elm.edge_node_ids[i])
-				{
-					elem_nodes.push_back(edge1_ndid);
-				}
-				//
-			}
+			//	// Then the edge i (0, 1, 2)
+			//	for (const auto& edge1_ndid : tri_elm.edge_node_ids[i])
+			//	{
+			//		elem_nodes.push_back(edge1_ndid);
+			//	}
+			//	//
+			//}
 
-			// internal nodes
-			for (int internal_ndid : tri_elm.internal_nodes)
-			{
-				elem_nodes.push_back(internal_ndid);
-			}
+			//// internal nodes
+			//for (int internal_ndid : tri_elm.internal_nodes)
+			//{
+			//	elem_nodes.push_back(internal_ndid);
+			//}
 
 
 			// Get node coordinates ________________________________________________
@@ -229,26 +229,26 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 1: Create local node & node coordinate list
 			// Build local node list _______________________________________________
-			std::vector<int> elem_nodes;
+			std::vector<int> elem_nodes = quad_elm.row_ordered_node_ids;
 
-			for (int i = 0; i < 4; i++)
-			{
-				// Add the corner i (0, 1, 2, 3)
-				elem_nodes.push_back(quad_elm.corner_nodes[i]);
+			//for (int i = 0; i < 4; i++)
+			//{
+			//	// Add the corner i (0, 1, 2, 3)
+			//	elem_nodes.push_back(quad_elm.corner_nodes[i]);
 
-				// Then the edge i (0, 1, 2, 3)
-				for (const auto& edge1_ndid : quad_elm.edge_node_ids[i])
-				{
-					elem_nodes.push_back(edge1_ndid);
-				}
-				//
-			}
+			//	// Then the edge i (0, 1, 2, 3)
+			//	for (const auto& edge1_ndid : quad_elm.edge_node_ids[i])
+			//	{
+			//		elem_nodes.push_back(edge1_ndid);
+			//	}
+			//	//
+			//}
 
-			// internal nodes
-			for (int internal_ndid : quad_elm.internal_nodes)
-			{
-				elem_nodes.push_back(internal_ndid);
-			}
+			//// internal nodes
+			//for (int internal_ndid : quad_elm.internal_nodes)
+			//{
+			//	elem_nodes.push_back(internal_ndid);
+			//}
 
 
 			// Get node coordinates ________________________________________________

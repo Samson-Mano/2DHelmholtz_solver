@@ -586,12 +586,12 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 				// Find the double xi and eta (local coordinates)
 				double xi = (1 / 3.0) * (1.0 + (2.0 * vj) - vi - vk);
-				double eta = (1 / 3.0) * (1.0 + (2.0 * vk) - vi - vj);
+				double eta = (1 / 3.0) * (1.0 + (2.0 * vi) - vk - vj);
 
 				// Converted to global coordinates
 				double l3 = 1.0 - xi - eta;
-				double l2 = xi;
-				double l1 = eta;
+				double l2 = eta;
+				double l1 = xi;
 
 				int node_id = node_id_control.get_unique_id();
 
@@ -736,6 +736,9 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 	// Layer count 
 	int layer_count = order + 1;
 
+	// Clear the row ordered nodes
+	spec_quad.row_ordered_node_ids.clear();
+
 
 	auto create_renderer_triangles = [this](const std::vector<int>& layer_0, const std::vector<int>& layer_1,
 		spectral_quadelement_store& spec_quad)
@@ -765,6 +768,11 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 
 				spec_quad.renderer_tri_elements.push_back(tri2);
 				this->renderer_element_triangles.push_back(tri2);
+			}
+
+			for (const auto& id : layer_0)
+			{
+				spec_quad.row_ordered_node_ids.push_back(id);
 			}
 			//
 		};
@@ -831,8 +839,17 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 
 	layer_1_nodes.push_back(spec_quad.corner_nodes[2]);
 
+
 	// Using layer_0 and layer 1 create the triangles
 	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_quad);
+
+
+	// Final layer for row ordered node ids
+	for (const auto& id : layer_1_nodes)
+	{
+		spec_quad.row_ordered_node_ids.push_back(id);
+	}
+
 	//
 }
 
@@ -935,6 +952,36 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 
 	// Using layer_0 and layer 1 create the triangles
 	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
+
+
+	//____________________________________________________________________________________________________________
+	// Create the node ordering
+	spec_tri.lexi_ordered_node_ids.clear();
+
+	// Corner nodes
+	spec_tri.lexi_ordered_node_ids.push_back(spec_tri.corner_nodes[0]);
+	spec_tri.lexi_ordered_node_ids.push_back(spec_tri.corner_nodes[1]);
+	spec_tri.lexi_ordered_node_ids.push_back(spec_tri.corner_nodes[2]);
+
+	// Edge nodes
+	for (int i = 0; i<3; i++)
+	{
+		for (const auto& edge_nd_id : spec_tri.edge_node_ids[i])
+		{
+
+			// edge nodes (Node 0 -> Node 1), (Node 1 -> Node 2), (Node 2 -> Node 3)
+			spec_tri.lexi_ordered_node_ids.push_back(edge_nd_id);
+		}
+	}
+
+	// Interior nodes
+	for (const auto& interior_nd_id : spec_tri.internal_nodes)
+	{
+		spec_tri.lexi_ordered_node_ids.push_back(interior_nd_id);
+	}
+
+
+
 	//
 }
 
