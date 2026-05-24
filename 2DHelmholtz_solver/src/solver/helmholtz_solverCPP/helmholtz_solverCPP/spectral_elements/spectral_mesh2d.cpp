@@ -26,6 +26,9 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 	// Generate spectral nodes, edges, and elements based on the linear mesh
 	this->spectral_order = linear_mesh.spectral_order; // Set the spectral order from the linear mesh
 
+	// Create the Local ID structure from spectral order
+	create_local_id_structure(this->spectral_order);
+
 
 	// Get the gll locations and gll weights for the given spectral order 
 	std::vector<double> gll_locations = gll_utility::get_gll_locations(this->spectral_order);
@@ -903,16 +906,16 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	// Set the first layer nodes
 	std::vector<int> layer_0_nodes;
 
-	layer_0_nodes.push_back(spec_tri.corner_nodes[0]);
+	layer_0_nodes.push_back(spec_tri.corner_nodes[2]);
 
-	for (const auto& edge0_id : spec_tri.edge_node_ids[0])
+	for (const auto& edge0_id : spec_tri.edge_node_ids[2])
 	{
 
-		// First edge nodes (Node 0 -> Node 1)
+		// First edge nodes (Node 2 -> Node 0)
 		layer_0_nodes.push_back(edge0_id);
 	}
 
-	layer_0_nodes.push_back(spec_tri.corner_nodes[1]);
+	layer_0_nodes.push_back(spec_tri.corner_nodes[0]);
 
 
 	int interior_node_index = 0;
@@ -924,8 +927,8 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	{
 		layer_1_nodes.clear();
 
-		// Start is edge node (Node 2 -> Node 0)
-		layer_1_nodes.push_back(spec_tri.edge_node_ids[2][order - i - 1]);
+		// Start is edge node (Node 1 -> Node 2)
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[1][order - i - 1]);
 
 		// Interior nodes layer 1
 		for (int j = 0; j < order - i - 1; j++)
@@ -935,8 +938,8 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 			interior_node_index++;
 		}
 
-		// End is edge node (Node 1 -> Node 2)
-		layer_1_nodes.push_back(spec_tri.edge_node_ids[1][i - 1]);
+		// End is edge node (Node 0 -> Node 1)
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[0][i - 1]);
 
 		// Using layer_0 and layer 1 create the triangles
 		create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
@@ -948,7 +951,7 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 
 	// Final layer is the final corner node
 	layer_1_nodes.clear();
-	layer_1_nodes.push_back(spec_tri.corner_nodes[2]);
+	layer_1_nodes.push_back(spec_tri.corner_nodes[1]);
 
 	// Using layer_0 and layer 1 create the triangles
 	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
@@ -1128,6 +1131,73 @@ void spectral_mesh2d::create_renderer_edges(std::unordered_set<int>& added_edges
 			renderer_edge_lines.push_back({ tri.n3, tri.n1 });
 	}
 	//
+}
+
+
+
+void spectral_mesh2d::create_local_id_structure(int order)
+{
+	
+	quad_element_id_structure.clear();
+	tri_element_id_structure.clear();
+
+
+	// Create the quadrilateral 
+	int idx = 0;
+	int n_edge_nodes = order - 1;
+	int n_internal = (order - 1) * (order - 1);
+
+	// === Bottom edge (corner 0 -> edge nodes -> corner 1) ===
+	// Corner 0
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+	
+	for (int i = 0; i < n_edge_nodes; i++)
+	{
+
+		// First edge nodes (Node 0 -> Node 1) // Edge 0
+		quad_element_id_structure.edge_node_ids[0].push_back(idx++);
+	}
+
+	// Corner 1
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+	
+
+	// === Internal rows (each row has edge nodes on left/right) ===
+	for (int row = 0; row < n_edge_nodes; row++)
+	{
+		// Left edge node (edge 3, from bottom to top)
+		// Start is edge 3 node (Node 3 -> Node 0)
+		quad_element_id_structure.edge_node_ids[3].push_back(idx++);
+
+		// Interior nodes in this row
+		for (int col = 0; col < n_edge_nodes; col++)
+		{
+			quad_element_id_structure.internal_nodes.push_back(idx++);
+		}
+
+		// Right edge node (edge 1, from bottom to top)
+		quad_element_id_structure.edge_node_ids[1].push_back(idx++);
+	}
+
+
+	// === Top edge (corner 2 -> edge nodes -> corner 3) ===
+	// Corner 2
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+
+	for (int j = 0; j < order - 1; j++)
+	{
+		// Note: Edge 2 nodes go from right to left or left to right?
+		// Third edge (edge[2]) nodes (Node 4 -> Node 3)
+		quad_element_id_structure.edge_node_ids[2].push_back(idx++);
+	}
+
+	// Corner 3
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+
+
+
+
+
 }
 
 

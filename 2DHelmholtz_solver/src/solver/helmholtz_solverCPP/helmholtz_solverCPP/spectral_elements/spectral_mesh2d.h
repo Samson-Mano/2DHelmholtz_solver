@@ -73,6 +73,58 @@ struct spectral_edge_store
 
 
 
+struct local_idx_structure
+{
+	// Local matrix index structure for a single element
+	std::vector<int> corner_nodes; // 4 corner nodes of the quadrilateral element
+
+	// edge_node_ids[0] for edge 1, edge_node_ids[1] for edge 2, edge_node_ids[2] for edge 3, edge_node_ids[3] for edge 4
+	std::vector<std::vector<int>> edge_node_ids;
+
+	std::vector<int> internal_nodes; // Internal nodes of the quadrialteral element (for higher-order spectral elements)
+
+	// Constructor to initialize with number of edges
+	explicit local_idx_structure(int num_edges) : edge_node_ids(num_edges) {}
+
+	void clear()
+	{
+		corner_nodes.clear();
+
+		for (auto& edge : edge_node_ids) 
+		{
+			edge.clear();
+		}
+
+		internal_nodes.clear();
+	}
+
+
+	// x --- @ --- @ --- x
+	// |                 |
+	// |                 |
+	// @     O     O     @
+	// |                 |
+	// |                 | 
+	// @     O     O     @
+	// |                 |
+	// |                 |
+	// x --- @ --- @ --- x
+
+
+	// x
+	// | \
+	// |   \
+	// @  0  @
+	// |       \
+	// |         \
+	// @   0  0    @
+	// |             \
+	// |               \
+	// x --- @ --- @ --- x
+
+};
+
+
 struct spectral_trielement_store
 {
 	int tri_id = 0;
@@ -145,6 +197,11 @@ public:
 	std::vector<renderer_triangle> renderer_element_triangles;
 
 
+	// Store the Local IDX for the single element
+	local_idx_structure quad_element_id_structure{4};
+	local_idx_structure tri_element_id_structure{3};
+
+
 	spectral_mesh2d();
 	~spectral_mesh2d() = default;
 
@@ -196,6 +253,8 @@ private:
 		const std::vector<int>& edge_ids,
 		const std::vector<renderer_triangle>& renderer_tri_elements);
 
+
+	void create_local_id_structure(int order);
 
 };
 
