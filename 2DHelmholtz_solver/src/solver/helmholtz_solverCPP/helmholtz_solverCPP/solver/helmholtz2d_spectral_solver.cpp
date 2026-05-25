@@ -336,7 +336,7 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 	// Set the global sparse matrix
 	global_system_matrix.setFromTriplets(triplets_system.begin(), triplets_system.end());
-
+	report("Global system matrix created");
 
 }
 
@@ -586,12 +586,33 @@ void helmholtz2d_spectral_solver::get_trielement_field_vector(const spectral_tri
 			// Dirichlet (field) BC contribution
 			double q_edge = edge.fieldvalue;  // field value
 
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			//for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			//{
+			//	int local_idx = (i * spec_mesh2d.spectral_order) + j;
+			//	dirichlet_vector(local_idx) = q_edge;
+			//	dirichlet_BC_flag(local_idx) = 1;
+			//}
+
+
+			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
+
+			dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
+
+			for (const int& j : spec_mesh2d.tri_element_id_structure.edge_node_ids[i])
 			{
-				int local_idx = (i * spec_mesh2d.spectral_order) + j;
+				local_idx = j;
+
 				dirichlet_vector(local_idx) = q_edge;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
+
+			local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[(i + 1) % 3];
+
+			dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
+
+
 			//
 		}
 		//
@@ -702,7 +723,8 @@ void helmholtz2d_spectral_solver::get_trielement_source_vector(const spectral_tr
 
 		if (nd.isboundarynode == true)
 		{
-			int local_idx = (i * spec_mesh2d.spectral_order);
+			// int local_idx = (i * spec_mesh2d.spectral_order);
+			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
 
 			if (nd.isFieldBC == true)
 			{
@@ -951,12 +973,31 @@ void helmholtz2d_spectral_solver::get_quadelement_field_vector(const spectral_qu
 			// Dirichlet (field) BC contribution
 			double q_edge = edge.fieldvalue;  // field value
 
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			//for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			//{
+			//	int local_idx = (i * spec_mesh2d.spectral_order) + j;
+			//	dirichlet_vector(local_idx) = q_edge;
+			//	dirichlet_BC_flag(local_idx) = 1;
+			//}
+			
+			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
+
+			dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
+
+			for (const int& j : spec_mesh2d.quad_element_id_structure.edge_node_ids[i])
 			{
-				int local_idx = (i * spec_mesh2d.spectral_order) + j;
+				local_idx = j;
+
 				dirichlet_vector(local_idx) = q_edge;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
+
+			local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[(i + 1)%4];
+
+			dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
+
 			//
 		}
 		//
@@ -1073,7 +1114,8 @@ void helmholtz2d_spectral_solver::get_quadelement_source_vector(const spectral_q
 
 		if (nd.isboundarynode == true)
 		{
-			int local_idx = (i * spec_mesh2d.spectral_order);
+			// int local_idx = (i * spec_mesh2d.spectral_order);
+			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
 
 			if (nd.isFieldBC == true)
 			{

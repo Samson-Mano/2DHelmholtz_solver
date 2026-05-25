@@ -157,9 +157,9 @@ def print_node_ordering(order):
 
 
 lib = populate_tsem(6)
-# lib.plot_tsem_library()
+lib.plot_tsem_library()
 
-plot_random_triangle(lib)
+# plot_random_triangle(lib)
 
 print_node_ordering(6)
 

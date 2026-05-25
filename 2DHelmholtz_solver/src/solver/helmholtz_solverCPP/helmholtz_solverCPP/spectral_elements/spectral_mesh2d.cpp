@@ -1142,7 +1142,7 @@ void spectral_mesh2d::create_local_id_structure(int order)
 	tri_element_id_structure.clear();
 
 
-	// Create the quadrilateral 
+	// Create the quadrilateral element ID structure
 	int idx = 0;
 	int n_edge_nodes = order - 1;
 	int n_internal = (order - 1) * (order - 1);
@@ -1196,8 +1196,35 @@ void spectral_mesh2d::create_local_id_structure(int order)
 
 
 
+	//__________________________________________________________________________________________________
+	//__________________________________________________________________________________________________
+	// Create the triangle element ID structure
+	idx = 0;
 
+	// Corner nodes
+	tri_element_id_structure.corner_nodes.push_back(idx++);
+	tri_element_id_structure.corner_nodes.push_back(idx++);
+	tri_element_id_structure.corner_nodes.push_back(idx++);
 
+	// Edge nodes
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < n_edge_nodes; j++)
+		{
+			// edge nodes (Node 0 -> Node 1), (Node 1 -> Node 2), (Node 2 -> Node 3)
+			tri_element_id_structure.edge_node_ids[i].push_back(idx++);
+		}
+	}
+
+	n_internal = (order - 2) * (order - 1) * 0.5;
+
+	// Interior nodes
+	for (int j = 0; j < n_internal; j++)
+	{
+		tri_element_id_structure.internal_nodes.push_back(idx++);
+	}
+
+	//
 }
 
 
