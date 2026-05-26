@@ -231,7 +231,7 @@ int main()
 	std::ifstream infile(input_file, std::ios::binary);
 	// std::ofstream outfile(output_file, std::ios::binary);
 
-	double frequency_value = 100.0;
+	double frequency_value = 20.0;
 	int solver_type = 0;
 
 	stopwatch_events stopwatch;
@@ -261,7 +261,7 @@ int main()
 	int32_t spectral_order;
 	infile.read(reinterpret_cast<char*>(&spectral_order), 4);
 
-	helmholtz_2dsystem.spectral_order = 6; // spectral_order;
+	helmholtz_2dsystem.spectral_order = 4; // spectral_order;
 
 
 	// ---------- Nodes ----------
@@ -395,7 +395,7 @@ int main()
 		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
 
 		// Scale wave number
-		wave_number = 0.001 * wave_number;
+		// wave_number = 0.001 * wave_number;
 
 		// Add material to the helmholtz system store
 		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_number);

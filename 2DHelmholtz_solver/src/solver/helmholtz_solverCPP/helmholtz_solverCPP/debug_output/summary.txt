@@ -1,7 +1,7 @@
 === Matrix Debug Summary ===
-Global system matrix: 28x28, non-zeros: 784
-Global field vector size: 28
-Dirichlet BC flags size: 28
-K_ff matrix: 26x26
-F_f vector size: 26
-Number of spectral nodes: 28
+Global system matrix: 15x15, non-zeros: 225
+Global field vector size: 15
+Dirichlet BC flags size: 15
+K_ff matrix: 15x15
+F_f vector size: 15
+Number of spectral nodes: 15

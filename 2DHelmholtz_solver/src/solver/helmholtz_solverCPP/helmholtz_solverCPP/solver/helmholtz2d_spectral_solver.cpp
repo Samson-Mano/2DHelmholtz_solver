@@ -231,26 +231,6 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			// Build local node list _______________________________________________
 			std::vector<int> elem_nodes = quad_elm.row_ordered_node_ids;
 
-			//for (int i = 0; i < 4; i++)
-			//{
-			//	// Add the corner i (0, 1, 2, 3)
-			//	elem_nodes.push_back(quad_elm.corner_nodes[i]);
-
-			//	// Then the edge i (0, 1, 2, 3)
-			//	for (const auto& edge1_ndid : quad_elm.edge_node_ids[i])
-			//	{
-			//		elem_nodes.push_back(edge1_ndid);
-			//	}
-			//	//
-			//}
-
-			//// internal nodes
-			//for (int internal_ndid : quad_elm.internal_nodes)
-			//{
-			//	elem_nodes.push_back(internal_ndid);
-			//}
-
-
 			// Get node coordinates ________________________________________________
 			std::vector<Eigen::Vector2d> elem_coords;
 
