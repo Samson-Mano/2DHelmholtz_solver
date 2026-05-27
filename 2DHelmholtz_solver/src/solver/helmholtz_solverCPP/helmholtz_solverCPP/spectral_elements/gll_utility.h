@@ -7,6 +7,8 @@
 #include <Eigen/Dense>
 #include <stdexcept>
 
+#include "triangle_duvant_rule/triangle_dunavant_rule.hpp"
+
 
 static struct spectral_point
 {
@@ -77,6 +79,11 @@ private:
 	static std::vector<double> get_gauss_points(int n);
 
 	static std::vector<double> get_gauss_weights(int n);
+
+
+	static int get_dunavant_rule_for_order(int spectral_order);
+
+	static std::vector<spectral_point> get_triangle_quadrature_manual(int spectral_order);
 
 	static std::vector<spectral_point> get_unsorted_triangle_quadrature(int spectral_order);
 

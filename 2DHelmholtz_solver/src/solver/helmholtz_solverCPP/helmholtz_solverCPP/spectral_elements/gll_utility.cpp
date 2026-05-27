@@ -116,14 +116,15 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 	corner_points.emplace_back(spectral_point{ 1.0, 0.0, 1.0 }); // Point 2
 	corner_points.emplace_back(spectral_point{0.0, 1.0, 1.0 }); // Point 3
 
+	// Add the corner
+	tri_spectral_points.emplace_back(spectral_point{ corner_points[0].xi, corner_points[0].eta, corner_points[0].weight });
+	tri_spectral_points.emplace_back(spectral_point{ corner_points[1].xi, corner_points[1].eta, corner_points[1].weight });
+	tri_spectral_points.emplace_back(spectral_point{ corner_points[2].xi, corner_points[2].eta, corner_points[2].weight });
+
 	for (int i = 0; i < 3; i++)
 	{
 		spectral_point v_start = corner_points[i];
 		spectral_point v_end = corner_points[(i + 1) % 3];
-
-
-		// Add the corner
-		tri_spectral_points.emplace_back(spectral_point{ v_start.xi, v_start.eta, v_start.weight });
 
 		// Add the edges
 		for (int j = 1; j < spectral_order; j++) // Exclude the end point -1 and 1
@@ -157,7 +158,7 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 				double vk = (gll_points[k] + 1.0) / 2.0;
 
 				double x_coord = (1.0 / 3.0) * (1.0 + (2.0 * vj) - vi - vk);
-				double y_coord = (1.0 / 3.0) * (1.0 - (2.0 * vk) - vi - vj);
+				double y_coord = (1.0 / 3.0) * (1.0 + (2.0 * vk) - vi - vj);
 
 				tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
 			}
@@ -258,6 +259,70 @@ std::vector<spectral_point> gll_utility::get_quadrilateral_spectral_element(int 
 
 
 std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_order)
+{
+	std::vector<spectral_point> quadrature_points;
+
+	// Map spectral order to Dunavant rule number
+	int rule = get_dunavant_rule_for_order(spectral_order);
+
+	// Get the number of quadrature points for this rule
+	int order_num = dunavant_order_num(rule);
+
+	// Allocate arrays for points and weights
+	// Note: xy array needs to be of size 2*order_num for x and y coordinates
+	std::vector<double> xy(2 * order_num);
+	std::vector<double> w(order_num);
+
+	// Call dunavant_rule
+	dunavant_rule(rule, order_num, xy.data(), w.data());
+
+	// Convert to spectral_point format
+	for (int i = 0; i < order_num; i++) 
+	{
+		double L1 = xy[2 * i];      // x coordinate (L1)
+		double L2 = xy[2 * i + 1];  // y coordinate (L2)
+		double L3 = 1.0 - L1 - L2; // L3 is determined
+
+		quadrature_points.push_back({ L1, L2, w[i] });
+	}
+
+	return quadrature_points;
+}
+
+
+int gll_utility::get_dunavant_rule_for_order(int spectral_order)
+{
+	// Minimum rule numbers needed for exact integration of polynomials of degree 2p
+	// where p = spectral_order
+	switch (spectral_order) 
+	{
+	case 1:  return 1;   // 1 point, degree 1
+	case 2:  return 2;   // 3 points, degree 2  
+	case 3:  return 3;   // 4 points, degree 3
+	case 4:  return 4;   // 6 points, degree 4
+	case 5:  return 5;   // 7 points, degree 5
+	case 6:  return 6;   // 12 points, degree 6
+	case 7:  return 7;   // 16 points, degree 7
+	case 8:  return 8;   // 19 points, degree 8
+	case 9:  return 9;   // 25 points, degree 9
+	case 10: return 10;  // 31 points, degree 10
+	case 11: return 11;  // 37 points, degree 11
+	case 12: return 12;  // 43 points, degree 12
+	case 13: return 13;  // 49 points, degree 13
+	case 14: return 14;  // 55 points, degree 14
+	case 15: return 15;  // 61 points, degree 15
+	case 16: return 16;  // 67 points, degree 16
+	case 17: return 17;  // 73 points, degree 17
+	case 18: return 18;  // 79 points, degree 18
+	case 19: return 19;  // 85 points, degree 19
+	case 20: return 20;  // 91 points, degree 20
+	default: return 10;  // Default to order 10 rule, 31 points, degree 10 
+	}
+	//
+}
+
+
+std::vector<spectral_point> gll_utility::get_triangle_quadrature_manual(int spectral_order)
 {
 	auto quadrature_points = get_unsorted_triangle_quadrature(spectral_order);  // Your existing function
 

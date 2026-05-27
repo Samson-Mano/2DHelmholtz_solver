@@ -45,6 +45,9 @@
     <ClCompile Include="solver\helmholtz2d_spectral_solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="spectral_elements\triangle_duvant_rule\triangle_dunavant_rule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system_store\helmholtz_system_store.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="solver\helmholtz2d_spectral_solver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spectral_elements\triangle_duvant_rule\triangle_dunavant_rule.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -145,7 +145,7 @@ def print_node_ordering(order):
         print(f"\nInterior ({len(lib.interior)} nodes):")
         for i, point in enumerate(lib.interior):
             L3 = 1.0 - point.xi - point.eta
-            print(f"  Node {node_idx}: (L1={point.xi:.3f}, L2={point.eta:.3f}, L3={L3:.3f}) - Interior {i}")
+            print(f"  Node {node_idx}: (L1={point.xi:.6f}, L2={point.eta:.6f}, L3={L3:.3f}) - Interior {i}")
             node_idx += 1
     
     print(f"\nTotal nodes accounted for: {node_idx}")
@@ -156,12 +156,12 @@ def print_node_ordering(order):
 
 
 
-lib = populate_tsem(6)
+lib = populate_tsem(4)
 lib.plot_tsem_library()
 
 # plot_random_triangle(lib)
 
-print_node_ordering(6)
+print_node_ordering(4)
 
 
 
