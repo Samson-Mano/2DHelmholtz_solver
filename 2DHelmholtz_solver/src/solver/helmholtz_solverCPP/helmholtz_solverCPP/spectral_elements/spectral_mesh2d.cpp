@@ -592,9 +592,9 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double eta = (1 / 3.0) * (1.0 + (2.0 * vi) - vk - vj);
 
 				// Converted to global coordinates
-				double l3 = 1.0 - xi - eta;
-				double l2 = eta;
-				double l1 = xi;
+				double l1 = 1.0 - xi - eta;
+				double l2 = xi;
+				double l3 = eta;
 
 				int node_id = node_id_control.get_unique_id();
 
@@ -906,16 +906,16 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	// Set the first layer nodes
 	std::vector<int> layer_0_nodes;
 
-	layer_0_nodes.push_back(spec_tri.corner_nodes[2]);
+	layer_0_nodes.push_back(spec_tri.corner_nodes[0]);
 
-	for (const auto& edge0_id : spec_tri.edge_node_ids[2])
+	for (const auto& edge0_id : spec_tri.edge_node_ids[0])
 	{
 
-		// First edge nodes (Node 2 -> Node 0)
+		// First edge nodes (Node 0 -> Node 1) [Edge 0]
 		layer_0_nodes.push_back(edge0_id);
 	}
 
-	layer_0_nodes.push_back(spec_tri.corner_nodes[0]);
+	layer_0_nodes.push_back(spec_tri.corner_nodes[1]);
 
 
 	int interior_node_index = 0;
@@ -927,8 +927,8 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	{
 		layer_1_nodes.clear();
 
-		// Start is edge node (Node 1 -> Node 2)
-		layer_1_nodes.push_back(spec_tri.edge_node_ids[1][order - i - 1]);
+		// Start is edge node (Node 2 -> Node 0) [Edge 2]
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[2][order - i - 1]);
 
 		// Interior nodes layer 1
 		for (int j = 0; j < order - i - 1; j++)
@@ -938,8 +938,8 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 			interior_node_index++;
 		}
 
-		// End is edge node (Node 0 -> Node 1)
-		layer_1_nodes.push_back(spec_tri.edge_node_ids[0][i - 1]);
+		// End is edge node (Node 1 -> Node 2) [Edge 1]
+		layer_1_nodes.push_back(spec_tri.edge_node_ids[1][i - 1]);
 
 		// Using layer_0 and layer 1 create the triangles
 		create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
@@ -951,7 +951,7 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 
 	// Final layer is the final corner node
 	layer_1_nodes.clear();
-	layer_1_nodes.push_back(spec_tri.corner_nodes[1]);
+	layer_1_nodes.push_back(spec_tri.corner_nodes[2]);
 
 	// Using layer_0 and layer 1 create the triangles
 	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);

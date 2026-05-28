@@ -1,0 +1,30 @@
+
+
+
+
+def create_inverse_vandermonde_matrix(spectral_order, reference_coords):
+    """Build Vandermonde matrix and compute its inverse"""
+    basis_terms = create_triangle_basis_terms(spectral_order)
+    nen = len(reference_coords)
+    
+    # Build Vandermonde matrix
+    V = np.zeros((nen, nen))
+    for i in range(nen):
+        xi, eta = reference_coords[i]
+        for j, (a, b) in enumerate(basis_terms):
+            V[i, j] = (xi ** a) * (eta ** b)
+    
+    # Compute inverse (using pseudo-inverse for stability)
+    invV = np.linalg.pinv(V)
+    
+    # Verify
+    print(f"Vandermonde condition number: {np.linalg.cond(V):.2e}")
+
+    return invV, V, basis_terms
+
+
+
+
+
+
+

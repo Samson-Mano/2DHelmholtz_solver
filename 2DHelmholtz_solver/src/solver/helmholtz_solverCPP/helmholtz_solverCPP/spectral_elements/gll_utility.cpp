@@ -114,7 +114,7 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 
 	corner_points.emplace_back(spectral_point{ 0.0, 0.0, 1.0 }); // Point 1
 	corner_points.emplace_back(spectral_point{ 1.0, 0.0, 1.0 }); // Point 2
-	corner_points.emplace_back(spectral_point{0.0, 1.0, 1.0 }); // Point 3
+	corner_points.emplace_back(spectral_point{ 0.0, 1.0, 1.0 }); // Point 3
 
 	// Add the corner
 	tri_spectral_points.emplace_back(spectral_point{ corner_points[0].xi, corner_points[0].eta, corner_points[0].weight });
@@ -157,8 +157,8 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 				double vj = (gll_points[j] + 1.0) / 2.0;
 				double vk = (gll_points[k] + 1.0) / 2.0;
 
-				double x_coord = (1.0 / 3.0) * (1.0 + (2.0 * vj) - vi - vk);
-				double y_coord = (1.0 / 3.0) * (1.0 + (2.0 * vk) - vi - vj);
+				double x_coord = (1.0 / 3.0) * (1.0 + (2.0 * vj) - vk - vi);
+				double y_coord = (1.0 / 3.0) * (1.0 + (2.0 * vi) - vk - vj);
 
 				tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
 			}
@@ -277,7 +277,7 @@ std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_or
 	dunavant_rule(rule, order_num, xy.data(), w.data());
 
 	// Convert to spectral_point format
-	for (int i = 0; i < order_num; i++) 
+	for (int i = 0; i < order_num; i++)
 	{
 		double L1 = xy[2 * i];      // x coordinate (L1)
 		double L2 = xy[2 * i + 1];  // y coordinate (L2)
@@ -294,7 +294,7 @@ int gll_utility::get_dunavant_rule_for_order(int spectral_order)
 {
 	// Minimum rule numbers needed for exact integration of polynomials of degree 2p
 	// where p = spectral_order
-	switch (spectral_order) 
+	switch (spectral_order)
 	{
 	case 1:  return 1;   // 1 point, degree 1
 	case 2:  return 2;   // 3 points, degree 2  
@@ -718,7 +718,7 @@ std::vector<double> gll_utility::get_gauss_weights(int n)
 
 
 
-void gll_utility::gauss_legendre(int n,	std::vector<double>& points, std::vector<double>& weights)
+void gll_utility::gauss_legendre(int n, std::vector<double>& points, std::vector<double>& weights)
 {
 	//if (n <= 0)
 	//	throw std::invalid_argument("Gauss order must be > 0");

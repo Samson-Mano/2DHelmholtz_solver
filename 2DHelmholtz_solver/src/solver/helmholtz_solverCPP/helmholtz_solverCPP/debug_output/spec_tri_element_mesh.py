@@ -35,9 +35,9 @@ node_coords = [
     (-1.7267316464601139, 6.5465367070797731),  # Node 10
     (-5.0, 0.0),  # Node 11
     (-8.2732683535398870, -6.5465367070797731),  # Node 12
-    (0.0, 1.0310244713865160),  # Node 13
-    (-3.2732683535398861, -5.5155122356932562),  # Node 14
-    (3.2732683535398861, -5.5155122356932562),  # Node 15
+    (-3.2732683535398861, -5.5155122356932562),  # Node 13
+    (3.2732683535398861, -5.5155122356932562),  # Node 14
+    (0.0, 1.0310244713865160),  # Node 15
 ]
 
 
@@ -55,9 +55,9 @@ reference_coords = [
     (0.0, 0.82732683535398865),  # Node 10
     (0.0, 0.5),  # Node 11
     (0.0, 0.17267316464601140),  # Node 12
-    (0.22422438821533711, 0.55155122356932573),    # Node 13
-    (0.22422438821533711, 0.2242243882153371),   # Node 14
-    (0.55155122356932573, 0.2242243882153371),   # Node 15
+    (0.22422438821533711, 0.2242243882153371),   # Node 13
+    (0.55155122356932573, 0.2242243882153371),   # Node 14
+    (0.22422438821533711, 0.55155122356932573)    # Node 15
 ]
 
 
@@ -77,7 +77,7 @@ triangle_quadrature_points = [
 
 
 nen = 15
-wave_number = 2.0943951023931926
+wave_number = 0.41887902047863856
 spectral_order = 4
 
 
@@ -92,24 +92,58 @@ def create_triangle_basis_terms(spectral_order):
     return basis_terms
 
 
-def create_inverse_vandermonde_matrix(spectral_order, reference_coords):
-    """Build Vandermonde matrix and compute its inverse"""
+
+from numpy.polynomial import legendre
+
+def dubiner_basis(L1, L2, a, b, L3):
+    """Dubiner orthogonal basis for triangle"""
+    # Koornwinder-Dubiner basis functions
+    # Order (a,b) where a+b <= p
+    
+    if a == 0 and b == 0:
+        return 1.0
+    
+    # Transform to square coordinates
+    x = 2.0 * L1 / (1.0 - L2 + 1e-15) - 1.0
+    y = 2.0 * L2 - 1.0
+    
+    # Jacobi polynomials
+    if a == 0:
+        P_a = 1.0
+    else:
+        P_a = legendre.legval(x, [0]*a + [1])  # Simplified - use proper Jacobi
+    
+    if b == 0:
+        P_b = 1.0
+    else:
+        P_b = legendre.legval(y, [0]*b + [1])
+    
+    # Weight factor
+    w = ((1.0 - y) / 2.0) ** a
+    
+    return P_a * P_b * w
+
+
+def compute_triangle_vandermonde_spectral(spectral_order, reference_coords):
+    """Build Vandermonde matrix using orthogonal basis for stability"""
     basis_terms = create_triangle_basis_terms(spectral_order)
     nen = len(reference_coords)
-    
-    # Build Vandermonde matrix
-    V = np.zeros((nen, nen))
-    for i in range(nen):
-        xi, eta = reference_coords[i]
-        for j, (a, b) in enumerate(basis_terms):
-            V[i, j] = (xi ** a) * (eta ** b)
-    
-    # Compute inverse (using pseudo-inverse for stability)
-    invV = np.linalg.pinv(V)
-    
-    # Verify
-    print(f"Vandermonde condition number: {np.linalg.cond(V):.2e}")
 
+    # Use Dubiner basis (orthogonal on triangle) for better conditioning
+    V = np.zeros((nen, nen))
+
+    for i in range(nen):
+        L1, L2 = reference_coords[i]
+        L3 = 1.0 - L1 - L2
+        
+        for j, (a, b) in enumerate(basis_terms):
+            # Dubiner basis functions
+            # P_n^{(\alpha,\beta)}(x) on triangle
+            V[i, j] = dubiner_basis(L1, L2, a, b, L3)
+    
+    # Compute inverse with pseudo-inverse for stability
+    invV = np.linalg.pinv(V, rcond=1e-12)
+    
     return invV, V, basis_terms
 
 
@@ -211,11 +245,78 @@ print("Triangle Spectral Element Assembly")
 print("="*60)
 
 # Create basis and inverse Vandermonde
-invV, V, basis_terms = create_inverse_vandermonde_matrix(spectral_order, reference_coords)
+invV, V, basis_terms = compute_triangle_vandermonde_spectral(spectral_order, reference_coords)
 
 # Assemble element matrices
 K, M, A = create_spectral_triangle_element(node_coords, triangle_quadrature_points, 
                                            invV, basis_terms, wave_number)
+
+
+
+def check_common_issues(node_coords, reference_coords, quadrature_points, invV, basis_terms):
+    """Check for common implementation issues"""
+    
+    print("\n" + "="*60)
+    print("COMMON ISSUES CHECK")
+    print("="*60)
+    
+    # 1. Check node ordering (should be counter-clockwise)
+    corners = node_coords[:3]
+    x = [c[0] for c in corners]
+    y = [c[1] for c in corners]
+    area = 0.5 * ((x[1]-x[0])*(y[2]-y[0]) - (x[2]-x[0])*(y[1]-y[0]))
+    print(f"\n1. Node ordering:")
+    print(f"   Signed area: {area:.6f}")
+    if area < 0:
+        print(f"   WARNING: Nodes are in clockwise order! Should be counter-clockwise.")
+        print(f"   FIX: Reverse node order or swap two corner nodes.")
+    
+    # 2. Check reference coordinates for interior nodes
+    print(f"\n2. Reference coordinates:")
+    for i, (L1, L2) in enumerate(reference_coords):
+        L3 = 1.0 - L1 - L2
+        if i >= 3:  # Skip corners
+            print(f"   Node {i}: L1={L1:.4f}, L2={L2:.4f}, L3={L3:.4f}")
+            if not (0 <= L1 <= 1 and 0 <= L2 <= 1 and 0 <= L3 <= 1):
+                print(f"     ERROR: Node {i} outside reference triangle!")
+    
+    # 3. Check inverse Vandermonde accuracy
+    print(f"\n3. Vandermonde matrix:")
+    nen = len(reference_coords)
+    V = np.zeros((nen, nen))
+    for i in range(nen):
+        xi, eta = reference_coords[i]
+        for j, (a, b) in enumerate(basis_terms):
+            V[i, j] = (xi ** a) * (eta ** b)
+    
+    cond_num = np.linalg.cond(V)
+    print(f"   Condition number: {cond_num:.2e}")
+    if cond_num > 1e10:
+        print(f"   WARNING: Ill-conditioned! Need to use orthogonal polynomials.")
+    
+    # 4. Check that sum of shape functions equals 1
+    print(f"\n4. Partition of unity test:")
+    test_points = [(0.2, 0.3), (0.5, 0.3), (0.3, 0.5)]
+    for L1, L2 in test_points:
+        N, _, _ = evaluate_shape_functions(L1, L2, invV, basis_terms)
+        sum_N = np.sum(N)
+        print(f"   At (L1={L1:.2f}, L2={L2:.2f}): sum(N) = {sum_N:.6f}")
+        if abs(sum_N - 1.0) > 1e-6:
+            print(f"     ERROR: Partition of unity violated!")
+    
+    # 5. Check that shape functions are non-negative in element interior
+    print(f"\n5. Positivity test:")
+    test_points = [(0.33, 0.33), (0.2, 0.2), (0.5, 0.3)]
+    for L1, L2 in test_points:
+        N, _, _ = evaluate_shape_functions(L1, L2, invV, basis_terms)
+        min_N = np.min(N)
+        print(f"   At (L1={L1:.2f}, L2={L2:.2f}): min(N) = {min_N:.6f}")
+        if min_N < -1e-6:
+            print(f"     WARNING: Negative shape function values!")
+
+# Run common issues check
+check_common_issues(node_coords, reference_coords, triangle_quadrature_points, invV, basis_terms)
+
 
 # Print results
 def print_matrix_stats(name, matrix, nen):
@@ -237,6 +338,8 @@ def print_matrix_stats(name, matrix, nen):
         if nen > 15:
             print(f"    ... (showing first 15x15)")
 
+print_matrix_stats("Inverse Vandermonde Matrix (V⁻¹)", invV, nen)
+print_matrix_stats("Vandermonde Matrix (V)", V, nen)
 print_matrix_stats("Stiffness Matrix (K)", K, nen)
 print_matrix_stats("Mass Matrix (M)", M, nen)
 print_matrix_stats("System Matrix (A = K - ω²M)", A, nen)
@@ -255,7 +358,7 @@ print(f"  system_matrix_python.txt")
 print(f"\nVerification:")
 print(f"  Stiffness positive definite: {np.all(np.linalg.eigvals(K) > 0)}")
 print(f"  Mass positive definite: {np.all(np.linalg.eigvals(M) > 0)}")
-
+print(f"  System matrix positive definite: {np.all(np.linalg.eigvals(A) > 0)}")
 
 
 
