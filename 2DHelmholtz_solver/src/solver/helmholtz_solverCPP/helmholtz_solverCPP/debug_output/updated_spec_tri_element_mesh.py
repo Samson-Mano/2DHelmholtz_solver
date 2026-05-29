@@ -121,6 +121,8 @@ dubiner_basis_terms = get_dubiner_basis_terms(spectral_order)
 V = build_vandermonde_dubiner(reference_coords, dubiner_basis_terms)
 invV = np.linalg.pinv(V, rcond=1e-12)
 
+print("Dubiner basis terms:")
+print(dubiner_basis_terms)
 
 
 # def dubiner_basis_derivatives(L1, L2, a, b):
@@ -164,6 +166,9 @@ def evaluate_shape_functions_dubiner(L1, L2, invV, dubiner_basis_terms):
     N = invV @ phi
     dN_dL1 = invV @ dphi_dL1
     dN_dL2 = invV @ dphi_dL2
+    
+
+    N =  N / np.sum(N)
 
     return N, dN_dL1, dN_dL2
 
@@ -184,6 +189,10 @@ def create_spectral_triangle_element(node_coords, quadrature_points,
     # Precompute constant Jacobian structure is NOT valid for curved elements,
     # but for linear triangle we can precompute nodal gradients per quad
 
+    for i, (L1, L2) in enumerate(reference_coords):
+        N, _, _ = evaluate_shape_functions_dubiner(L1, L2, invV, dubiner_basis_terms)
+        print(f"Node {i}:", N)
+
     for q in range(n_quad):
 
         L1, L2, weight = quadrature_points[q]
@@ -191,6 +200,11 @@ def create_spectral_triangle_element(node_coords, quadrature_points,
         N, dN_dL1, dN_dL2 = evaluate_shape_functions_dubiner(
             L1, L2, invV, dubiner_basis_terms
         )
+
+        print(f"\nQuadrature point {q+1}: L1={L1:.4f}, L2={L2:.4f}, weight={weight:.4f}")
+        print(f"Shape functions N: {N}")
+
+
 
         # Jacobian
         x = np.array([p[0] for p in node_coords])

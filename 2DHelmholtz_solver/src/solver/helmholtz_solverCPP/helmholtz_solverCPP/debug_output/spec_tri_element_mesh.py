@@ -41,6 +41,7 @@ node_coords = [
 ]
 
 
+
 # Triangle element reference coordinates (xi, eta) for the 15 nodes
 reference_coords = [
     (0.0, 0.0),  # Node 1
@@ -59,6 +60,7 @@ reference_coords = [
     (0.55155122356932573, 0.2242243882153371),   # Node 14
     (0.22422438821533711, 0.55155122356932573)    # Node 15
 ]
+
 
 
 
@@ -93,57 +95,24 @@ def create_triangle_basis_terms(spectral_order):
 
 
 
-from numpy.polynomial import legendre
-
-def dubiner_basis(L1, L2, a, b, L3):
-    """Dubiner orthogonal basis for triangle"""
-    # Koornwinder-Dubiner basis functions
-    # Order (a,b) where a+b <= p
-    
-    if a == 0 and b == 0:
-        return 1.0
-    
-    # Transform to square coordinates
-    x = 2.0 * L1 / (1.0 - L2 + 1e-15) - 1.0
-    y = 2.0 * L2 - 1.0
-    
-    # Jacobi polynomials
-    if a == 0:
-        P_a = 1.0
-    else:
-        P_a = legendre.legval(x, [0]*a + [1])  # Simplified - use proper Jacobi
-    
-    if b == 0:
-        P_b = 1.0
-    else:
-        P_b = legendre.legval(y, [0]*b + [1])
-    
-    # Weight factor
-    w = ((1.0 - y) / 2.0) ** a
-    
-    return P_a * P_b * w
-
-
-def compute_triangle_vandermonde_spectral(spectral_order, reference_coords):
-    """Build Vandermonde matrix using orthogonal basis for stability"""
+def create_inverse_vandermonde_matrix(spectral_order, reference_coords):
+    """Build Vandermonde matrix and compute its inverse"""
     basis_terms = create_triangle_basis_terms(spectral_order)
     nen = len(reference_coords)
-
-    # Use Dubiner basis (orthogonal on triangle) for better conditioning
+    
+    # Build Vandermonde matrix
     V = np.zeros((nen, nen))
-
     for i in range(nen):
-        L1, L2 = reference_coords[i]
-        L3 = 1.0 - L1 - L2
-        
+        xi, eta = reference_coords[i]
         for j, (a, b) in enumerate(basis_terms):
-            # Dubiner basis functions
-            # P_n^{(\alpha,\beta)}(x) on triangle
-            V[i, j] = dubiner_basis(L1, L2, a, b, L3)
+            V[i, j] = (xi ** a) * (eta ** b)
     
-    # Compute inverse with pseudo-inverse for stability
-    invV = np.linalg.pinv(V, rcond=1e-12)
+    # Compute inverse (using pseudo-inverse for stability)
+    invV = np.linalg.pinv(V)
     
+    # Verify
+    print(f"Vandermonde condition number: {np.linalg.cond(V):.2e}")
+
     return invV, V, basis_terms
 
 
@@ -245,7 +214,7 @@ print("Triangle Spectral Element Assembly")
 print("="*60)
 
 # Create basis and inverse Vandermonde
-invV, V, basis_terms = compute_triangle_vandermonde_spectral(spectral_order, reference_coords)
+invV, V, basis_terms = create_inverse_vandermonde_matrix(spectral_order, reference_coords)
 
 # Assemble element matrices
 K, M, A = create_spectral_triangle_element(node_coords, triangle_quadrature_points, 

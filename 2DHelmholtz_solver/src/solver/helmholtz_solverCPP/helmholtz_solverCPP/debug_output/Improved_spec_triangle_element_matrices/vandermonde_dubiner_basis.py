@@ -45,9 +45,9 @@ def dubiner_basis_orthonormal(L1, L2, p, q):
     # -------------------------------
     # ORTHONORMALIZATION FACTOR
     # -------------------------------
-    # norm = np.sqrt((2*p + 1) * (p + q + 1))
+    norm = np.sqrt((2*p + 1) * (p + q + 1))
 
-    return Pp * Pq * w
+    return norm * Pp * Pq * w
 
 
 
@@ -71,25 +71,25 @@ def build_vandermonde(coords, modes):
 def stable_inverse(V):
     return np.linalg.pinv(V, rcond=1e-14)
 
-
+spectral_order = 4
 
 # Triangle element reference coordinates (xi, eta) for the 15 nodes
 reference_coords = [
-    (0.0, 0.0),  # Node 1
-    (1.0, 0.0),  # Node 2
-    (0.0, 1.0),  # Node 3
-    (0.17267316464601140, 0.0),  # Node 4
-    (0.5, 0.0),  # Node 5
-    (0.82732683535398865, 0.0),  # Node 6
-    (0.82732683535398865, 0.17267316464601140),  # Node 7
-    (0.5, 0.5),  # Node 8
-    (0.17267316464601140, 0.82732683535398865),  # Node 9
-    (0.0, 0.82732683535398865),  # Node 10
-    (0.0, 0.5),  # Node 11
-    (0.0, 0.17267316464601140),  # Node 12
-    (0.22422438821533711, 0.2242243882153371),   # Node 13
-    (0.55155122356932573, 0.2242243882153371),   # Node 14
-    (0.22422438821533711, 0.55155122356932573)    # Node 15
+    (-1.0, -1.0),  # Node 1
+    (1.0, -1.0),  # Node 2
+    (-1.0, 1.0),  # Node 3
+    (-0.654653670707978, -1.0),  # Node 4
+    (0.0, -1.0),  # Node 5
+    (0.654653670707978, -1.0),  # Node 6
+    (0.654653670707978, -0.654653670707978),  # Node 7
+    (0.0, 0.0),  # Node 8
+    (-0.654653670707978, 0.654653670707978),  # Node 9
+    (-1.0, 0.654653670707978),  # Node 10
+    (-1.0, 0.0),  # Node 11
+    (-1.0, -0.654653670707978),  # Node 12
+    (-0.551551223569326, -0.551551223569326),   # Node 13
+    (0.55155122356932573, -0.551551223569326),   # Node 14
+    (-0.551551223569326, 0.55155122356932573)    # Node 15
 ]
 
 def test_orthonormality(modes, quad_points):
@@ -114,6 +114,7 @@ V = build_vandermonde(reference_coords, modes)
 
 M = V.T @ V  # should be identity-like
 
+# print(M)
 
 # Triangle quadrature points and weights
 # Properly ordered for a 2D triangle element with 15 nodes
@@ -129,8 +130,11 @@ triangle_quadrature_points = [
 
 
 
-M = test_orthonormality(modes, triangle_quadrature_points)
+# M = test_orthonormality(modes, triangle_quadrature_points)
 print(np.max(np.abs(M - np.eye(len(modes)))))
 
 # ~ 1e-12 to 1e-14
+
+
+
 
