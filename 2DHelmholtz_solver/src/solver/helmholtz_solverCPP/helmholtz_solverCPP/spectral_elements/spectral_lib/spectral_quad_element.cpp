@@ -11,10 +11,6 @@ std::vector<spectral_point> spectral_quad_element::get_quadrilateral_quadrature(
 
 	int n = spectral_order + 1;
 
-	//std::vector<double> gp = get_gauss_points(n);
-	//std::vector<double> gw = get_gauss_weights(n);
-
-
 	GaussQuadrature q = get_gauss_quadrature(n);
 	auto& gp = q.points;
 	auto& gw = q.weights;
@@ -38,6 +34,51 @@ std::vector<spectral_point> spectral_quad_element::get_quadrilateral_quadrature(
 
 }
 
+
+
+void spectral_quad_element::evaluate_quadrilateral_shape_functions(double quadraturept_xi,
+	double quadraturept_eta, int spectral_order, const std::vector<double>& gll_locations,
+	Eigen::VectorXd& N,
+	Eigen::VectorXd& dN_dxi,
+	Eigen::VectorXd& dN_deta)
+{
+	int p = spectral_order;
+	int n1d = p + 1;
+
+	// --- 1D shape functions ---
+	std::vector<double> lx(n1d), d_lx(n1d);
+	std::vector<double> ly(n1d), d_ly(n1d);
+
+	// Evaluate 1D Lagrange basis at xi and eta
+	gll_utility::evaluate_lagrange_1D(quadraturept_xi, gll_locations, lx, d_lx);
+	gll_utility::evaluate_lagrange_1D(quadraturept_eta, gll_locations, ly, d_ly);
+
+	// --- Allocate ---
+	int nen = (spectral_order + 1) * (spectral_order + 1);
+
+	N.resize(nen);
+	dN_dxi.resize(nen);
+	dN_deta.resize(nen);
+
+	// --- Tensor product assembly ---
+	int idx = 0;
+
+	for (int j = 0; j < n1d; j++)
+	{
+		for (int i = 0; i < n1d; i++)
+		{
+			// Shape function
+			N(idx) = lx[i] * ly[j];
+
+			// Derivatives
+			dN_dxi(idx) = d_lx[i] * ly[j]; // d/dxi
+			dN_deta(idx) = lx[i] * d_ly[j]; // d/deta
+
+			idx++;
+		}
+	}
+
+}
 
 
 
@@ -129,24 +170,6 @@ GaussQuadrature spectral_quad_element::get_gauss_quadrature(int n)
 	gauss_legendre(n, q.points, q.weights);
 	return q;
 }
-
-
-//std::vector<double> spectral_quad_element::get_gauss_points(int n)
-//{
-//	std::vector<double> pts, wts;
-//	gauss_legendre(n, pts, wts);
-//	return pts;
-//}
-//
-//
-//
-//std::vector<double> spectral_quad_element::get_gauss_weights(int n)
-//{
-//	std::vector<double> pts, wts;
-//	gauss_legendre(n, pts, wts);
-//	return wts;
-//}
-
 
 
 void spectral_quad_element::gauss_legendre(int n, std::vector<double>& points, std::vector<double>& weights)

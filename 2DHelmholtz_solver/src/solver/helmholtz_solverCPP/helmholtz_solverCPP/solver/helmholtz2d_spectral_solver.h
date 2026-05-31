@@ -31,6 +31,7 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 
 #include "../spectral_elements/spectral_lib/gll_utility.h"
 #include "../spectral_elements/spectral_lib/spectral_quad_element.h"
+#include "../spectral_elements/spectral_lib/spectral_tri_element.h"
 
 
 #include <fstream>
@@ -97,7 +98,7 @@ private:
 	std::vector<spectral_point> triangle_quadrature_points;
 
 	// Triangle basis term
-	std::vector<basis_term> triangle_basis_terms;
+	std::vector<proriol_basis_term> triangle_basis_terms;
 
 	// Inverse Vandermonde matrix
 	Eigen::MatrixXd inv_vandermonde_matrix;
@@ -119,10 +120,10 @@ private:
 		Eigen::MatrixXd& element_k_mass_matrix);
 
 
-	void evaluate_triangle_shape_functions(double quadraturept_xi, 
-		double quadraturept_eta, int nen,
-		Eigen::VectorXd& N,
-		Eigen::MatrixXd& dN_dxi);
+	//void evaluate_triangle_shape_functions(double quadraturept_xi, 
+	//	double quadraturept_eta, int nen,
+	//	Eigen::VectorXd& N,
+	//	Eigen::MatrixXd& dN_dxi);
 
 
 	void get_trielement_kI_matrix(const spectral_trielement_store& tri_elm,
@@ -174,6 +175,9 @@ private:
 	
 
 
+	void report_vandermondematrix_conditioning(const Eigen::MatrixXd& invVanderMondematrix);
+
+
 	//________________________________________________________________________________________________
 
 	void get_quadelement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
@@ -182,10 +186,10 @@ private:
 		Eigen::MatrixXd& element_k_mass_matrix);
 
 
-	void evaluate_quadrilateral_shape_functions(double quadraturept_xi,
-		double quadraturept_eta, int nen,
-		Eigen::VectorXd& N,
-		Eigen::MatrixXd& dN_dxi);
+	//void evaluate_quadrilateral_shape_functions(double quadraturept_xi,
+	//	double quadraturept_eta, int nen,
+	//	Eigen::VectorXd& N,
+	//	Eigen::MatrixXd& dN_dxi);
 
 
 

@@ -92,83 +92,83 @@ std::vector<double> gll_utility::get_gll_weights(int spectral_order, const std::
 }
 
 
-
-std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spectral_order)
-{
-	// 3
-	// |\
-    // | \
-    // |  \
-    // 1---2
-
-
-	// Get the GLL points of 1D edges
-	std::vector<double> gll_points = get_gll_locations(spectral_order);
-
-
-	// Triangle spectral element points
-	std::vector<spectral_point> tri_spectral_points;
-
-	// Create the corner points
-	std::vector<spectral_point> corner_points;
-
-	corner_points.emplace_back(spectral_point{ 0.0, 0.0, 1.0 }); // Point 1
-	corner_points.emplace_back(spectral_point{ 1.0, 0.0, 1.0 }); // Point 2
-	corner_points.emplace_back(spectral_point{ 0.0, 1.0, 1.0 }); // Point 3
-
-	// Add the corner
-	tri_spectral_points.emplace_back(spectral_point{ corner_points[0].xi, corner_points[0].eta, corner_points[0].weight });
-	tri_spectral_points.emplace_back(spectral_point{ corner_points[1].xi, corner_points[1].eta, corner_points[1].weight });
-	tri_spectral_points.emplace_back(spectral_point{ corner_points[2].xi, corner_points[2].eta, corner_points[2].weight });
-
-	for (int i = 0; i < 3; i++)
-	{
-		spectral_point v_start = corner_points[i];
-		spectral_point v_end = corner_points[(i + 1) % 3];
-
-		// Add the edges
-		for (int j = 1; j < spectral_order; j++) // Exclude the end point -1 and 1
-		{
-			// Map [-1, 1] to [0, 1]
-			double s = (gll_points[j] + 1.0) / 2.0;
-
-			double x_coord = ((1.0 - s) * v_start.xi) + (s * v_end.xi);
-			double y_coord = ((1.0 - s) * v_start.eta) + (s * v_end.eta);
-
-			tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
-		}
-
-	}
-
-	// Populate Interior(Lobatto interpolation)
-	// IMA Journal of Applied Mathematics Advance Access published March 16, 2005
-	// A Lobatto interpolation grid over the triangle
-	// M.G.Blyth and C.Pozrikidis
-
-	if (spectral_order > 2)
-	{
-		for (int i = 1; i < spectral_order; i++)
-		{
-			for (int j = 1; j < spectral_order - i; j++)
-			{
-				int k = spectral_order - i - j;
-
-				double vi = (gll_points[i] + 1.0) / 2.0;
-				double vj = (gll_points[j] + 1.0) / 2.0;
-				double vk = (gll_points[k] + 1.0) / 2.0;
-
-				double x_coord = (1.0 / 3.0) * (1.0 + (2.0 * vj) - vk - vi);
-				double y_coord = (1.0 / 3.0) * (1.0 + (2.0 * vi) - vk - vj);
-
-				tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
-			}
-		}
-		//
-	}
-
-	return tri_spectral_points;
-	//
-}
+//
+//std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spectral_order)
+//{
+//	// 3
+//	// |\
+//    // | \
+//    // |  \
+//    // 1---2
+//
+//
+//	// Get the GLL points of 1D edges
+//	std::vector<double> gll_points = get_gll_locations(spectral_order);
+//
+//
+//	// Triangle spectral element points
+//	std::vector<spectral_point> tri_spectral_points;
+//
+//	// Create the corner points
+//	std::vector<spectral_point> corner_points;
+//
+//	corner_points.emplace_back(spectral_point{ 0.0, 0.0, 1.0 }); // Point 1
+//	corner_points.emplace_back(spectral_point{ 1.0, 0.0, 1.0 }); // Point 2
+//	corner_points.emplace_back(spectral_point{ 0.0, 1.0, 1.0 }); // Point 3
+//
+//	// Add the corner
+//	tri_spectral_points.emplace_back(spectral_point{ corner_points[0].xi, corner_points[0].eta, corner_points[0].weight });
+//	tri_spectral_points.emplace_back(spectral_point{ corner_points[1].xi, corner_points[1].eta, corner_points[1].weight });
+//	tri_spectral_points.emplace_back(spectral_point{ corner_points[2].xi, corner_points[2].eta, corner_points[2].weight });
+//
+//	for (int i = 0; i < 3; i++)
+//	{
+//		spectral_point v_start = corner_points[i];
+//		spectral_point v_end = corner_points[(i + 1) % 3];
+//
+//		// Add the edges
+//		for (int j = 1; j < spectral_order; j++) // Exclude the end point -1 and 1
+//		{
+//			// Map [-1, 1] to [0, 1]
+//			double s = (gll_points[j] + 1.0) / 2.0;
+//
+//			double x_coord = ((1.0 - s) * v_start.xi) + (s * v_end.xi);
+//			double y_coord = ((1.0 - s) * v_start.eta) + (s * v_end.eta);
+//
+//			tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
+//		}
+//
+//	}
+//
+//	// Populate Interior(Lobatto interpolation)
+//	// IMA Journal of Applied Mathematics Advance Access published March 16, 2005
+//	// A Lobatto interpolation grid over the triangle
+//	// M.G.Blyth and C.Pozrikidis
+//
+//	if (spectral_order > 2)
+//	{
+//		for (int i = 1; i < spectral_order; i++)
+//		{
+//			for (int j = 1; j < spectral_order - i; j++)
+//			{
+//				int k = spectral_order - i - j;
+//
+//				double vi = (gll_points[i] + 1.0) / 2.0;
+//				double vj = (gll_points[j] + 1.0) / 2.0;
+//				double vk = (gll_points[k] + 1.0) / 2.0;
+//
+//				double x_coord = (1.0 / 3.0) * (1.0 + (2.0 * vj) - vk - vi);
+//				double y_coord = (1.0 / 3.0) * (1.0 + (2.0 * vi) - vk - vj);
+//
+//				tri_spectral_points.emplace_back(spectral_point{ x_coord, y_coord, 1.0 });
+//			}
+//		}
+//		//
+//	}
+//
+//	return tri_spectral_points;
+//	//
+//}
 
 
 
@@ -258,68 +258,68 @@ std::vector<spectral_point> gll_utility::get_triangle_spectral_element(int spect
 //}
 
 
-std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_order)
-{
-	std::vector<spectral_point> quadrature_points;
+//std::vector<spectral_point> gll_utility::get_triangle_quadrature(int spectral_order)
+//{
+//	std::vector<spectral_point> quadrature_points;
+//
+//	// Map spectral order to Dunavant rule number
+//	int rule = get_dunavant_rule_for_order(spectral_order);
+//
+//	// Get the number of quadrature points for this rule
+//	int order_num = dunavant_order_num(rule);
+//
+//	// Allocate arrays for points and weights
+//	// Note: xy array needs to be of size 2*order_num for x and y coordinates
+//	std::vector<double> xy(2 * order_num);
+//	std::vector<double> w(order_num);
+//
+//	// Call dunavant_rule
+//	dunavant_rule(rule, order_num, xy.data(), w.data());
+//
+//	// Convert to spectral_point format
+//	for (int i = 0; i < order_num; i++)
+//	{
+//		double L1 = xy[2 * i];      // x coordinate (L1)
+//		double L2 = xy[2 * i + 1];  // y coordinate (L2)
+//		double L3 = 1.0 - L1 - L2; // L3 is determined
+//
+//		quadrature_points.push_back({ L1, L2, w[i] });
+//	}
+//
+//	return quadrature_points;
+//}
 
-	// Map spectral order to Dunavant rule number
-	int rule = get_dunavant_rule_for_order(spectral_order);
 
-	// Get the number of quadrature points for this rule
-	int order_num = dunavant_order_num(rule);
-
-	// Allocate arrays for points and weights
-	// Note: xy array needs to be of size 2*order_num for x and y coordinates
-	std::vector<double> xy(2 * order_num);
-	std::vector<double> w(order_num);
-
-	// Call dunavant_rule
-	dunavant_rule(rule, order_num, xy.data(), w.data());
-
-	// Convert to spectral_point format
-	for (int i = 0; i < order_num; i++)
-	{
-		double L1 = xy[2 * i];      // x coordinate (L1)
-		double L2 = xy[2 * i + 1];  // y coordinate (L2)
-		double L3 = 1.0 - L1 - L2; // L3 is determined
-
-		quadrature_points.push_back({ L1, L2, w[i] });
-	}
-
-	return quadrature_points;
-}
-
-
-int gll_utility::get_dunavant_rule_for_order(int spectral_order)
-{
-	// Minimum rule numbers needed for exact integration of polynomials of degree 2p
-	// where p = spectral_order
-	switch (spectral_order)
-	{
-	case 1:  return 1;   // 1 point, degree 1
-	case 2:  return 2;   // 3 points, degree 2  
-	case 3:  return 3;   // 4 points, degree 3
-	case 4:  return 4;   // 6 points, degree 4
-	case 5:  return 5;   // 7 points, degree 5
-	case 6:  return 6;   // 12 points, degree 6
-	case 7:  return 7;   // 16 points, degree 7
-	case 8:  return 8;   // 19 points, degree 8
-	case 9:  return 9;   // 25 points, degree 9
-	case 10: return 10;  // 31 points, degree 10
-	case 11: return 11;  // 37 points, degree 11
-	case 12: return 12;  // 43 points, degree 12
-	case 13: return 13;  // 49 points, degree 13
-	case 14: return 14;  // 55 points, degree 14
-	case 15: return 15;  // 61 points, degree 15
-	case 16: return 16;  // 67 points, degree 16
-	case 17: return 17;  // 73 points, degree 17
-	case 18: return 18;  // 79 points, degree 18
-	case 19: return 19;  // 85 points, degree 19
-	case 20: return 20;  // 91 points, degree 20
-	default: return 10;  // Default to order 10 rule, 31 points, degree 10 
-	}
-	//
-}
+//int gll_utility::get_dunavant_rule_for_order(int spectral_order)
+//{
+//	// Minimum rule numbers needed for exact integration of polynomials of degree 2p
+//	// where p = spectral_order
+//	switch (spectral_order)
+//	{
+//	case 1:  return 1;   // 1 point, degree 1
+//	case 2:  return 2;   // 3 points, degree 2  
+//	case 3:  return 3;   // 4 points, degree 3
+//	case 4:  return 4;   // 6 points, degree 4
+//	case 5:  return 5;   // 7 points, degree 5
+//	case 6:  return 6;   // 12 points, degree 6
+//	case 7:  return 7;   // 16 points, degree 7
+//	case 8:  return 8;   // 19 points, degree 8
+//	case 9:  return 9;   // 25 points, degree 9
+//	case 10: return 10;  // 31 points, degree 10
+//	case 11: return 11;  // 37 points, degree 11
+//	case 12: return 12;  // 43 points, degree 12
+//	case 13: return 13;  // 49 points, degree 13
+//	case 14: return 14;  // 55 points, degree 14
+//	case 15: return 15;  // 61 points, degree 15
+//	case 16: return 16;  // 67 points, degree 16
+//	case 17: return 17;  // 73 points, degree 17
+//	case 18: return 18;  // 79 points, degree 18
+//	case 19: return 19;  // 85 points, degree 19
+//	case 20: return 20;  // 91 points, degree 20
+//	default: return 10;  // Default to order 10 rule, 31 points, degree 10 
+//	}
+//	//
+//}
 
 
 std::vector<spectral_point> gll_utility::get_triangle_quadrature_manual(int spectral_order)
@@ -542,96 +542,96 @@ std::vector<spectral_point> gll_utility::get_unsorted_triangle_quadrature(int sp
 //}
 
 
-
-Eigen::MatrixXd gll_utility::get_inverse_vandermonde_matrix(int spectral_order)
-{
-
-	// Build Vandermonde Matrix
-	int nen = ((spectral_order + 1) * (spectral_order + 2)) / 2;
-
-	Eigen::MatrixXd vandermonde_matrix(nen, nen);
-
-	// Get the reference triangle element for spectral order
-	std::vector<spectral_point> elem_ref_coords = get_triangle_spectral_element(spectral_order);
-
-	// Get the triangle basis terms
-	std::vector<basis_term> triangle_basis_terms = build_basis_terms(spectral_order);
-
-	for (int i = 0; i < nen; i++)
-	{
-		double xi = elem_ref_coords[i].xi; // reference triangle node x coord
-		double eta = elem_ref_coords[i].eta; // reference triangle node y coord
-
-		for (int j = 0; j < nen; j++)
-		{
-			int a = triangle_basis_terms[j].a;
-			int b = triangle_basis_terms[j].b;
-
-			vandermonde_matrix(i, j) = pow(xi, a) * pow(eta, b);
-		}
-	}
-
-	Eigen::MatrixXd inv_vandermonde_matrix = vandermonde_matrix.inverse();
-
-	// Eigen::MatrixXd inv_vandermonde_matrix = vandermonde_matrix.colPivHouseholderQr().solve(
-	//	Eigen::MatrixXd::Identity(nen, nen));
-
-	return inv_vandermonde_matrix;
-}
-
-
-
-void gll_utility::evaluate_basis_phi(double xi, double eta,
-	const std::vector<basis_term>& basis_terms,
-	Eigen::VectorXd& phi)
-{
-
-	int n = static_cast<int>(basis_terms.size());
-
-	phi.resize(n);
-
-	for (int i = 0; i < n; i++)
-	{
-		int a = basis_terms[i].a;
-		int b = basis_terms[i].b;
-
-		phi(i) = std::pow(xi, a) * std::pow(eta, b);
-	}
-	//
-}
+//
+//Eigen::MatrixXd gll_utility::get_inverse_vandermonde_matrix(int spectral_order)
+//{
+//
+//	// Build Vandermonde Matrix
+//	int nen = ((spectral_order + 1) * (spectral_order + 2)) / 2;
+//
+//	Eigen::MatrixXd vandermonde_matrix(nen, nen);
+//
+//	// Get the reference triangle element for spectral order
+//	std::vector<spectral_point> elem_ref_coords = get_triangle_spectral_element(spectral_order);
+//
+//	// Get the triangle basis terms
+//	std::vector<basis_term> triangle_basis_terms = build_basis_terms(spectral_order);
+//
+//	for (int i = 0; i < nen; i++)
+//	{
+//		double xi = elem_ref_coords[i].xi; // reference triangle node x coord
+//		double eta = elem_ref_coords[i].eta; // reference triangle node y coord
+//
+//		for (int j = 0; j < nen; j++)
+//		{
+//			int a = triangle_basis_terms[j].a;
+//			int b = triangle_basis_terms[j].b;
+//
+//			vandermonde_matrix(i, j) = pow(xi, a) * pow(eta, b);
+//		}
+//	}
+//
+//	Eigen::MatrixXd inv_vandermonde_matrix = vandermonde_matrix.inverse();
+//
+//	// Eigen::MatrixXd inv_vandermonde_matrix = vandermonde_matrix.colPivHouseholderQr().solve(
+//	//	Eigen::MatrixXd::Identity(nen, nen));
+//
+//	return inv_vandermonde_matrix;
+//}
 
 
-void gll_utility::evaluate_basis_derivatives(
-	double xi,
-	double eta,
-	const std::vector<basis_term>& basis_terms,
-	Eigen::VectorXd& dphi_dxi,
-	Eigen::VectorXd& dphi_deta)
-{
-	int n = static_cast<int>(basis_terms.size());
 
-	dphi_dxi.resize(n);
-	dphi_deta.resize(n);
+//void gll_utility::evaluate_basis_phi(double xi, double eta,
+//	const std::vector<basis_term>& basis_terms,
+//	Eigen::VectorXd& phi)
+//{
+//
+//	int n = static_cast<int>(basis_terms.size());
+//
+//	phi.resize(n);
+//
+//	for (int i = 0; i < n; i++)
+//	{
+//		int a = basis_terms[i].a;
+//		int b = basis_terms[i].b;
+//
+//		phi(i) = std::pow(xi, a) * std::pow(eta, b);
+//	}
+//	//
+//}
 
-	for (int i = 0; i < n; i++)
-	{
-		int a = basis_terms[i].a;
-		int b = basis_terms[i].b;
 
-		// d/dxi
-		if (a == 0)
-			dphi_dxi(i) = 0.0;
-		else
-			dphi_dxi(i) = a * std::pow(xi, a - 1) * std::pow(eta, b);
-
-		// d/deta
-		if (b == 0)
-			dphi_deta(i) = 0.0;
-		else
-			dphi_deta(i) = b * std::pow(xi, a) * std::pow(eta, b - 1);
-	}
-
-}
+//void gll_utility::evaluate_basis_derivatives(
+//	double xi,
+//	double eta,
+//	const std::vector<basis_term>& basis_terms,
+//	Eigen::VectorXd& dphi_dxi,
+//	Eigen::VectorXd& dphi_deta)
+//{
+//	int n = static_cast<int>(basis_terms.size());
+//
+//	dphi_dxi.resize(n);
+//	dphi_deta.resize(n);
+//
+//	for (int i = 0; i < n; i++)
+//	{
+//		int a = basis_terms[i].a;
+//		int b = basis_terms[i].b;
+//
+//		// d/dxi
+//		if (a == 0)
+//			dphi_dxi(i) = 0.0;
+//		else
+//			dphi_dxi(i) = a * std::pow(xi, a - 1) * std::pow(eta, b);
+//
+//		// d/deta
+//		if (b == 0)
+//			dphi_deta(i) = 0.0;
+//		else
+//			dphi_deta(i) = b * std::pow(xi, a) * std::pow(eta, b - 1);
+//	}
+//
+//}
 
 
 void gll_utility::evaluate_lagrange_1D(double x,
@@ -681,23 +681,23 @@ void gll_utility::evaluate_lagrange_1D(double x,
 }
 
 
-std::vector<basis_term> gll_utility::build_basis_terms(int spectral_order)
-{
-	// Monomial basis
-	// Phi_k = (xi^a) (eta^b) with a+b <= spectral order
-
-	std::vector<basis_term> basis_terms;
-
-	for (int a = 0; a <= spectral_order; a++)
-	{
-		for (int b = 0; b <= spectral_order - a; b++)
-		{
-			basis_terms.push_back({ a, b });
-		}
-	}
-
-	return basis_terms;
-}
+//std::vector<basis_term> gll_utility::build_basis_terms(int spectral_order)
+//{
+//	// Monomial basis
+//	// Phi_k = (xi^a) (eta^b) with a+b <= spectral order
+//
+//	std::vector<basis_term> basis_terms;
+//
+//	for (int a = 0; a <= spectral_order; a++)
+//	{
+//		for (int b = 0; b <= spectral_order - a; b++)
+//		{
+//			basis_terms.push_back({ a, b });
+//		}
+//	}
+//
+//	return basis_terms;
+//}
 
 
 //std::vector<double> gll_utility::get_gauss_points(int n)

@@ -23,6 +23,12 @@ public:
 	static std::vector<spectral_point> get_quadrilateral_quadrature(int spectral_order);
 
 
+	static void evaluate_quadrilateral_shape_functions(double quadraturept_xi,
+		double quadraturept_eta, int spectral_order, const std::vector<double>& gll_locations,
+		Eigen::VectorXd& N,
+		Eigen::VectorXd& dN_dxi,
+		Eigen::VectorXd& dN_deta);
+
 private:
 	static constexpr double tol = 1e-12;
 	static constexpr int max_iter = 100;
