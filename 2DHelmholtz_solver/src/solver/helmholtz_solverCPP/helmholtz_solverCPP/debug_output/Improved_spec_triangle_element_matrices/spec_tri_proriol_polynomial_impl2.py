@@ -6,25 +6,29 @@ def proriol_modes(N):
             for i in range(N + 1)
             for j in range(N + 1 - i)]
 
+
+
 def proriol_basis(xi, eta, i, j):
-    eps = 1e-14
+    eps = 1e-10
     den = max(1.0 - eta, eps)
 
     # collapsed coordinates
-    xi_bar = 2.0 * xi / den - 1.0
-    eta_bar = 2.0 * eta - 1.0
+    xi_bar = ((2.0 * xi) / den) - 1.0
+    eta_bar = (2.0 * eta) - 1.0
 
     # polynomials
     Li = eval_legendre(i, xi_bar)
-    Pj = eval_jacobi(j, 2*i + 1, 0, eta_bar)
+    Pj = eval_jacobi(j, (2.0*i) + 1.0, 0, eta_bar)
 
     # weight (stable form)
     w = ((1.0 - eta_bar) / 2.0)**i
 
     # normalization
-    c = np.sqrt((2*i + 1.0) * (i + j + 1.0) * 0.5)
+    c = np.sqrt(((2.0 * i)+ 1.0) * (i + j + 1.0) * 0.5)
 
     return c * Li * Pj * w
+
+
 
 def build_vandermonde(coords, modes):
     """Build Vandermonde matrix V where V_{p,q} = phi_q(xi_p, eta_p)"""
@@ -38,6 +42,8 @@ def build_vandermonde(coords, modes):
             V[p, q] = proriol_basis(xi, eta, i, j)
     
     return V
+
+
 
 def evaluate_shape_functions_and_derivatives(xi, eta, V, modes):
     """
@@ -254,7 +260,26 @@ def test_shape_functions():
     print("\nTEST 4: Shape function values at selected points")
     print("-" * 40)
     
-    test_vis_points = [(0.0, 0.0), (0.5, 0.0), (0.0, 0.5), (0.5, 0.5), (0.2, 0.3)]
+    test_vis_points = [
+        (0.0, 0.0),  # Node 1
+        (1.0, 0.0),  # Node 2
+        (0.0, 1.0),  # Node 3
+        (0.17267316464601140, 0.0),  # Node 4
+        (0.5, 0.0),  # Node 5
+        (0.82732683535398865, 0.0),  # Node 6
+        (0.82732683535398865, 0.17267316464601140),  # Node 7
+        (0.5, 0.5),  # Node 8
+        (0.17267316464601140, 0.82732683535398865),  # Node 9
+        (0.0, 0.82732683535398865),  # Node 10
+        (0.0, 0.5),  # Node 11
+        (0.0, 0.17267316464601140),  # Node 12
+        (0.22422438821533711, 0.2242243882153371),   # Node 13
+        (0.55155122356932573, 0.2242243882153371),   # Node 14
+        (0.22422438821533711, 0.55155122356932573),    # Node 15
+        (0.3, 0.3), (0.2, 0.5), (0.5, 0.2),
+        (0.1, 0.1), (0.4, 0.4), (0.25, 0.25),
+        (0.75, 0.15), (0.15, 0.75)
+    ]
     
     print("\nShape function values for first 5 nodes at various points:")
     print("Point (xi, eta)     ", end="")
@@ -265,7 +290,7 @@ def test_shape_functions():
     for xi, eta in test_vis_points:
         N, _, _ = evaluate_shape_functions_and_derivatives(xi, eta, V, modes)
         print(f"({xi:.3f}, {eta:.3f})    ", end="")
-        for i in range(5):
+        for i in range(15):
             print(f"{N[i]:8.4f} ", end="")
         print()
     
@@ -276,5 +301,15 @@ def test_shape_functions():
 # Run the tests
 if __name__ == "__main__":
     test_shape_functions()
+
+
+
+
+
+
+
+
+
+
 
 

@@ -212,7 +212,7 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 	if (static_cast<int>(spec_mesh2d.spectral_quadelement_list.size()) > 0)
 	{
-		this->quadrilateral_quadrature_points = gll_utility::get_quadrilateral_quadrature(spectral_order);
+		this->quadrilateral_quadrature_points = spectral_quad_element::get_quadrilateral_quadrature(spectral_order);
 		
 		// Get the gll locations and gll weights for the given spectral order 
 		this->gll_locations = gll_utility::get_gll_locations(spectral_order);

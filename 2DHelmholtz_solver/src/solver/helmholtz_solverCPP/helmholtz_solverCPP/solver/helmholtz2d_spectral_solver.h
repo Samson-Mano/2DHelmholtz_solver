@@ -29,7 +29,9 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 #include "../spectral_elements/spectral_mesh2d.h"
 #include "../system_store/stopwatch_events.h"
 
-#include "../spectral_elements/gll_utility.h"
+#include "../spectral_elements/spectral_lib/gll_utility.h"
+#include "../spectral_elements/spectral_lib/spectral_quad_element.h"
+
 
 #include <fstream>
 

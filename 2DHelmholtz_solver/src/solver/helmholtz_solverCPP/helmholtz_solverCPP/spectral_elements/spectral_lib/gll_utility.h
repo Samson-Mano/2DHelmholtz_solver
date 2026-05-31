@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <stdexcept>
 
-#include "triangle_duvant_rule/triangle_dunavant_rule.hpp"
+#include "../triangle_duvant_rule/triangle_dunavant_rule.hpp"
 
 
 static struct spectral_point
@@ -37,7 +37,7 @@ public:
 
 	static std::vector<spectral_point> get_triangle_quadrature(int spectral_order);
 
-	static std::vector<spectral_point> get_quadrilateral_quadrature(int spectral_order);
+	// static std::vector<spectral_point> get_quadrilateral_quadrature(int spectral_order);
 
 
 	static Eigen::MatrixXd get_inverse_vandermonde_matrix(int spectral_order);
@@ -74,11 +74,11 @@ private:
 
 	static std::vector<spectral_point> get_triangle_spectral_element(int spectral_order);
 
-	static std::vector<spectral_point> get_quadrilateral_spectral_element(int spectral_order);
+	// static std::vector<spectral_point> get_quadrilateral_spectral_element(int spectral_order);
 
-	static std::vector<double> get_gauss_points(int n);
+	// static std::vector<double> get_gauss_points(int n);
 
-	static std::vector<double> get_gauss_weights(int n);
+	// static std::vector<double> get_gauss_weights(int n);
 
 
 	static int get_dunavant_rule_for_order(int spectral_order);
@@ -87,7 +87,7 @@ private:
 
 	static std::vector<spectral_point> get_unsorted_triangle_quadrature(int spectral_order);
 
-	static void gauss_legendre(int n, std::vector<double>& points, std::vector<double>& weights);
+	// static void gauss_legendre(int n, std::vector<double>& points, std::vector<double>& weights);
 
 };
 
