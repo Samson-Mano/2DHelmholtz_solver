@@ -22,7 +22,7 @@ namespace _2DHelmholtz_solver.other_windows
     public partial class solver_frm : Form
     {
         private fedata_store fe_data;
-        private double frequency_values = 10.0;
+        // private double frequency_values = 10.0;
         private int solver_type = 0;
 
         public solver_frm(ref fedata_store fe_data)
@@ -44,7 +44,7 @@ namespace _2DHelmholtz_solver.other_windows
 
             comboBox_solvertype.SelectedIndex = solver_type;
 
-            textBox_frequency.Text = frequency_values.ToString();
+            textBox_frequency.Text = fe_data.wave_field_frequency_values.ToString();
             updateFrequencyTextBox();
             // Update the model extent
 
@@ -63,7 +63,7 @@ namespace _2DHelmholtz_solver.other_windows
 
             textBox_xyextent.Text = $"[{formatValue(x_extent)}, {formatValue(y_extent)}]";
 
-            comboBox_spectralorderN.SelectedIndex = (fe_data.spectral_order_N - 1);
+            comboBox_spectralorderN.SelectedIndex = (fe_data.spectral_order_N - 3);
 
         }
 
@@ -136,7 +136,7 @@ namespace _2DHelmholtz_solver.other_windows
 
             if (double.TryParse(input, out double Freq) && Freq > 0)
             {
-                frequency_values = Freq;
+                fe_data.wave_field_frequency_values = Freq;
                 solver_type = comboBox_solvertype.SelectedIndex;
 
             }
@@ -148,7 +148,7 @@ namespace _2DHelmholtz_solver.other_windows
             }
 
             double[] solver_settings = new double[2];
-            solver_settings[0] = frequency_values;
+            solver_settings[0] = fe_data.wave_field_frequency_values;
             solver_settings[1] = solver_type;
 
             // C# GUI exports model to a .bin file.
@@ -350,7 +350,7 @@ namespace _2DHelmholtz_solver.other_windows
 
         private void comboBox_spectralorderN_SelectedIndexChanged(object sender, EventArgs e)
         {
-            fe_data.spectral_order_N = comboBox_spectralorderN.SelectedIndex + 1;
+            fe_data.spectral_order_N = comboBox_spectralorderN.SelectedIndex + 3;
         }
     }
 }

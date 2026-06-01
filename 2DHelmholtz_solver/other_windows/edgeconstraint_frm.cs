@@ -182,6 +182,10 @@ namespace _2DHelmholtz_solver.other_windows
 
                 update_dataGridView();
 
+                // Clear the selected edge ids
+                fe_data.meshdata.clear_selected_edges();
+
+                update_selected_edge_list();
 
                 // Call the main form
                 if (this.Owner is main_frm mainForm)

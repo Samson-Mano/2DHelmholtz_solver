@@ -1,53 +1,32 @@
-
 import numpy as np
 from scipy.special import eval_legendre, eval_jacobi
 
 
-
 def proriol_modes(N):
-    modes = []
-    for i in range(N + 1):
-        for j in range(N + 1 - i):
-            modes.append((int(i), int(j)))  # FORCE clean tuple
-    return modes
+    return [(i, j)
+            for i in range(N + 1)
+            for j in range(N + 1 - i)]
 
 
+def proriol_basis(xi, eta, i, j):
+    eps = 1e-14
+    den = max(1.0 - eta, eps)
 
-def proriol(xi, eta, i, j):
-    """
-    Orthogonal Proriol/Dubiner basis on triangle
-    xi, eta in reference triangle (0<=xi,eta, xi+eta<=1)
-    """
-
-    if eta >= 1.0:
-        eta = 1.0 - 1e-15
-
-    xi_bar = (2.0 * xi / (1.0 - eta)) - 1.0
+    # collapsed coordinates
+    xi_bar = 2.0 * xi / den - 1.0
     eta_bar = 2.0 * eta - 1.0
 
-    # Jacobi structure
-    P_i = eval_jacobi(i, 0, 0, xi_bar)
-    P_j = eval_jacobi(j, 2*i + 1, 0, eta_bar)
+    # polynomials
+    Li = eval_legendre(i, xi_bar)
+    Pj = eval_jacobi(j, 2*i + 1, 0, eta_bar)
 
-    # weight
-    w = (1.0 - eta)**i
+    # weight (stable form)
+    w = ((1.0 - eta_bar) / 2.0)**i
 
-    return P_i * P_j * w
+    # normalization
+    c = np.sqrt((2*i + 1.0) * (i + j + 1.0) * 0.5)
 
-
-
-# def proriol(xi, eta, i, j):
-#     if eta > 1.0 - 1e-14:
-#         eta = 1.0 - 1e-14
-
-#     a = (2*xi/(1-eta)) - 1
-#     b = 2*eta - 1
-
-#     P_i = eval_jacobi(i, 0, 0, a)
-#     P_j = eval_jacobi(j, 2*i+1, 0, b)
-
-#     return (1-eta)**i * P_i * P_j
-
+    return c * Li * Pj * w
 
 
 def build_vandermonde(coords, modes):
@@ -56,88 +35,100 @@ def build_vandermonde(coords, modes):
 
     for p, (xi, eta) in enumerate(coords):
         for q, (i, j) in enumerate(modes):
-            V[p, q] = proriol(xi, eta, i, j)
+            V[p, q] = proriol_basis(xi, eta, i, j)
 
     return V
 
 
 
-def shape_functions(xi, eta, invV, modes):
-    """
-    Lagrange shape functions from spectral basis
-    """
 
-    phi = np.array([
-        proriol(xi, eta, i, j)
-        for (i, j) in modes
-    ])
-
+def evaluate_shape_functions(xi, eta, invV, modes):
+    """Evaluate shape functions and their derivatives at (xi, eta)"""
+    n = len(modes)
+    
+    # Compute monomial values
+    phi = np.zeros(n)
+    dphi_dxi = np.zeros(n)
+    dphi_deta = np.zeros(n)
+    
+    for j, (a, b) in enumerate(modes):
+        phi[j] = proriol_basis(xi, eta, a, b)
+        
+        # Derivatives of monomials
+        if a > 0:
+            dphi_dxi[j] = a * (xi ** (a-1)) * (eta ** b)
+        else:
+            dphi_dxi[j] = 0.0
+            
+        if b > 0:
+            dphi_deta[j] = b * (xi ** a) * (eta ** (b-1))
+        else:
+            dphi_deta[j] = 0.0
+    
+    # Transform to shape functions using inverse Vandermonde
     N = invV @ phi
-
-    return N
-
-
-def proriol_derivatives(xi, eta, i, j, h=1e-8):
-    f0 = proriol(xi, eta, i, j)
-
-    dxi = (proriol(xi+h, eta, i, j) - proriol(xi-h, eta, i, j)) / (2*h)
-    deta = (proriol(xi, eta+h, i, j) - proriol(xi, eta-h, i, j)) / (2*h)
-
-    return dxi, deta
+    dN_dxi = invV @ dphi_dxi
+    dN_deta = invV @ dphi_deta
+    
+    return N, dN_dxi, dN_deta
 
 
-
-def spectral_triangle_element(nodes, quad, invV, modes):
-
-    N = len(nodes)
-
-    K = np.zeros((N, N))
-    M = np.zeros((N, N))
-
-    for (xi, eta, w) in quad:
-
-        # shape functions in modal space
-        phi = np.array([proriol(xi, eta, i, j) for (i, j) in modes])
-
-        # derivatives (still FD but OK for now)
-        dphi_x = np.array([
-            proriol_derivatives(xi, eta, i, j)[0] for (i, j) in modes
-        ])
-
-        dphi_y = np.array([
-            proriol_derivatives(xi, eta, i, j)[1] for (i, j) in modes
-        ])
-
-        # modal -> nodal
-        Nq = invV @ phi
-        dN_xi = invV @ dphi_x
-        dN_eta = invV @ dphi_y
-
-        # Jacobian
+def create_spectral_triangle_element(node_coords, quadrature_points, 
+                                     invV, modes, wave_number):
+    """Compute element stiffness and mass matrices"""
+    nen = len(node_coords)
+    n_quad = len(quadrature_points)
+    
+    K = np.zeros((nen, nen))
+    M = np.zeros((nen, nen))
+    
+    print(f"Assembling element with {nen} nodes and {n_quad} quadrature points")
+    
+    for q in range(n_quad):
+        L1, L2, weight = quadrature_points[q]
+        L3 = 1.0 - L1 - L2  # Third barycentric coordinate
+        
+        # Evaluate shape functions at quadrature point
+        N, dN_dL1, dN_dL2 = evaluate_shape_functions(L1, L2, invV, modes)
+        
+        # Compute Jacobian for mapping from reference to physical coordinates
+        # For triangle: [dx/dL1, dx/dL2; dy/dL1, dy/dL2]
         J = np.zeros((2, 2))
-
-        for k in range(N):
-            x, y = nodes[k]
-            J[0, 0] += dN_xi[k] * x
-            J[0, 1] += dN_eta[k] * x
-            J[1, 0] += dN_xi[k] * y
-            J[1, 1] += dN_eta[k] * y
-
+        for i in range(nen):
+            x, y = node_coords[i]
+            J[0, 0] += dN_dL1[i] * x
+            J[0, 1] += dN_dL2[i] * x
+            J[1, 0] += dN_dL1[i] * y
+            J[1, 1] += dN_dL2[i] * y
+        
         detJ = np.linalg.det(J)
         invJ = np.linalg.inv(J)
-
-        dN_dx = invJ[0, 0] * dN_xi + invJ[0, 1] * dN_eta
-        dN_dy = invJ[1, 0] * dN_xi + invJ[1, 1] * dN_eta
-
-        # assembly
-        for i in range(N):
-            for j in range(N):
-
-                K[i, j] += (dN_dx[i]*dN_dx[j] + dN_dy[i]*dN_dy[j]) * detJ * w
-                M[i, j] += Nq[i] * Nq[j] * detJ * w
-
-    return K, M, K - wave_number**2 * M
-
+        
+        # Transform derivatives to physical coordinates
+        dN_dx = np.zeros(nen)
+        dN_dy = np.zeros(nen)
+        for i in range(nen):
+            dN_dx[i] = invJ[0, 0] * dN_dL1[i] + invJ[0, 1] * dN_dL2[i]
+            dN_dy[i] = invJ[1, 0] * dN_dL1[i] + invJ[1, 1] * dN_dL2[i]
+        
+        # Assemble matrices
+        for i in range(nen):
+            for j in range(nen):
+                # Stiffness: ∫∇N_i·∇N_j dΩ
+                K[i, j] += (dN_dx[i] * dN_dx[j] + dN_dy[i] * dN_dy[j]) * detJ * weight
+                
+                # Mass: ∫N_i N_j dΩ
+                M[i, j] += N[i] * N[j] * detJ * weight
+        
+        # Progress indicator (optional)
+        if (q + 1) % 4 == 0:
+            print(f"  Processed {q+1}/{n_quad} quadrature points")
+    
+    # Compute system matrix: K - ω²M
+    omega_sq = wave_number ** 2
+    A = K - omega_sq * M
+    
+    return K, M, A
 
 
 
@@ -163,74 +154,6 @@ reference_coords = [
     (0.55155122356932573, 0.2242243882153371),   # Node 14
     (0.22422438821533711, 0.55155122356932573)    # Node 15
 ]
-
-# Node data
-node_coords = [
-    (-10.0, -10.0),  # Node 1
-    (10.0, -10.0),  # Node 2
-    (0.0, 10.0),  # Node 3
-    (-6.5465367070797731, -10.0),  # Node 4
-    (0.0, -10.0),  # Node 5
-    (6.5465367070797731, -10.0),  # Node 6
-    (8.2732683535398870, -6.5465367070797731),  # Node 7
-    (5.0, 0.0),  # Node 8
-    (1.7267316464601139, 6.5465367070797731),  # Node 9
-    (-1.7267316464601139, 6.5465367070797731),  # Node 10
-    (-5.0, 0.0),  # Node 11
-    (-8.2732683535398870, -6.5465367070797731),  # Node 12
-    (-3.2732683535398861, -5.5155122356932562),  # Node 13
-    (3.2732683535398861, -5.5155122356932562),  # Node 14
-    (0.0, 1.0310244713865160),  # Node 15
-]
-
-
-
-# Triangle quadrature points and weights
-# Properly ordered for a 2D triangle element with 15 nodes
-
-triangle_quadrature_points = [
-    (0.108103018168070,0.445948490915965, 0.223381589678011),  # Point 1
-    (0.445948490915965, 0.445948490915965, 0.223381589678011),  # Point 2
-    (0.445948490915965, 0.108103018168070, 0.223381589678011),  # Point 3
-    (0.816847572980459, 0.091576213509771, 0.109951743655322),  # Point 4
-    (0.091576213509771, 0.091576213509771, 0.109951743655322),  # Point 5
-    (0.091576213509771, 0.816847572980459, 0.109951743655322),  # Point 6
-]
-
-
-wave_number = 0.041887902047863856
-
-
-
-
-modes = proriol_modes(spectral_order)
-
-V = build_vandermonde(reference_coords, modes)
-
-invV = np.linalg.inv(V)
-
-K,M,A = spectral_triangle_element(node_coords, triangle_quadrature_points, invV, modes)
-
-
-
-print("Stiffness matrix K:")
-print(np.round(K,10))
-
-
-print("Mass matrix M:")
-print(np.round(M,10))
-
-print("Helmholtz matrix A = K - k^2 M:")
-print(np.round(A,10))
-
-
-from scipy.linalg import eig
-
-eigvals, eigvecs = eig(K, M)
-
-print("Eigenvalues of K x = lambda M x:")
-print(np.round(eigvals,10))
-
 
 
 

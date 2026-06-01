@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "../system_store/helmholtz_system_store.h"
-#include "gll_utility.h"
+#include "../spectral_elements/spectral_lib/gll_utility.h"
 #include "unique_id_control.h"
 
 

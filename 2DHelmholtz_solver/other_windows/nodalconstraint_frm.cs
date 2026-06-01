@@ -99,6 +99,10 @@ namespace _2DHelmholtz_solver.other_windows
 
                 update_dataGridView();
 
+                // Clear the selected point ids
+                fe_data.meshdata.clear_selected_nodes();
+
+                update_selected_node_list();
 
                 // Call the main form
                 if (this.Owner is main_frm mainForm)

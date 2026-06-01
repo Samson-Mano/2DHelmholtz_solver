@@ -40,8 +40,10 @@ std::vector<spectral_point> spectral_tri_element::get_triangle_quadrature(int sp
 int spectral_tri_element::get_dunavant_rule_for_order(int spectral_order)
 {
 	// Minimum rule numbers needed for exact integration of polynomials of degree 2p
-	// where p = spectral_order
-	switch (spectral_order)
+	// where p = 2 * spectral_order
+	int p = 2 * spectral_order;
+
+	switch (p)
 	{
 	case 1:  return 1;   // 1 point, degree 1
 	case 2:  return 2;   // 3 points, degree 2  
@@ -63,7 +65,7 @@ int spectral_tri_element::get_dunavant_rule_for_order(int spectral_order)
 	case 18: return 18;  // 79 points, degree 18
 	case 19: return 19;  // 85 points, degree 19
 	case 20: return 20;  // 91 points, degree 20
-	default: return 10;  // Default to order 10 rule, 31 points, degree 10 
+	default: return 20;  // Default to order 20 rule, 91 points, degree 20 
 	}
 	//
 }

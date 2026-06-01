@@ -159,6 +159,8 @@ def create_spectral_triangle_element(node_coords, quadrature_points,
     
     invV = np.linalg.inv(V)  # Compute inverse Vandermonde matrix
 
+    print(f"Inverse Vandermonde condition number: {np.linalg.cond(invV):.2e}\n")
+
     print(f"Assembling element with {nen} nodes and {n_quad} quadrature points")
     
     for q_idx, (L1, L2, weight) in enumerate(quadrature_points):
@@ -173,6 +175,8 @@ def create_spectral_triangle_element(node_coords, quadrature_points,
         # Note: Passing V (not invV) as per corrected implementation
         N, dN_dL1, dN_dL2 = evaluate_shape_functions_and_derivatives(L1, L2, invV, modes)
         
+        # print(f"Shape functions at quadrature point {q_idx}: {N}")
+
         # Compute Jacobian matrix for mapping from reference to physical coordinates
         # J = [dx/dL1, dx/dL2; dy/dL1, dy/dL2]
         J = np.zeros((2, 2))
@@ -185,13 +189,17 @@ def create_spectral_triangle_element(node_coords, quadrature_points,
         
         detJ = np.linalg.det(J)
         
+        # print(f"J determinant at quadrature point {q_idx}: {detJ:.3e}")
+
         # Check for invalid Jacobian
         if detJ <= 0:
             print(f"Warning: Non-positive Jacobian determinant {detJ:.3e} at quadrature point {q_idx}")
             continue
             
         invJ = np.linalg.inv(J)
-        
+        # print(f"Jacobian inverse at quadrature point {q_idx}:\n{invJ}")
+
+
         # Transform derivatives from reference to physical coordinates
         # [dN/dx; dN/dy] = invJ^T * [dN/dL1; dN/dL2]
         # But careful: We have dN/dL1 and dN/dL2 as separate arrays
@@ -222,15 +230,26 @@ def create_spectral_triangle_element(node_coords, quadrature_points,
                 M[i, j] += M_ij
                 if i != j:
                     M[j, i] += M_ij
+        
+                
+        # print(f"K and M after quadrature point {q_idx}:")
+        # print(f"  K:\n{K}")
+        # print(f"  M:\n{M}")
 
         # Progress indicator
         if (q_idx + 1) % max(1, n_quad // 4) == 0:
             print(f"  Processed {q_idx+1}/{n_quad} quadrature points")
-    
+    # print(f"  K:\n{K}")
+    # print(f"  M:\n{M}")
+
+
+
     # Compute system matrix: K - ω²M
     omega_sq = wave_number ** 2
     A = K - omega_sq * M
     
+    print(f"\nSystem matrix A (K - ω²M):\n{A}")
+
     # Print matrix statistics
     print(f"\nElement matrix statistics:")
     print(f"  Stiffness matrix condition: {np.linalg.cond(K):.2e}")
@@ -286,7 +305,7 @@ node_coords = [
     (0.0, 1.0310244713865160),  # Node 15
 ]
 
-triangle_quadrature_points = [
+triangle_quadrature_points_1 = [
     (0.108103018168070,0.445948490915965, 0.223381589678011),  # Point 1
     (0.445948490915965, 0.445948490915965, 0.223381589678011),  # Point 2
     (0.445948490915965, 0.108103018168070, 0.223381589678011),  # Point 3
@@ -294,6 +313,30 @@ triangle_quadrature_points = [
     (0.091576213509771, 0.091576213509771, 0.109951743655322),  # Point 5
     (0.091576213509771, 0.816847572980459, 0.109951743655322),  # Point 6
 ]
+
+
+triangle_quadrature_points = [            
+            (0.333333333333333, 0.333333333333333, 0.030998162062248),
+            (0.020634961602525, 0.489682519198738, 0.032991048487255),
+            (0.489682519198738, 0.020634961602525, 0.032991048487255),
+            (0.489682519198738, 0.489682519198738, 0.032991048487255),
+            (0.125820817014127, 0.437089591492937, 0.033416281208640),
+            (0.437089591492937, 0.125820817014127, 0.033416281208640),
+            (0.437089591492937, 0.437089591492937, 0.033416281208640),
+            (0.623592928761935, 0.188203535619032, 0.016298273175133),
+            (0.188203535619032, 0.623592928761935, 0.016298273175133),
+            (0.188203535619032, 0.188203535619032, 0.016298273175133),
+            (0.910540973211095, 0.044729513394453, 0.001217210296702),
+            (0.044729513394453, 0.910540973211095, 0.001217210296702),
+            (0.044729513394453, 0.044729513394453, 0.001217210296702),
+            (0.741198598784498, 0.221962989160765, 0.010582153574615),
+            (0.741198598784498, 0.036838412054736, 0.010582153574615),
+            (0.221962989160765, 0.741198598784498, 0.010582153574615),
+            (0.036838412054736, 0.741198598784498, 0.010582153574615),
+            (0.221962989160765, 0.036838412054736, 0.010582153574615),
+            (0.036838412054736, 0.221962989160765, 0.010582153574615),
+        ]
+
 
 modes = proriol_modes(spectral_order)  # order 4 -> 15 modes
 V = build_vandermonde(reference_coords, modes)
@@ -306,13 +349,18 @@ print(f"M shape: {M.shape}")
 print(f"A shape: {A.shape}")
 
 print(f"A matrix stats: min={A.min():.3e}, max={A.max():.3e}, mean={A.mean():.3e}, cond={np.linalg.cond(A):.2e}")
-print(f"A matrix:\n{A}")
+
+np.savetxt("frmpy_system_matrix_python.txt", A, fmt="%.12e", delimiter=" ")
+
 
 # Check symmetry
 sym_error_K = np.linalg.norm(K - K.T) / np.linalg.norm(K)
 sym_error_M = np.linalg.norm(M - M.T) / np.linalg.norm(M)
 print(f"K symmetry error: {sym_error_K:.2e}")
 print(f"M symmetry error: {sym_error_M:.2e}")
+
+
+
 
 
 

@@ -36,6 +36,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
     public class fedata_store
     {
         public int spectral_order_N = 6;
+        public double wave_field_frequency_values = 10.0;
 
         public node_list_store fe_nodes;
         public elementtri_list_store fe_tris;

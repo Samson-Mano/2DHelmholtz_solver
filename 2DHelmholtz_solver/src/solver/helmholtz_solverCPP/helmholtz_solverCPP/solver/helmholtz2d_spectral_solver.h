@@ -120,12 +120,6 @@ private:
 		Eigen::MatrixXd& element_k_mass_matrix);
 
 
-	//void evaluate_triangle_shape_functions(double quadraturept_xi, 
-	//	double quadraturept_eta, int nen,
-	//	Eigen::VectorXd& N,
-	//	Eigen::MatrixXd& dN_dxi);
-
-
 	void get_trielement_kI_matrix(const spectral_trielement_store& tri_elm,
 		const std::vector<Eigen::Vector2d>& elem_coords,
 		int nen,
@@ -147,12 +141,6 @@ private:
 		Eigen::VectorXi& dirichlet_BC_flag,
 		Eigen::VectorXd& dirichlet_vector,
 		Eigen::VectorXd& source_vector);
-
-
-
-	//void set_global_matrix(const std::vector<int>& elem_nodes,
-	//	int nen,
-	//	const Eigen::MatrixXd& element_k_matrix, std::vector<Eigen::Triplet<double>>& triplets_k);
 
 
 
@@ -184,13 +172,6 @@ private:
 		const std::vector<Eigen::Vector2d>& elem_coords,
 		Eigen::MatrixXd& element_k_grad_matrix,
 		Eigen::MatrixXd& element_k_mass_matrix);
-
-
-	//void evaluate_quadrilateral_shape_functions(double quadraturept_xi,
-	//	double quadraturept_eta, int nen,
-	//	Eigen::VectorXd& N,
-	//	Eigen::MatrixXd& dN_dxi);
-
 
 
 	void get_quadelement_kI_matrix(const spectral_quadelement_store& quad_elm,

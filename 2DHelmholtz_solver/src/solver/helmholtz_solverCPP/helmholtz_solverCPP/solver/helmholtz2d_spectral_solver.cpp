@@ -55,12 +55,6 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 	// Set the number of DOF
 	this->numDOF = static_cast<int>(spec_mesh2d.spectral_node_list.size());
 
-	//global_k_matrix.resize(numDOF, numDOF); // Global k Matrix (Ke - k^2 * Me)
-	//global_k_matrix.setZero();
-
-	//global_kI_matrix.resize(numDOF, numDOF); //kI Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
-	//global_kI_matrix.setZero();
-
 
 	// Global k Matrix (Ke - k^2 * Me) + kI Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
 	global_system_matrix.resize(numDOF, numDOF);
@@ -108,25 +102,6 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			// Step 1: Create local node & node coordinate list
 			// Build local node list _______________________________________________
 			std::vector<int> elem_nodes = tri_elm.lexi_ordered_node_ids;
-
-			//for (int i = 0; i < 3; i++)
-			//{
-			//	// Add the corner i (0, 1, 2)
-			//	elem_nodes.push_back(tri_elm.corner_nodes[i]);
-
-			//	// Then the edge i (0, 1, 2)
-			//	for (const auto& edge1_ndid : tri_elm.edge_node_ids[i])
-			//	{
-			//		elem_nodes.push_back(edge1_ndid);
-			//	}
-			//	//
-			//}
-
-			//// internal nodes
-			//for (int internal_ndid : tri_elm.internal_nodes)
-			//{
-			//	elem_nodes.push_back(internal_ndid);
-			//}
 
 
 			// Get node coordinates ________________________________________________
@@ -321,7 +296,14 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 	// Set the global sparse matrix
 	global_system_matrix.setFromTriplets(triplets_system.begin(), triplets_system.end());
-	report("Global system matrix created");
+
+	// Create the message string and convert to const char*
+	std::string sizeMsg = "Global system matrix created. Size: " +
+		std::to_string(global_system_matrix.rows()) + "x" +
+		std::to_string(global_system_matrix.cols()) +
+		", Non-zeros: " + std::to_string(global_system_matrix.nonZeros());
+
+	report(sizeMsg.c_str());
 
 }
 
@@ -453,39 +435,14 @@ void helmholtz2d_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std:
 }
 
 
-//void helmholtz2d_spectral_solver::evaluate_triangle_shape_functions(double quadraturept_xi,
-//	double quadraturept_eta, int nen,
-//	Eigen::VectorXd& N,
-//	Eigen::MatrixXd& dN_dxi)
-//{
-//	// Calculate the polynomial basis function
-//	Eigen::VectorXd phi, dphi_dxi, dphi_deta;
-//
-//	gll_utility::evaluate_basis_phi(quadraturept_xi, quadraturept_eta, this->triangle_basis_terms, phi);
-//	gll_utility::evaluate_basis_derivatives(quadraturept_xi, quadraturept_eta, this->triangle_basis_terms, dphi_dxi, dphi_deta);
-//
-//	// Shape functions
-//	N = this->inv_vandermonde_matrix * phi;
-//
-//	// Derivatives of Shape functions
-//	Eigen::VectorXd dN_dxi_vec = this->inv_vandermonde_matrix * dphi_dxi;
-//	Eigen::VectorXd dN_deta_vec = this->inv_vandermonde_matrix * dphi_deta;
-//
-//	for (int i = 0; i < nen; i++)
-//	{
-//		dN_dxi(i, 0) = dN_dxi_vec(i);
-//		dN_dxi(i, 1) = dN_deta_vec(i);
-//	}
-//	//
-//}
-
-
 void helmholtz2d_spectral_solver::get_trielement_kI_matrix(const spectral_trielement_store& tri_elm,
 	const std::vector<Eigen::Vector2d>& elem_coords,
 	int nen,
 	double wave_number,
 	Eigen::MatrixXcd& element_kI_matrix)
 {
+
+	const std::complex<double> factor(0.0, wave_number);
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -496,69 +453,72 @@ void helmholtz2d_spectral_solver::get_trielement_kI_matrix(const spectral_triele
 
 		if (edge.isboundaryedge == true && edge.isSommerfieldBC == true)
 		{
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+
+			int n_gll_points = spec_mesh2d.spectral_order + 1;
+
+			// Pre-compute edge mapping parameters
+			auto get_edge_coordinates = [i](double s, double& xi, double& eta,
+				double& dxi_ds, double& deta_ds) 
+				{
+					if (i == 0) 
+					{      // Bottom edge
+						xi = s;  eta = 0.0;
+						dxi_ds = 1.0;  deta_ds = 0.0;
+					}
+					else if (i == 1) 
+					{ // Diagonal edge
+						xi = 1.0 - s;  eta = s;
+						dxi_ds = -1.0;  deta_ds = 1.0;
+					}
+					else 
+					{             // Left edge
+						xi = 0.0;  eta = 1.0 - s;
+						dxi_ds = 0.0;  deta_ds = -1.0;
+					}
+				};
+
+
+			for (int j = 0; j < n_gll_points; j++)
 			{
 				// Map the 1D GLL point to [0, 1]
 				double s = (this->gll_locations[j] + 1.0) * 0.5;
 
 				// Get the weigths
-				double w = this->gll_weights[j] * 0.5;
+				double wt = this->gll_weights[j] * 0.5;
 
-				double xi, eta;
+				double xi, eta, dxi_ds, deta_ds;
+				get_edge_coordinates(s, xi, eta, dxi_ds, deta_ds);
 
-				// Map the edge
-				if (i == 0)
-				{
-					// Edge 1 (0,0) to (1,0)
-					xi = s;
-					eta = 0.0;
-				}
-				else if (i == 1)
-				{
-					// Edge 2 (1,0) to (0, 1)
-					xi = 1.0 - s;
-					eta = s;
-				}
-				else if (i == 2)
-				{
-					// Edge 3 (0,1) to (0,0)
-					xi = 0.0;
-					eta = 1.0 - s;
-				}
 
 				// --- Shape functions ---
 				Eigen::VectorXd N(nen);
-				Eigen::MatrixXd dN_dxi(nen, 2);
+				Eigen::VectorXd dN_dxi(nen); // [dN/dxi, dN/deta]
+				Eigen::VectorXd dN_deta(nen); // [dN/dxi, dN/deta]
 
-				evaluate_triangle_shape_functions(xi, eta, nen, N, dN_dxi);
+				spectral_tri_element::evaluate_triangle_shape_functions(xi, eta, spec_mesh2d.spectral_order,
+					this->inv_vandermonde_matrix, this->triangle_basis_terms,
+					N, dN_dxi, dN_deta);
+
 
 				// --- Compute physical edge length Jacobian ---
 				Eigen::Vector2d dx_ds = Eigen::Vector2d::Zero();
 
-				// chain rule: dx/ds = dx/dxi * dxi/ds + dx/deta * deta/ds
-				double dxi_ds = 0.0;
-				double  deta_ds = 0.0;
-
-				if (edge_id == 0) { dxi_ds = 1.0;  deta_ds = 0.0; }
-				else if (edge_id == 1) { dxi_ds = -1.0; deta_ds = 1.0; }
-				else if (edge_id == 2) { dxi_ds = 0.0;  deta_ds = -1.0; }
-
 				for (int k = 0; k < nen; k++)
 				{
-					double dN_ds = dN_dxi(k, 0) * dxi_ds + dN_dxi(k, 1) * deta_ds;
+					double dN_ds = dN_dxi(k) * dxi_ds + dN_deta(k) * deta_ds;
 
 					dx_ds += dN_ds * elem_coords[k];
 				}
 
 				double J_edge = dx_ds.norm();
+				double dV = J_edge * wt;
 
 				// --- Assembly ---
 				for (int a = 0; a < nen; a++)
 				{
 					for (int b = 0; b < nen; b++)
 					{
-						element_kI_matrix(a, b) += std::complex<double>(0, wave_number) *
-							N(a) * N(b) * J_edge * w;
+						element_kI_matrix(a, b) += factor * N(a) * N(b) * dV;
 					}
 				}
 				//
@@ -639,61 +599,66 @@ void helmholtz2d_spectral_solver::get_trielement_normderivfield_vector(const spe
 
 		if (edge.isboundaryedge == true && edge.isDerivFieldBC == true)
 		{
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			
+			int n_gll_points = spec_mesh2d.spectral_order + 1;
+
+			// Pre-compute edge mapping parameters
+			auto get_edge_coordinates = [i](double s, double& xi, double& eta,
+				double& dxi_ds, double& deta_ds)
+				{
+					if (i == 0)
+					{      // Bottom edge
+						xi = s;  eta = 0.0;
+						dxi_ds = 1.0;  deta_ds = 0.0;
+					}
+					else if (i == 1)
+					{ // Diagonal edge
+						xi = 1.0 - s;  eta = s;
+						dxi_ds = -1.0;  deta_ds = 1.0;
+					}
+					else
+					{             // Left edge
+						xi = 0.0;  eta = 1.0 - s;
+						dxi_ds = 0.0;  deta_ds = -1.0;
+					}
+				};
+
+
+
+			for (int j = 0; j < n_gll_points; j++)
 			{
 				// Map the 1D GLL point to [0, 1]
 				double s = (this->gll_locations[j] + 1.0) * 0.5;
 
 				// Get the weigths
-				double w = this->gll_weights[j] * 0.5;
+				double wt = this->gll_weights[j] * 0.5;
 
-				double xi, eta;
+				double xi, eta, dxi_ds, deta_ds;
+				get_edge_coordinates(s, xi, eta, dxi_ds, deta_ds);
 
-				// Map the edge
-				if (i == 0)
-				{
-					// Edge 1 (0,0) to (1,0)
-					xi = s;
-					eta = 0.0;
-				}
-				else if (i == 1)
-				{
-					// Edge 2 (1,0) to (0, 1)
-					xi = 1.0 - s;
-					eta = s;
-				}
-				else if (i == 2)
-				{
-					// Edge 3 (0,1) to (0,0)
-					xi = 0.0;
-					eta = 1.0 - s;
-				}
-
+			
 				// --- Shape functions ---
-				Eigen::VectorXd N;
-				Eigen::MatrixXd dN_dxi;
+				Eigen::VectorXd N(nen);
+				Eigen::VectorXd dN_dxi(nen); // [dN/dxi, dN/deta]
+				Eigen::VectorXd dN_deta(nen); // [dN/dxi, dN/deta]
 
-				evaluate_triangle_shape_functions(xi, eta, nen, N, dN_dxi);
+				spectral_tri_element::evaluate_triangle_shape_functions(xi, eta, spec_mesh2d.spectral_order,
+					this->inv_vandermonde_matrix, this->triangle_basis_terms,
+					N, dN_dxi, dN_deta);
+
 
 				// --- Compute physical edge length Jacobian ---
 				Eigen::Vector2d dx_ds = Eigen::Vector2d::Zero();
 
-				// chain rule: dx/ds = dx/dxi * dxi/ds + dx/deta * deta/ds
-				double dxi_ds = 0.0;
-				double deta_ds = 0.0;
-
-				if (edge_id == 0) { dxi_ds = 1.0;  deta_ds = 0.0; }
-				else if (edge_id == 1) { dxi_ds = -1.0; deta_ds = 1.0; }
-				else if (edge_id == 2) { dxi_ds = 0.0;  deta_ds = -1.0; }
-
 				for (int k = 0; k < nen; k++)
 				{
-					double dN_ds = dN_dxi(k, 0) * dxi_ds + dN_dxi(k, 1) * deta_ds;
+					double dN_ds = dN_dxi(k) * dxi_ds + dN_deta(k) * deta_ds;
 
 					dx_ds += dN_ds * elem_coords[k];
 				}
 
 				double J_edge = dx_ds.norm();
+				double dV = J_edge * wt;
 
 				// --- Assembly ---
 				// Neumann (flux) BC contribution
@@ -701,7 +666,7 @@ void helmholtz2d_spectral_solver::get_trielement_normderivfield_vector(const spe
 
 				for (int a = 0; a < nen; a++)
 				{
-					neumann_vector(a) += dq_edge * N(a) * J_edge * w;
+					neumann_vector(a) += dq_edge * N(a) * dV;
 				}
 				//
 			}
@@ -836,53 +801,14 @@ void helmholtz2d_spectral_solver::get_quadelement_k_grad_k_mass_matrix(const std
 
 
 
-//void helmholtz2d_spectral_solver::evaluate_quadrilateral_shape_functions(double quadraturept_xi,
-//	double quadraturept_eta, int nen,
-//	Eigen::VectorXd& N,
-//	Eigen::MatrixXd& dN_dxi)
-//{
-//	int p = spec_mesh2d.spectral_order;
-//	int n1d = p + 1;
-//
-//	// --- 1D shape functions ---
-//	std::vector<double> lx(n1d), d_lx(n1d);
-//	std::vector<double> ly(n1d), d_ly(n1d);
-//
-//	// Evaluate 1D Lagrange basis at xi and eta
-//	gll_utility::evaluate_lagrange_1D(quadraturept_xi, gll_locations, lx, d_lx);
-//	gll_utility::evaluate_lagrange_1D(quadraturept_eta, gll_locations, ly, d_ly);
-//
-//	// --- Allocate ---
-//	N.resize(nen);
-//	dN_dxi.resize(nen, 2);
-//
-//	// --- Tensor product assembly ---
-//	int idx = 0;
-//
-//	for (int j = 0; j < n1d; j++)
-//	{
-//		for (int i = 0; i < n1d; i++)
-//		{
-//			// Shape function
-//			N(idx) = lx[i] * ly[j];
-//
-//			// Derivatives
-//			dN_dxi(idx, 0) = d_lx[i] * ly[j]; // d/dxi
-//			dN_dxi(idx, 1) = lx[i] * d_ly[j]; // d/deta
-//
-//			idx++;
-//		}
-//	}
-//	//
-//}
-
-
 void helmholtz2d_spectral_solver::get_quadelement_kI_matrix(const spectral_quadelement_store& quad_elm,
 	const std::vector<Eigen::Vector2d>& elem_coords,
 	int nen,
 	double wave_number,
 	Eigen::MatrixXcd& element_kI_matrix)
 {
+
+	const std::complex<double> factor(0.0, wave_number);
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -893,7 +819,36 @@ void helmholtz2d_spectral_solver::get_quadelement_kI_matrix(const spectral_quade
 
 		if (edge.isboundaryedge == true && edge.isSommerfieldBC == true)
 		{
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			int n_gll_points = spec_mesh2d.spectral_order + 1;
+
+			// Pre-compute edge mapping parameters
+			auto get_edge_coordinates = [i](double s, double& xi, double& eta,
+				double& dxi_ds, double& deta_ds) 
+				{
+					if (i == 0) 
+					{      // Edge 1 (-1,-1) to (1,-1) bottom edge
+						xi = s;  eta = -1.0;
+						dxi_ds = 1.0;  deta_ds = 0.0;
+					}
+					else if (i == 1) 
+					{	// Edge 2 (1,-1) to (1, 1) right edge
+						xi = 1.0;  eta = s;
+						dxi_ds = 0.0;  deta_ds = 1.0;
+					}
+					else if (i == 2)
+					{  // Edge 3 (1,1) to (-1,1) top edge
+						xi = -s;  eta = 1.0;
+						dxi_ds = -1.0;  deta_ds = 0.0;
+					}
+					else
+					{  // Edge 4 (-1,1) to (-1,-1) left edge
+						xi = -1.0;  eta = -s;
+						dxi_ds = 0.0;  deta_ds = -1.0;
+					}
+				};
+
+
+			for (int j = 0; j < n_gll_points; j++)
 			{
 				// Get the 1D GLL point [-1, 1]
 				double s = this->gll_locations[j];
@@ -901,54 +856,21 @@ void helmholtz2d_spectral_solver::get_quadelement_kI_matrix(const spectral_quade
 				// Get the weigths
 				double w = this->gll_weights[j];
 
-				double xi, eta;
-
-				// Map the edge
-				if (i == 0)
-				{
-					// Edge 1 (-1,-1) to (1,-1)
-					xi = s;
-					eta = -1.0;
-				}
-				else if (i == 1)
-				{
-					// Edge 2 (1,-1) to (1, 1)
-					xi = 1.0;
-					eta = s;
-				}
-				else if (i == 2)
-				{
-					// Edge 3 (1,1) to (-1,1)
-					xi = -s;
-					eta = 1.0;
-				}
-				else if (i == 3)
-				{
-					// Edge 4 (-1,1) to (-1,-1)
-					xi = -1.0;
-					eta = -s;
-				}
+				double xi, eta, dxi_ds, deta_ds;
+				get_edge_coordinates(s, xi, eta, dxi_ds, deta_ds);
 
 				// --- Shape functions ---
 				Eigen::VectorXd N(nen);
 				Eigen::VectorXd dN_dxi(nen);
 				Eigen::VectorXd dN_deta(nen);
 
-				spectral_quad_element::evaluate_quadrilateral_shape_functions(xi, eta, spec_mesh2d.spectral_order, gll_locations, 
+				spectral_quad_element::evaluate_quadrilateral_shape_functions(xi, eta, 
+					spec_mesh2d.spectral_order, gll_locations, 
 					N, dN_dxi, dN_deta);
 
 
 				// --- Compute physical edge length Jacobian ---
 				Eigen::Vector2d dx_ds = Eigen::Vector2d::Zero();
-
-				// chain rule: dx/ds = dx/dxi * dxi/ds + dx/deta * deta/ds
-				double dxi_ds = 0.0;
-				double deta_ds = 0.0;
-
-				if (i == 0) { dxi_ds = 1.0;  deta_ds = 0.0; }   // bottom edge
-				else if (i == 1) { dxi_ds = 0.0;  deta_ds = 1.0; }   // right edge
-				else if (i == 2) { dxi_ds = -1.0; deta_ds = 0.0; }   // top edge
-				else if (i == 3) { dxi_ds = 0.0;  deta_ds = -1.0; }  // left edge
 
 				for (int k = 0; k < nen; k++)
 				{
@@ -958,14 +880,14 @@ void helmholtz2d_spectral_solver::get_quadelement_kI_matrix(const spectral_quade
 				}
 
 				double J_edge = dx_ds.norm();
+				double dV = J_edge * w;
 
 				// --- Assembly ---
 				for (int a = 0; a < nen; a++)
 				{
 					for (int b = 0; b < nen; b++)
 					{
-						element_kI_matrix(a, b) += std::complex<double>(0, wave_number) *
-							N(a) * N(b) * J_edge * w;
+						element_kI_matrix(a, b) += factor *	N(a) * N(b) * dV;
 					}
 				}
 				//
@@ -1042,41 +964,45 @@ void helmholtz2d_spectral_solver::get_quadelement_normderivfield_vector(const sp
 
 		if (edge.isboundaryedge == true && edge.isDerivFieldBC == true)
 		{
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			int n_gll_points = spec_mesh2d.spectral_order + 1;
+
+			// Pre-compute edge mapping parameters
+			auto get_edge_coordinates = [i](double s, double& xi, double& eta,
+				double& dxi_ds, double& deta_ds)
+				{
+					if (i == 0)
+					{      // Edge 1 (-1,-1) to (1,-1) bottom edge
+						xi = s;  eta = -1.0;
+						dxi_ds = 1.0;  deta_ds = 0.0;
+					}
+					else if (i == 1)
+					{	// Edge 2 (1,-1) to (1, 1) right edge
+						xi = 1.0;  eta = s;
+						dxi_ds = 0.0;  deta_ds = 1.0;
+					}
+					else if (i == 2)
+					{  // Edge 3 (1,1) to (-1,1) top edge
+						xi = -s;  eta = 1.0;
+						dxi_ds = -1.0;  deta_ds = 0.0;
+					}
+					else
+					{  // Edge 4 (-1,1) to (-1,-1) left edge
+						xi = -1.0;  eta = -s;
+						dxi_ds = 0.0;  deta_ds = -1.0;
+					}
+				};
+
+
+			for (int j = 0; j < n_gll_points; j++)
 			{
 				// Get the 1D GLL point [-1, 1]
 				double s = this->gll_locations[j];
 
 				// Get the weigths
-				double w = this->gll_weights[j];
+				double wt = this->gll_weights[j];
 
-				double xi, eta;
-
-				// Map the edge
-				if (i == 0)
-				{
-					// Edge 1 (-1,-1) to (1,-1)
-					xi = s;
-					eta = -1.0;
-				}
-				else if (i == 1)
-				{
-					// Edge 2 (1,-1) to (1, 1)
-					xi = 1.0;
-					eta = s;
-				}
-				else if (i == 2)
-				{
-					// Edge 3 (1,1) to (-1,1)
-					xi = -s;
-					eta = 1.0;
-				}
-				else if (i == 3)
-				{
-					// Edge 4 (-1,1) to (-1,-1)
-					xi = -1.0;
-					eta = -s;
-				}
+				double xi, eta, dxi_ds, deta_ds;
+				get_edge_coordinates(s, xi, eta, dxi_ds, deta_ds);
 
 				// --- Shape functions ---
 				Eigen::VectorXd N(nen);
@@ -1089,15 +1015,6 @@ void helmholtz2d_spectral_solver::get_quadelement_normderivfield_vector(const sp
 				// --- Compute physical edge length Jacobian ---
 				Eigen::Vector2d dx_ds = Eigen::Vector2d::Zero();
 
-				// chain rule: dx/ds = dx/dxi * dxi/ds + dx/deta * deta/ds
-				double dxi_ds = 0.0;
-				double deta_ds = 0.0;
-
-				if (i == 0) { dxi_ds = 1.0;  deta_ds = 0.0; }   // bottom edge
-				else if (i == 1) { dxi_ds = 0.0;  deta_ds = 1.0; }   // right edge
-				else if (i == 2) { dxi_ds = -1.0; deta_ds = 0.0; }   // top edge
-				else if (i == 3) { dxi_ds = 0.0;  deta_ds = -1.0; }  // left edge
-
 				for (int k = 0; k < nen; k++)
 				{
 					double dN_ds = dN_dxi(k) * dxi_ds + dN_deta(k) * deta_ds;
@@ -1106,6 +1023,7 @@ void helmholtz2d_spectral_solver::get_quadelement_normderivfield_vector(const sp
 				}
 
 				double J_edge = dx_ds.norm();
+				double dV = J_edge * wt;
 
 				// --- Assembly ---
 				// Neumann (flux) BC contribution
@@ -1113,7 +1031,7 @@ void helmholtz2d_spectral_solver::get_quadelement_normderivfield_vector(const sp
 
 				for (int a = 0; a < nen; a++)
 				{
-					neumann_vector(a) += dq_edge * N(a) * J_edge * w;
+					neumann_vector(a) += dq_edge * N(a) * dV;
 				}
 				//
 			}
@@ -1158,31 +1076,6 @@ void helmholtz2d_spectral_solver::get_quadelement_source_vector(const spectral_q
 	}
 	//
 }
-
-
-
-//void helmholtz2d_spectral_solver::set_global_matrix(const std::vector<int>& elem_nodes,
-//	int nen,
-//	const Eigen::MatrixXd& element_k_matrix, std::vector<Eigen::Triplet<double>>& triplets_k)
-//{
-//	for (int i = 0; i < nen; i++)
-//	{
-//		// get the global map id
-//		int i_node_map = this->nodeid_map[elem_nodes[i]];
-//
-//		for (int j = 0; j < nen; j++)
-//		{
-//			// get the global map id
-//			int j_node_map = this->nodeid_map[elem_nodes[j]];
-//
-//			triplets_k.emplace_back(i_node_map, j_node_map, element_k_matrix(i, j));
-//
-//			// Note: Triplets don’t accumulate — Eigen accumulates when building the sparse matrix.
-//		}
-//	}
-//	//
-//}
-
 
 
 
