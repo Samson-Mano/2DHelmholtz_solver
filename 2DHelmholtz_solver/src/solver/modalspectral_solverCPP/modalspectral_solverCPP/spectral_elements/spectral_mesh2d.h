@@ -3,8 +3,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "../system_store/helmholtz_system_store.h"
-#include "gll_utility.h"
 #include "unique_id_control.h"
+#include "spectral_lib/gll_utility.h"
+
 
 
 // Renderer Triangle
@@ -73,6 +74,58 @@ struct spectral_edge_store
 
 
 
+struct local_idx_structure
+{
+	// Local matrix index structure for a single element
+	std::vector<int> corner_nodes; // 4 corner nodes of the quadrilateral element
+
+	// edge_node_ids[0] for edge 1, edge_node_ids[1] for edge 2, edge_node_ids[2] for edge 3, edge_node_ids[3] for edge 4
+	std::vector<std::vector<int>> edge_node_ids;
+
+	std::vector<int> internal_nodes; // Internal nodes of the quadrialteral element (for higher-order spectral elements)
+
+	// Constructor to initialize with number of edges
+	explicit local_idx_structure(int num_edges) : edge_node_ids(num_edges) {}
+
+	void clear()
+	{
+		corner_nodes.clear();
+
+		for (auto& edge : edge_node_ids)
+		{
+			edge.clear();
+		}
+
+		internal_nodes.clear();
+	}
+
+
+	// x --- @ --- @ --- x
+	// |                 |
+	// |                 |
+	// @     O     O     @
+	// |                 |
+	// |                 | 
+	// @     O     O     @
+	// |                 |
+	// |                 |
+	// x --- @ --- @ --- x
+
+
+	// x
+	// | \
+	// |   \
+	// @  0  @
+	// |       \
+	// |         \
+	// @   0  0    @
+	// |             \
+	// |               \
+	// x --- @ --- @ --- x
+
+};
+
+
 struct spectral_trielement_store
 {
 	int tri_id = 0;
@@ -80,16 +133,19 @@ struct spectral_trielement_store
 	double tri_area = 0.0;
 
 	std::vector<int> corner_nodes; // 3 corner nodes of the triangle element
-	
+
 	// edge_node_ids[0] for edge 1, edge_node_ids[1] for edge 2, edge_node_ids[2] for edge 3
 	std::vector<std::vector<int>> edge_node_ids{ 3 };
 
 	std::vector<int> internal_nodes; // Internal nodes of the triangle element (for higher-order spectral elements)
 
+	// lexi ordered nodes
+	std::vector<int> lexi_ordered_node_ids; // lexicographic pattern based on barycentric coordinates
+
 	int materialid = 0;
 
 	// Store the edge ids
-	int edge_ids[3];
+	int edge_ids[3] = { 0, 0, 0 };
 
 	// Store the renderer triangle ID
 	std::vector<renderer_triangle> renderer_tri_elements;
@@ -103,19 +159,23 @@ struct spectral_quadelement_store
 	std::vector<int> corner_nodes; // 4 corner nodes of the quadrilateral element
 
 	// edge_node_ids[0] for edge 1, edge_node_ids[1] for edge 2, edge_node_ids[2] for edge 3, edge_node_ids[3] for edge 4
-	std::vector<std::vector<int>> edge_node_ids{4};
+	std::vector<std::vector<int>> edge_node_ids{ 4 };
 
 	std::vector<int> internal_nodes; // Internal nodes of the quadrialteral element (for higher-order spectral elements)
+
+	// Row ordered nodes
+	std::vector<int> row_ordered_node_ids; // Row ordered node ids
 
 	int materialid = 0;
 
 	// Store the edge ids
-	int edge_ids[4];
+	int edge_ids[4] = { 0, 0, 0, 0 };
 
 	// Store the renderer triangle ID
 	std::vector<renderer_triangle> renderer_tri_elements;
 
 };
+
 
 
 
@@ -139,6 +199,11 @@ public:
 	std::vector<renderer_triangle> renderer_element_triangles;
 
 
+	// Store the Local IDX for the single element
+	local_idx_structure quad_element_id_structure{ 4 };
+	local_idx_structure tri_element_id_structure{ 3 };
+
+
 	spectral_mesh2d();
 	~spectral_mesh2d() = default;
 
@@ -150,18 +215,18 @@ public:
 private:
 	helmholtz_system_store linear_mesh;
 
-	
+
 	void create_spectral_nodes(int node_id,
-								double x_coord,
-								double y_coord,
-								bool isboundarynode,
-								bool isFieldBC,
-								double fieldvalue,
-								double sourcevalue);
+		double x_coord,
+		double y_coord,
+		bool isboundarynode,
+		bool isFieldBC,
+		double fieldvalue,
+		double sourcevalue);
 
 
-	void create_spectral_edges(edge_store edge, 
-		const int& startnodeid, 
+	void create_spectral_edges(edge_store edge,
+		const int& startnodeid,
 		const int& endnodeid,
 		const int& leftfaceid,
 		const int& rightfaceid,
@@ -189,6 +254,9 @@ private:
 		const std::vector<int>& internal_nodes,
 		const std::vector<int>& edge_ids,
 		const std::vector<renderer_triangle>& renderer_tri_elements);
+
+
+	void create_local_id_structure(int order);
 
 
 };

@@ -2,23 +2,30 @@
 
 MinvKOp::MinvKOp(const Eigen::SparseMatrix<double>& K_,
     Eigen::SimplicialLLT<Eigen::SparseMatrix<double>>& chol_)
-    : K(K_), chol(chol_) 
+    : m_K(K_), m_chol(chol_)
 {
-
-
+    // Verify the solver is initialized
+    if (m_chol.info() != Eigen::Success) {
+        // Handle error - maybe throw an exception
+    }
 }
 
 void MinvKOp::perform_op(const double* x_in, double* y_out) const
 {
-    Eigen::Map<const Eigen::VectorXd> x(x_in, K.cols());
-    Eigen::Map<Eigen::VectorXd> y(y_out, K.rows());
+    // Map input and output to Eigen vectors
+    Eigen::Map<const Eigen::VectorXd> x(x_in, m_K.cols());
+    Eigen::Map<Eigen::VectorXd> y(y_out, m_K.rows());
 
-    // y = K * x
-    Eigen::VectorXd temp = K * x;
+    // Compute K * x
+    Eigen::VectorXd Kx = m_K * x;
 
-    // y = M^{-1} (Kx)
-    y = chol.solve(temp);
+    // Solve M * y = Kx  (i.e., y = M^{-1} * Kx)
+    y = m_chol.solve(Kx);
 }
+
+
+
+
 
 
 

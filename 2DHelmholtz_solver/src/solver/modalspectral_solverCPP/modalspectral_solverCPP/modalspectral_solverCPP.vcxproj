@@ -145,9 +145,12 @@
     <ClCompile Include="modalspectral_solverCPP.cpp" />
     <ClCompile Include="solver\MinvKOp.cpp" />
     <ClCompile Include="solver\modal_spectral_solver.cpp" />
-    <ClCompile Include="spectral_elements\fekete_nodes_table.cpp" />
     <ClCompile Include="spectral_elements\gll_utility.cpp" />
+    <ClCompile Include="spectral_elements\spectral_lib\gll_utility.cpp" />
+    <ClCompile Include="spectral_elements\spectral_lib\spectral_quad_element.cpp" />
+    <ClCompile Include="spectral_elements\spectral_lib\spectral_tri_element.cpp" />
     <ClCompile Include="spectral_elements\spectral_mesh2d.cpp" />
+    <ClCompile Include="spectral_elements\triangle_duvant_rule\triangle_dunavant_rule.cpp" />
     <ClCompile Include="spectral_elements\unique_id_control.cpp" />
     <ClCompile Include="system_store\helmholtz_system_store.cpp" />
     <ClCompile Include="system_store\stopwatch_events.cpp" />
@@ -155,9 +158,12 @@
   <ItemGroup>
     <ClInclude Include="solver\MinvKOp.h" />
     <ClInclude Include="solver\modal_spectral_solver.h" />
-    <ClInclude Include="spectral_elements\fekete_nodes_table.h" />
     <ClInclude Include="spectral_elements\gll_utility.h" />
+    <ClInclude Include="spectral_elements\spectral_lib\gll_utility.h" />
+    <ClInclude Include="spectral_elements\spectral_lib\spectral_quad_element.h" />
+    <ClInclude Include="spectral_elements\spectral_lib\spectral_tri_element.h" />
     <ClInclude Include="spectral_elements\spectral_mesh2d.h" />
+    <ClInclude Include="spectral_elements\triangle_duvant_rule\triangle_dunavant_rule.hpp" />
     <ClInclude Include="spectral_elements\unique_id_control.h" />
     <ClInclude Include="system_store\helmholtz_system_store.h" />
     <ClInclude Include="system_store\stopwatch_events.h" />

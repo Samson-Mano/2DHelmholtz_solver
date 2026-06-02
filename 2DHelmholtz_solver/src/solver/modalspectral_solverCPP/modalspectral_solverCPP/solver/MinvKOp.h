@@ -9,29 +9,43 @@
 #pragma warning (disable : 26813)
 #pragma warning (disable : 26454)
 
-
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <Eigen/Sparse>
+#include <Eigen/SparseCholesky>
+#include <Eigen/IterativeLinearSolvers>
+
+
 
 #pragma warning(pop)
 
+// Forward declaration or include the necessary headers
 class MinvKOp
 {
-
 public:
-    MinvKOp(const Eigen::SparseMatrix<double>& K_,
-        Eigen::SimplicialLLT<Eigen::SparseMatrix<double>>& chol_);
+    // Use consistent types - specify Scalar type explicitly
+    typedef double Scalar;
 
+    MinvKOp(const Eigen::SparseMatrix<Scalar>& K_,
+        Eigen::SimplicialLLT<Eigen::SparseMatrix<Scalar>>& chol_);
 
-    int rows() const { return K.rows(); }
-    int cols() const { return K.cols(); }
+    // Required for Eigen's matrix-free solvers
+    int rows() const { return m_K.rows(); }
+    int cols() const { return m_K.cols(); }
 
-    void perform_op(const double* x_in, double* y_out) const;
+    // Operator application: y = M^{-1} * K * x
+    void perform_op(const Scalar* x_in, Scalar* y_out) const;
+
+    // Optional: for compatibility with Eigen's matrix-free framework
+    template<typename Derived>
+    void apply(const Eigen::MatrixBase<Derived>& x, Eigen::MatrixBase<Derived>& y) const {
+        perform_op(x.derived().data(), y.derived().data());
+    }
 
 private:
-    const Eigen::SparseMatrix<double>& K;
-    Eigen::SimplicialLLT<Eigen::SparseMatrix<double>>& chol;
-
+    const Eigen::SparseMatrix<Scalar>& m_K;
+    Eigen::SimplicialLLT<Eigen::SparseMatrix<Scalar>>& m_chol;
 };
+
+
 
 

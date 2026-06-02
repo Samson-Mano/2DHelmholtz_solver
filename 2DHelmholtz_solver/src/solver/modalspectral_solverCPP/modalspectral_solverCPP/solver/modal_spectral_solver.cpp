@@ -71,15 +71,20 @@ void modal_spectral_solver::create_global_matrices()
 
 	if (static_cast<int>(spec_mesh2d.spectral_trielement_list.size()) > 0)
 	{
-		this->triangle_quadrature_points = gll_utility::get_triangle_quadrature(spectral_order);
-		this->triangle_basis_terms = gll_utility::build_basis_terms(spectral_order);
-		this->inv_vandermonde_matrix = gll_utility::get_inverse_vandermonde_matrix(spectral_order);
+		this->triangle_quadrature_points = spectral_tri_element::get_triangle_quadrature(spectral_order);
+		this->triangle_basis_terms = spectral_tri_element::proriol_modes(spectral_order);
+
+		report("Triangle Element Quadrature Points Created");
+
+		this->inv_vandermonde_matrix = spectral_tri_element::get_inverse_vandermonde_matrix(spectral_order, this->triangle_basis_terms);
+
+		// Callback the rank and conditioning of inverse Vandermonde matrix
+		report_vandermondematrix_conditioning(this->inv_vandermonde_matrix);
 
 		// Get the gll locations and gll weights for the given spectral order 
 		this->gll_locations = gll_utility::get_gll_locations(spectral_order);
 		this->gll_weights = gll_utility::get_gll_weights(spectral_order, gll_locations);
 
-		report("Triangle Element Quadrature Points Created");
 
 		// Triangle elements
 		for (auto& tri_elm_m : spec_mesh2d.spectral_trielement_list)
@@ -90,26 +95,7 @@ void modal_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 1: Create local node & node coordinate list
 			// Build local node list _______________________________________________
-			std::vector<int> elem_nodes;
-
-			for (int i = 0; i < 3; i++)
-			{
-				// Add the corner i (0, 1, 2)
-				elem_nodes.push_back(tri_elm.corner_nodes[i]);
-
-				// Then the edge i (0, 1, 2)
-				for (const auto& edge1_ndid : tri_elm.edge_node_ids[i])
-				{
-					elem_nodes.push_back(edge1_ndid);
-				}
-				//
-			}
-
-			// internal nodes
-			for (int internal_ndid : tri_elm.internal_nodes)
-			{
-				elem_nodes.push_back(internal_ndid);
-			}
+			std::vector<int> elem_nodes = tri_elm.lexi_ordered_node_ids;
 
 
 			// Get node coordinates ________________________________________________
@@ -172,7 +158,7 @@ void modal_spectral_solver::create_global_matrices()
 
 	if (static_cast<int>(spec_mesh2d.spectral_quadelement_list.size()) > 0)
 	{
-		this->quadrilateral_quadrature_points = gll_utility::get_quadrilateral_quadrature(spectral_order);
+		this->quadrilateral_quadrature_points = spectral_quad_element::get_quadrilateral_quadrature(spectral_order);
 
 		// Get the gll locations and gll weights for the given spectral order 
 		this->gll_locations = gll_utility::get_gll_locations(spectral_order);
@@ -189,27 +175,7 @@ void modal_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 1: Create local node & node coordinate list
 			// Build local node list _______________________________________________
-			std::vector<int> elem_nodes;
-
-			for (int i = 0; i < 4; i++)
-			{
-				// Add the corner i (0, 1, 2, 3)
-				elem_nodes.push_back(quad_elm.corner_nodes[i]);
-
-				// Then the edge i (0, 1, 2, 3)
-				for (const auto& edge1_ndid : quad_elm.edge_node_ids[i])
-				{
-					elem_nodes.push_back(edge1_ndid);
-				}
-				//
-			}
-
-			// internal nodes
-			for (int internal_ndid : quad_elm.internal_nodes)
-			{
-				elem_nodes.push_back(internal_ndid);
-			}
-
+			std::vector<int> elem_nodes = quad_elm.row_ordered_node_ids;
 
 			// Get node coordinates ________________________________________________
 			std::vector<Eigen::Vector2d> elem_coords;
@@ -269,6 +235,21 @@ void modal_spectral_solver::create_global_matrices()
 	// Set the global k and m matrix
 	global_k_matrix.setFromTriplets(k_triplets.begin(), k_triplets.end());
 	global_m_matrix.setFromTriplets(m_triplets.begin(), m_triplets.end());
+
+	// Create the message string and convert to const char*
+	std::string sizeMsg = "Global K matrix created. Size: " +
+		std::to_string(global_k_matrix.rows()) + "x" +
+		std::to_string(global_k_matrix.cols()) +
+		", Non-zeros: " + std::to_string(global_k_matrix.nonZeros());
+
+	report(sizeMsg.c_str());
+
+	sizeMsg = "Global M matrix created. Size: " +
+		std::to_string(global_m_matrix.rows()) + "x" +
+		std::to_string(global_m_matrix.cols()) +
+		", Non-zeros: " + std::to_string(global_m_matrix.nonZeros());
+
+	report(sizeMsg.c_str());
 
 	//
 }
@@ -447,91 +428,80 @@ void modal_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std::vecto
 {
 	int nen = static_cast<int>(elem_nodes.size());
 
+	// Get quadrature points
+	const auto& quadrature_points = this->triangle_quadrature_points;
+
 	// --- 1. Loop over quadrature points ---
-	for (int q = 0; q < static_cast<int>(triangle_quadrature_points.size()); q++)
+	for (int q = 0; q < static_cast<int>(quadrature_points.size()); q++)
 	{
-		double quadraturept_xi = triangle_quadrature_points[q].xi;
-		double quadraturept_eta = triangle_quadrature_points[q].eta;
-		double w = triangle_quadrature_points[q].weight; // weights are normalized to 1.0
+		double quadraturept_xi = quadrature_points[q].xi;
+		double quadraturept_eta = quadrature_points[q].eta;
+		double wt = quadrature_points[q].weight; // weights are normalized to 1.0
 
 		// --- 2. Evaluate shape functions ---
 		Eigen::VectorXd N(nen);
-		Eigen::MatrixXd dN_dxi(nen, 2); // [dN/dxi, dN/deta]
+		Eigen::VectorXd dN_dxi(nen); // [dN/dxi, dN/deta]
+		Eigen::VectorXd dN_deta(nen); // [dN/dxi, dN/deta]
 
-		evaluate_triangle_shape_functions(quadraturept_xi, quadraturept_eta, nen,
-			N, dN_dxi);
+		spectral_tri_element::evaluate_triangle_shape_functions(quadraturept_xi, quadraturept_eta, spec_mesh2d.spectral_order,
+			this->inv_vandermonde_matrix, this->triangle_basis_terms,
+			N, dN_dxi, dN_deta);
+
 
 		// --- 3. Compute Jacobian ---
 		Eigen::Matrix2d J = Eigen::Matrix2d::Zero();
 
 		for (int i = 0; i < nen; i++)
 		{
-			J(0, 0) += dN_dxi(i, 0) * elem_coords[i].x();
-			J(0, 1) += dN_dxi(i, 0) * elem_coords[i].y();
-			J(1, 0) += dN_dxi(i, 1) * elem_coords[i].x();
-			J(1, 1) += dN_dxi(i, 1) * elem_coords[i].y();
+			double x = elem_coords[i].x();
+			double y = elem_coords[i].y();
+
+			J(0, 0) += dN_dxi(i) * x; // dx/dxi
+			J(0, 1) += dN_deta(i) * x; // dx/deta
+			J(1, 0) += dN_dxi(i) * y; // dy/dxi
+			J(1, 1) += dN_deta(i) * y; // dy/deta
 		}
 
 		double detJ = J.determinant();
 		Eigen::Matrix2d invJ = J.inverse();
 
 		// --- 4. Transform gradients ---
-		Eigen::MatrixXd dN_dx(nen, 2);
+		// [dN/dx; dN/dy] = invJ^T * [dN/dxi; dN/deta]
+		Eigen::MatrixXd dN_dx(nen, 2);  // Each row: [dN_i/dx, dN_i/dy]
 
 		for (int i = 0; i < nen; i++)
 		{
-			Eigen::Vector2d grad_ref(dN_dxi(i, 0), dN_dxi(i, 1));
+			// Gradient in reference coordinates
+			Eigen::Vector2d grad_ref(dN_dxi(i), dN_deta(i));
+
+			// Transform to physical coordinates
 			Eigen::Vector2d grad_phys = invJ.transpose() * grad_ref;
 
-			dN_dx(i, 0) = grad_phys(0);
-			dN_dx(i, 1) = grad_phys(1);
+			dN_dx(i, 0) = grad_phys(0); // dN_i/dx
+			dN_dx(i, 1) = grad_phys(1); // dN_i/dy
 		}
+
+		// Quadrature weight including Jacobian determinant
+		double dV = detJ * wt;
+
 
 		// --- 5. Assemble matrices ---
 		for (int i = 0; i < nen; i++)
 		{
 			for (int j = 0; j < nen; j++)
 			{
+				double grad_dot = dN_dx.row(i).dot(dN_dx.row(j));
+
 				// Gradient (stiffness)
-				element_k_matrix(i, j) += (dN_dx.row(i).dot(dN_dx.row(j))) * detJ * w;
+				element_k_matrix(i, j) += grad_dot * dV;
 
 				// Mass
-				element_m_matrix(i, j) += (N(i) * N(j)) * detJ * w;
+				element_m_matrix(i, j) += (N(i) * N(j)) * dV;
 			}
 		}
 	}
 	//
 }
-
-
-void modal_spectral_solver::evaluate_triangle_shape_functions(double quadraturept_xi,
-	double quadraturept_eta, int nen,
-	Eigen::VectorXd& N,
-	Eigen::MatrixXd& dN_dxi)
-{
-	// Calculate the polynomial basis function
-	Eigen::VectorXd phi, dphi_dxi, dphi_deta;
-
-	gll_utility::evaluate_basis_phi(quadraturept_xi, quadraturept_eta, this->triangle_basis_terms, phi);
-	gll_utility::evaluate_basis_derivatives(quadraturept_xi, quadraturept_eta, this->triangle_basis_terms, dphi_dxi, dphi_deta);
-
-	// Shape functions
-	N = this->inv_vandermonde_matrix * phi;
-
-	// Derivatives of Shape functions
-	Eigen::VectorXd dN_dxi_vec = this->inv_vandermonde_matrix * dphi_dxi;
-	Eigen::VectorXd dN_deta_vec = this->inv_vandermonde_matrix * dphi_deta;
-
-	for (int i = 0; i < nen; i++)
-	{
-		dN_dxi(i, 0) = dN_dxi_vec(i);
-		dN_dxi(i, 1) = dN_deta_vec(i);
-	}
-	//
-}
-
-
-
 
 
 
@@ -553,12 +523,23 @@ void modal_spectral_solver::get_trielement_field_vector(const spectral_trielemen
 			// Dirichlet (field) BC contribution
 			double q_edge = edge.fieldvalue;  // field value
 
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
+
+			// dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
+
+			for (const int& j : spec_mesh2d.tri_element_id_structure.edge_node_ids[i])
 			{
-				int local_idx = (i * spec_mesh2d.spectral_order) + j;
+				local_idx = j;
+
 				// dirichlet_vector(local_idx) = q_edge;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
+
+			local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[(i + 1) % 3];
+
+			// dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
 			//
 		}
 		//
@@ -579,7 +560,7 @@ void modal_spectral_solver::get_trielement_source_vector(const spectral_trieleme
 
 		if (nd.isboundarynode == true)
 		{
-			int local_idx = (i * spec_mesh2d.spectral_order);
+			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
 
 			if (nd.isFieldBC == true)
 			{
@@ -610,29 +591,37 @@ void modal_spectral_solver::get_quadelement_k_grad_k_mass_matrix(const std::vect
 {
 	int nen = static_cast<int>(elem_nodes.size());
 
+	// Get quadrature points
+	const auto& quadrature_points = this->quadrilateral_quadrature_points;
+
 	// --- 1. Loop over quadrature points ---
-	for (int q = 0; q < static_cast<int>(quadrilateral_quadrature_points.size()); q++)
+	for (int q = 0; q < static_cast<int>(quadrature_points.size()); q++)
 	{
-		double quadraturept_xi = quadrilateral_quadrature_points[q].xi;
-		double quadraturept_eta = quadrilateral_quadrature_points[q].eta;
-		double w = quadrilateral_quadrature_points[q].weight;
+		double quadraturept_xi = quadrature_points[q].xi;
+		double quadraturept_eta = quadrature_points[q].eta;
+		double wt = quadrature_points[q].weight;
 
 		// --- 2. Evaluate shape functions ---
 		Eigen::VectorXd N(nen);
-		Eigen::MatrixXd dN_dxi(nen, 2); // [dN/dxi, dN/deta]
+		Eigen::VectorXd dN_dxi(nen); // [dN/dxi, dN/deta]
+		Eigen::VectorXd dN_deta(nen); // [dN/dxi, dN/deta]
 
-		evaluate_quadrilateral_shape_functions(quadraturept_xi, quadraturept_eta, nen,
-			N, dN_dxi);
+		spectral_quad_element::evaluate_quadrilateral_shape_functions(quadraturept_xi, quadraturept_eta,
+			spec_mesh2d.spectral_order, gll_locations,
+			N, dN_dxi, dN_deta);
 
 		// --- 3. Compute Jacobian ---
 		Eigen::Matrix2d J = Eigen::Matrix2d::Zero();
 
 		for (int i = 0; i < nen; i++)
 		{
-			J(0, 0) += dN_dxi(i, 0) * elem_coords[i].x();
-			J(0, 1) += dN_dxi(i, 0) * elem_coords[i].y();
-			J(1, 0) += dN_dxi(i, 1) * elem_coords[i].x();
-			J(1, 1) += dN_dxi(i, 1) * elem_coords[i].y();
+			double x = elem_coords[i].x();
+			double y = elem_coords[i].y();
+
+			J(0, 0) += dN_dxi(i) * x; // dx/dxi
+			J(0, 1) += dN_deta(i) * x; // dx/deta
+			J(1, 0) += dN_dxi(i) * y; // dy/dxi
+			J(1, 1) += dN_deta(i) * y; // dy/deta
 		}
 
 		double detJ = J.determinant();
@@ -643,12 +632,18 @@ void modal_spectral_solver::get_quadelement_k_grad_k_mass_matrix(const std::vect
 
 		for (int i = 0; i < nen; i++)
 		{
-			Eigen::Vector2d grad_ref(dN_dxi(i, 0), dN_dxi(i, 1));
+			// Gradient in reference coordinates
+			Eigen::Vector2d grad_ref(dN_dxi(i), dN_deta(i));
+
+			// Transform to physical coordinates
 			Eigen::Vector2d grad_phys = invJ.transpose() * grad_ref;
 
-			dN_dx(i, 0) = grad_phys(0);
-			dN_dx(i, 1) = grad_phys(1);
+			dN_dx(i, 0) = grad_phys(0); // dN_i/dx
+			dN_dx(i, 1) = grad_phys(1); // dN_i/dy
 		}
+
+		// Quadrature weight including Jacobian determinant
+		double dV = detJ * wt;
 
 		// --- 5. Assemble matrices ---
 		// element_k_grad_matrix += (dN_dx * dN_dx.transpose()) * detJ * w;
@@ -658,58 +653,19 @@ void modal_spectral_solver::get_quadelement_k_grad_k_mass_matrix(const std::vect
 		{
 			for (int j = 0; j < nen; j++)
 			{
+				double grad_dot = dN_dx.row(i).dot(dN_dx.row(j));
+
 				// Gradient (stiffness)
-				element_k_matrix(i, j) += (dN_dx.row(i).dot(dN_dx.row(j))) * detJ * w;
+				element_k_matrix(i, j) += grad_dot * dV;
 
 				// Mass
-				element_m_matrix(i, j) += (N(i) * N(j)) * detJ * w;
+				element_m_matrix(i, j) += (N(i) * N(j)) * dV;
 			}
 		}
 	}
 	//
 }
 
-
-
-void modal_spectral_solver::evaluate_quadrilateral_shape_functions(double quadraturept_xi,
-	double quadraturept_eta, int nen,
-	Eigen::VectorXd& N,
-	Eigen::MatrixXd& dN_dxi)
-{
-	int p = spec_mesh2d.spectral_order;
-	int n1d = p + 1;
-
-	// --- 1D shape functions ---
-	std::vector<double> lx(n1d), d_lx(n1d);
-	std::vector<double> ly(n1d), d_ly(n1d);
-
-	// Evaluate 1D Lagrange basis at xi and eta
-	gll_utility::evaluate_lagrange_1D(quadraturept_xi, gll_locations, lx, d_lx);
-	gll_utility::evaluate_lagrange_1D(quadraturept_eta, gll_locations, ly, d_ly);
-
-	// --- Allocate ---
-	N.resize(nen);
-	dN_dxi.resize(nen, 2);
-
-	// --- Tensor product assembly ---
-	int idx = 0;
-
-	for (int j = 0; j < n1d; j++)
-	{
-		for (int i = 0; i < n1d; i++)
-		{
-			// Shape function
-			N(idx) = lx[i] * ly[j];
-
-			// Derivatives
-			dN_dxi(idx, 0) = d_lx[i] * ly[j]; // d/dxi
-			dN_dxi(idx, 1) = lx[i] * d_ly[j]; // d/deta
-
-			idx++;
-		}
-	}
-	//
-}
 
 
 
@@ -731,12 +687,23 @@ void modal_spectral_solver::get_quadelement_field_vector(const spectral_quadelem
 			// Dirichlet (field) BC contribution
 			double q_edge = edge.fieldvalue;  // field value
 
-			for (int j = 0; j < spec_mesh2d.spectral_order + 1; j++)
+			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
+
+			// dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
+
+			for (const int& j : spec_mesh2d.quad_element_id_structure.edge_node_ids[i])
 			{
-				int local_idx = (i * spec_mesh2d.spectral_order) + j;
+				local_idx = j;
+
 				// dirichlet_vector(local_idx) = q_edge;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
+
+			local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[(i + 1) % 4];
+
+			// dirichlet_vector(local_idx) = q_edge;
+			dirichlet_BC_flag(local_idx) = 1;
 			//
 		}
 		//
@@ -758,7 +725,7 @@ void modal_spectral_solver::get_quadelement_source_vector(const spectral_quadele
 
 		if (nd.isboundarynode == true)
 		{
-			int local_idx = (i * spec_mesh2d.spectral_order);
+			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
 
 			if (nd.isFieldBC == true)
 			{
@@ -940,6 +907,85 @@ void modal_spectral_solver::store_results()
 
 	//
 }
+
+
+
+
+void modal_spectral_solver::report_vandermondematrix_conditioning(const Eigen::MatrixXd& invVanderMondematrix)
+{
+	std::stringstream ss;
+
+	// Compute condition number using singular value decomposition
+	Eigen::JacobiSVD<Eigen::MatrixXd> svd(invVanderMondematrix);
+	Eigen::VectorXd singular_values = svd.singularValues();
+
+	double max_sv = singular_values(0);
+	double min_sv = singular_values(singular_values.size() - 1);
+	double cond_number = max_sv / min_sv;
+	double log10_cond = std::log10(cond_number);
+
+	// Compute numerical rank (singular values > tolerance)
+	double tolerance = std::max(invVanderMondematrix.rows(), invVanderMondematrix.cols()) *
+		singular_values(0) * std::numeric_limits<double>::epsilon();
+
+	int rank = 0;
+	for (int i = 0; i < singular_values.size(); ++i)
+	{
+		if (singular_values(i) > tolerance)
+		{
+			rank++;
+		}
+	}
+
+	// Compute determinant (log scale to avoid overflow)
+	double log_det = 0.0;
+	for (int i = 0; i < rank; ++i)
+	{
+		log_det += std::log(singular_values(i));
+	}
+
+
+	int rows = invVanderMondematrix.rows();
+	int cols = invVanderMondematrix.cols();
+
+	// Additional statistics
+	double min_sv_db = 20.0 * std::log10(min_sv);
+	double max_sv_db = 20.0 * std::log10(max_sv);
+	double dynamic_range_db = max_sv_db - min_sv_db;
+
+	ss << "\n========================================";
+	ss << "\n" << "Inverse VanderMonde Matrix Analysis : ";
+	ss << "\n  Dimensions: " << rows << "x" << cols;
+	ss << "\n  Rank: " << rank << "/" << std::min(rows, cols);
+	ss << "\n  Condition number: " << std::scientific << std::setprecision(6) << cond_number;
+	ss << " (10^" << std::fixed << std::setprecision(2) << log10_cond << ")";
+	ss << "\n  Singular values:";
+	ss << "\n    Max: " << std::scientific << std::setprecision(4) << max_sv;
+	ss << " (" << std::fixed << std::setprecision(1) << max_sv_db << " dB)";
+	ss << "\n    Min: " << std::scientific << std::setprecision(4) << min_sv;
+	ss << " (" << std::fixed << std::setprecision(1) << min_sv_db << " dB)";
+	ss << "\n    Dynamic range: " << std::fixed << std::setprecision(1) << dynamic_range_db << " dB";
+	ss << "\n  Log determinant: " << std::scientific << std::setprecision(4) << log_det;
+
+
+
+
+	// Warning for ill-conditioned matrix
+	if (cond_number > 1e8)
+	{
+		ss << " [WARNING: Matrix is ill-conditioned!]";
+	}
+	else
+	{
+		ss << "\n  [OK] Matrix is well-conditioned";
+	}
+	ss << "\n========================================";
+
+
+	report(ss.str().c_str());
+
+}
+
 
 
 void modal_spectral_solver::report(const char* msg)

@@ -26,6 +26,9 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 	// Generate spectral nodes, edges, and elements based on the linear mesh
 	this->spectral_order = linear_mesh.spectral_order; // Set the spectral order from the linear mesh
 
+	// Create the Local ID structure from spectral order
+	create_local_id_structure(this->spectral_order);
+
 
 	// Get the gll locations and gll weights for the given spectral order 
 	std::vector<double> gll_locations = gll_utility::get_gll_locations(this->spectral_order);
@@ -152,6 +155,35 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 			std::vector<int> edge_internal_node_ids; // To store internal node IDs for this edge
 
+			bool edge_isboundarynode = false;
+			bool edge_isFieldBC = false;
+			double edge_startnode_fieldvalue = 0.0;
+			double edge_endnode_fieldvalue = 0.0;
+
+			double edge_startnode_sourcevalue = 0.0;
+			double edge_endnode_sourcevalue = 0.0;
+
+			if (start_node.isboundarynode == true && end_node.isboundarynode == true)
+			{
+				edge_isboundarynode = true;
+
+				// If both start and end nodes are boundary nodes 
+				// then distribute the boundary condition to the edge nodes
+				if (start_node.isFieldBC == true && end_node.isFieldBC == true)
+				{
+					edge_isFieldBC = true;
+
+					// Get the field value
+					edge_startnode_fieldvalue = start_node.fieldvalue;
+					edge_endnode_fieldvalue = end_node.fieldvalue;
+				}
+
+				// Get the source value
+				edge_startnode_sourcevalue = start_node.sourcevalue;
+				edge_endnode_sourcevalue = end_node.sourcevalue;
+			}
+
+
 			// Create edge nodes based on the spectral order
 			for (int j = 1; j < spectral_order; j++)
 			{
@@ -165,8 +197,27 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double y = 0.5 * ((1 - xi) * start_node.y_coord +
 					(1 + xi) * end_node.y_coord);
 
+				// Linear interpolation for field value (if edge has field BC)
+				double edge_node_fieldvalue = 0.0;
+				double edge_node_sourcevalue = 0.0;
+
+				if (edge_isboundarynode == true)
+				{
+					if (edge_isFieldBC == true)
+					{
+						// Linear interpolation between start and end field values
+						edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
+							(1 + xi) * edge_endnode_fieldvalue);
+					}
+
+					// Linear interpolation for source value
+					edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
+						(1 + xi) * edge_endnode_sourcevalue);
+				}
+
+
 				create_spectral_nodes(node_id,
-					x, y, false, false, 0.0, 0.0); // Create edge node and store it
+					x, y, edge_isboundarynode, edge_isFieldBC, edge_node_fieldvalue, edge_node_sourcevalue); // Create edge node and store it
 
 				edge_internal_node_ids.push_back(node_id); // Add to this edge's internal node IDs
 				edge_node_ids[i].push_back(node_id); // Add to edge node IDs
@@ -400,6 +451,35 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 			std::vector<int> edge_internal_node_ids; // To store internal node IDs for this edge
 
+			bool edge_isboundarynode = false;
+			bool edge_isFieldBC = false;
+			double edge_startnode_fieldvalue = 0.0;
+			double edge_endnode_fieldvalue = 0.0;
+
+			double edge_startnode_sourcevalue = 0.0;
+			double edge_endnode_sourcevalue = 0.0;
+
+			if (start_node.isboundarynode == true && end_node.isboundarynode == true)
+			{
+				edge_isboundarynode = true;
+
+				// If both start and end nodes are boundary nodes 
+				// then distribute the boundary condition to the edge nodes
+				if (start_node.isFieldBC == true && end_node.isFieldBC == true)
+				{
+					edge_isFieldBC = true;
+
+					// Get the field value
+					edge_startnode_fieldvalue = start_node.fieldvalue;
+					edge_endnode_fieldvalue = end_node.fieldvalue;
+				}
+
+				// Get the source value
+				edge_startnode_sourcevalue = start_node.sourcevalue;
+				edge_endnode_sourcevalue = end_node.sourcevalue;
+			}
+
+
 			// Create edge nodes based on the spectral order
 			for (int j = 1; j < spectral_order; j++)
 			{
@@ -413,8 +493,27 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double y = 0.5 * ((1 - xi) * start_node.y_coord +
 					(1 + xi) * end_node.y_coord);
 
+				// Linear interpolation for field value (if edge has field BC)
+				double edge_node_fieldvalue = 0.0;
+				double edge_node_sourcevalue = 0.0;
+
+				if (edge_isboundarynode == true)
+				{
+					if (edge_isFieldBC == true)
+					{
+						// Linear interpolation between start and end field values
+						edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
+							(1 + xi) * edge_endnode_fieldvalue);
+					}
+
+					// Linear interpolation for source value
+					edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
+						(1 + xi) * edge_endnode_sourcevalue);
+				}
+
+
 				create_spectral_nodes(node_id,
-					x, y, false, false, 0.0, 0.0); // Create edge node and store it
+					x, y, edge_isboundarynode, edge_isFieldBC, edge_node_fieldvalue, edge_node_sourcevalue); // Create edge node and store it
 
 				edge_internal_node_ids.push_back(node_id); // Add to this edge's internal node IDs
 				edge_node_ids[i].push_back(node_id); // Add to edge node IDs
@@ -490,12 +589,12 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 				// Find the double xi and eta (local coordinates)
 				double xi = (1 / 3.0) * (1.0 + (2.0 * vj) - vi - vk);
-				double eta = (1 / 3.0) * (1.0 + (2.0 * vk) - vi - vj);
+				double eta = (1 / 3.0) * (1.0 + (2.0 * vi) - vk - vj);
 
 				// Converted to global coordinates
-				double l3 = 1.0 - xi - eta;
+				double l1 = 1.0 - xi - eta;
 				double l2 = xi;
-				double l1 = eta;
+				double l3 = eta;
 
 				int node_id = node_id_control.get_unique_id();
 
@@ -640,6 +739,9 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 	// Layer count 
 	int layer_count = order + 1;
 
+	// Clear the row ordered nodes
+	spec_quad.row_ordered_node_ids.clear();
+
 
 	auto create_renderer_triangles = [this](const std::vector<int>& layer_0, const std::vector<int>& layer_1,
 		spectral_quadelement_store& spec_quad)
@@ -669,6 +771,11 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 
 				spec_quad.renderer_tri_elements.push_back(tri2);
 				this->renderer_element_triangles.push_back(tri2);
+			}
+
+			for (const auto& id : layer_0)
+			{
+				spec_quad.row_ordered_node_ids.push_back(id);
 			}
 			//
 		};
@@ -735,8 +842,17 @@ void spectral_mesh2d::create_spectralquad_renderer_triangles(spectral_quadelemen
 
 	layer_1_nodes.push_back(spec_quad.corner_nodes[2]);
 
+
 	// Using layer_0 and layer 1 create the triangles
 	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_quad);
+
+
+	// Final layer for row ordered node ids
+	for (const auto& id : layer_1_nodes)
+	{
+		spec_quad.row_ordered_node_ids.push_back(id);
+	}
+
 	//
 }
 
@@ -795,7 +911,7 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	for (const auto& edge0_id : spec_tri.edge_node_ids[0])
 	{
 
-		// First edge nodes (Node 0 -> Node 1)
+		// First edge nodes (Node 0 -> Node 1) [Edge 0]
 		layer_0_nodes.push_back(edge0_id);
 	}
 
@@ -811,7 +927,7 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 	{
 		layer_1_nodes.clear();
 
-		// Start is edge node (Node 2 -> Node 0)
+		// Start is edge node (Node 2 -> Node 0) [Edge 2]
 		layer_1_nodes.push_back(spec_tri.edge_node_ids[2][order - i - 1]);
 
 		// Interior nodes layer 1
@@ -822,7 +938,7 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 			interior_node_index++;
 		}
 
-		// End is edge node (Node 1 -> Node 2)
+		// End is edge node (Node 1 -> Node 2) [Edge 1]
 		layer_1_nodes.push_back(spec_tri.edge_node_ids[1][i - 1]);
 
 		// Using layer_0 and layer 1 create the triangles
@@ -839,6 +955,36 @@ void spectral_mesh2d::create_spectraltri_renderer_triangles(spectral_trielement_
 
 	// Using layer_0 and layer 1 create the triangles
 	create_renderer_triangles(layer_0_nodes, layer_1_nodes, spec_tri);
+
+
+	//____________________________________________________________________________________________________________
+	// Create the node ordering
+	spec_tri.lexi_ordered_node_ids.clear();
+
+	// Corner nodes
+	spec_tri.lexi_ordered_node_ids.push_back(spec_tri.corner_nodes[0]);
+	spec_tri.lexi_ordered_node_ids.push_back(spec_tri.corner_nodes[1]);
+	spec_tri.lexi_ordered_node_ids.push_back(spec_tri.corner_nodes[2]);
+
+	// Edge nodes
+	for (int i = 0; i < 3; i++)
+	{
+		for (const auto& edge_nd_id : spec_tri.edge_node_ids[i])
+		{
+
+			// edge nodes (Node 0 -> Node 1), (Node 1 -> Node 2), (Node 2 -> Node 3)
+			spec_tri.lexi_ordered_node_ids.push_back(edge_nd_id);
+		}
+	}
+
+	// Interior nodes
+	for (const auto& interior_nd_id : spec_tri.internal_nodes)
+	{
+		spec_tri.lexi_ordered_node_ids.push_back(interior_nd_id);
+	}
+
+
+
 	//
 }
 
@@ -984,6 +1130,100 @@ void spectral_mesh2d::create_renderer_edges(std::unordered_set<int>& added_edges
 		if (edge_set.insert(e3).second)
 			renderer_edge_lines.push_back({ tri.n3, tri.n1 });
 	}
+	//
+}
+
+
+
+void spectral_mesh2d::create_local_id_structure(int order)
+{
+
+	quad_element_id_structure.clear();
+	tri_element_id_structure.clear();
+
+
+	// Create the quadrilateral element ID structure
+	int idx = 0;
+	int n_edge_nodes = order - 1;
+	int n_internal = (order - 1) * (order - 1);
+
+	// === Bottom edge (corner 0 -> edge nodes -> corner 1) ===
+	// Corner 0
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+
+	for (int i = 0; i < n_edge_nodes; i++)
+	{
+
+		// First edge nodes (Node 0 -> Node 1) // Edge 0
+		quad_element_id_structure.edge_node_ids[0].push_back(idx++);
+	}
+
+	// Corner 1
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+
+
+	// === Internal rows (each row has edge nodes on left/right) ===
+	for (int row = 0; row < n_edge_nodes; row++)
+	{
+		// Left edge node (edge 3, from bottom to top)
+		// Start is edge 3 node (Node 3 -> Node 0)
+		quad_element_id_structure.edge_node_ids[3].push_back(idx++);
+
+		// Interior nodes in this row
+		for (int col = 0; col < n_edge_nodes; col++)
+		{
+			quad_element_id_structure.internal_nodes.push_back(idx++);
+		}
+
+		// Right edge node (edge 1, from bottom to top)
+		quad_element_id_structure.edge_node_ids[1].push_back(idx++);
+	}
+
+
+	// === Top edge (corner 2 -> edge nodes -> corner 3) ===
+	// Corner 2
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+
+	for (int j = 0; j < order - 1; j++)
+	{
+		// Note: Edge 2 nodes go from right to left or left to right?
+		// Third edge (edge[2]) nodes (Node 4 -> Node 3)
+		quad_element_id_structure.edge_node_ids[2].push_back(idx++);
+	}
+
+	// Corner 3
+	quad_element_id_structure.corner_nodes.push_back(idx++);
+
+
+
+	//__________________________________________________________________________________________________
+	//__________________________________________________________________________________________________
+	// Create the triangle element ID structure
+	idx = 0;
+
+	// Corner nodes
+	tri_element_id_structure.corner_nodes.push_back(idx++);
+	tri_element_id_structure.corner_nodes.push_back(idx++);
+	tri_element_id_structure.corner_nodes.push_back(idx++);
+
+	// Edge nodes
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < n_edge_nodes; j++)
+		{
+			// edge nodes (Node 0 -> Node 1), (Node 1 -> Node 2), (Node 2 -> Node 3)
+			tri_element_id_structure.edge_node_ids[i].push_back(idx++);
+		}
+	}
+
+	n_internal = (order - 2) * (order - 1) * 0.5;
+
+	// Interior nodes
+	for (int j = 0; j < n_internal; j++)
+	{
+		tri_element_id_structure.internal_nodes.push_back(idx++);
+	}
+
 	//
 }
 

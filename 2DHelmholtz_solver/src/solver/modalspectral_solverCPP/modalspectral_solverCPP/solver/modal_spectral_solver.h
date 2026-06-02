@@ -46,9 +46,14 @@ using namespace Spectra;
 #include "../spectral_elements/spectral_mesh2d.h"
 #include "../system_store/stopwatch_events.h"
 
-#include "../spectral_elements/gll_utility.h"
+
+#include "../spectral_elements/spectral_lib/gll_utility.h"
+#include "../spectral_elements/spectral_lib/spectral_quad_element.h"
+#include "../spectral_elements/spectral_lib/spectral_tri_element.h"
+
 
 #include <fstream>
+
 
 #include <iomanip> // to get std::setprecision()
 
@@ -106,7 +111,7 @@ private:
 	std::vector<spectral_point> triangle_quadrature_points;
 
 	// Triangle basis term
-	std::vector<basis_term> triangle_basis_terms;
+	std::vector<proriol_basis_term> triangle_basis_terms;
 
 	// Inverse Vandermonde matrix
 	Eigen::MatrixXd inv_vandermonde_matrix;
@@ -120,19 +125,13 @@ private:
 	std::vector<spectral_point> quadrilateral_quadrature_points;
 
 
+
 	//________________________________________________________________________________________________
 
 	void get_trielement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
 		const std::vector<Eigen::Vector2d>& elem_coords,
 		Eigen::MatrixXd& element_k_matrix,
 		Eigen::MatrixXd& element_m_matrix);
-
-
-	void evaluate_triangle_shape_functions(double quadraturept_xi,
-		double quadraturept_eta, int nen,
-		Eigen::VectorXd& N,
-		Eigen::MatrixXd& dN_dxi);
-
 
 
 	void get_trielement_field_vector(const spectral_trielement_store& tri_elm,
@@ -160,19 +159,16 @@ private:
 
 
 
+	void report_vandermondematrix_conditioning(const Eigen::MatrixXd& invVanderMondematrix);
+
+
+
 	//________________________________________________________________________________________________
 
 	void get_quadelement_k_grad_k_mass_matrix(const std::vector<int>& elem_nodes,
 		const std::vector<Eigen::Vector2d>& elem_coords,
 		Eigen::MatrixXd& element_k_matrix,
 		Eigen::MatrixXd& element_m_matrix);
-
-
-	void evaluate_quadrilateral_shape_functions(double quadraturept_xi,
-		double quadraturept_eta, int nen,
-		Eigen::VectorXd& N,
-		Eigen::MatrixXd& dN_dxi);
-
 
 
 	void get_quadelement_field_vector(const spectral_quadelement_store& quad_elm,
