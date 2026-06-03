@@ -67,7 +67,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(150, 346);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(115, 15);
+            this.label2.Size = new System.Drawing.Size(149, 20);
             this.label2.TabIndex = 3;
             this.label2.Text = "Number of modes : ";
             // 
@@ -75,7 +75,7 @@
             // 
             this.textBox_numofmodes.Location = new System.Drawing.Point(271, 343);
             this.textBox_numofmodes.Name = "textBox_numofmodes";
-            this.textBox_numofmodes.Size = new System.Drawing.Size(100, 23);
+            this.textBox_numofmodes.Size = new System.Drawing.Size(100, 27);
             this.textBox_numofmodes.TabIndex = 4;
             // 
             // label4
@@ -83,7 +83,7 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(158, 375);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(107, 15);
+            this.label4.Size = new System.Drawing.Size(142, 20);
             this.label4.TabIndex = 8;
             this.label4.Text = "Model X, Y extent: ";
             // 
@@ -92,7 +92,7 @@
             this.textBox_xyextent.Enabled = false;
             this.textBox_xyextent.Location = new System.Drawing.Point(271, 372);
             this.textBox_xyextent.Name = "textBox_xyextent";
-            this.textBox_xyextent.Size = new System.Drawing.Size(100, 23);
+            this.textBox_xyextent.Size = new System.Drawing.Size(100, 27);
             this.textBox_xyextent.TabIndex = 9;
             // 
             // label5
@@ -100,7 +100,7 @@
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(377, 346);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(29, 15);
+            this.label5.Size = new System.Drawing.Size(37, 20);
             this.label5.TabIndex = 10;
             this.label5.Text = "Nos";
             // 
@@ -109,7 +109,7 @@
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(377, 375);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(35, 15);
+            this.label8.Size = new System.Drawing.Size(45, 20);
             this.label8.TabIndex = 13;
             this.label8.Text = "units";
             // 
@@ -118,11 +118,11 @@
             this.comboBox_solvertype.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_solvertype.FormattingEnabled = true;
             this.comboBox_solvertype.Items.AddRange(new object[] {
-            "Elimination method",
-            "Lagrange Augmentation method"});
+            "Spectra",
+            "Arpack"});
             this.comboBox_solvertype.Location = new System.Drawing.Point(271, 285);
             this.comboBox_solvertype.Name = "comboBox_solvertype";
-            this.comboBox_solvertype.Size = new System.Drawing.Size(217, 23);
+            this.comboBox_solvertype.Size = new System.Drawing.Size(217, 27);
             this.comboBox_solvertype.TabIndex = 14;
             // 
             // label9
@@ -130,7 +130,7 @@
             this.label9.AutoSize = true;
             this.label9.Location = new System.Drawing.Point(186, 288);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(79, 15);
+            this.label9.Size = new System.Drawing.Size(103, 20);
             this.label9.TabIndex = 15;
             this.label9.Text = "Solver Type: ";
             // 
@@ -139,7 +139,7 @@
             this.label10.AutoSize = true;
             this.label10.Location = new System.Drawing.Point(153, 317);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(112, 15);
+            this.label10.Size = new System.Drawing.Size(148, 20);
             this.label10.TabIndex = 17;
             this.label10.Text = "Spectral order (N): ";
             // 
@@ -160,15 +160,15 @@
             "10"});
             this.comboBox_spectralorderN.Location = new System.Drawing.Point(271, 314);
             this.comboBox_spectralorderN.Name = "comboBox_spectralorderN";
-            this.comboBox_spectralorderN.Size = new System.Drawing.Size(69, 23);
+            this.comboBox_spectralorderN.Size = new System.Drawing.Size(69, 27);
             this.comboBox_spectralorderN.TabIndex = 18;
             this.comboBox_spectralorderN.SelectedIndexChanged += new System.EventHandler(this.comboBox_spectralorderN_SelectedIndexChanged);
             // 
             // modalsolver_frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(597, 546);
+            this.ClientSize = new System.Drawing.Size(597, 543);
             this.Controls.Add(this.comboBox_spectralorderN);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.label9);

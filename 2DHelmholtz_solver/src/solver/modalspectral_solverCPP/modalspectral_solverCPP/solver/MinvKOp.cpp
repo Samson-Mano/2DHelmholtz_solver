@@ -5,7 +5,8 @@ MinvKOp::MinvKOp(const Eigen::SparseMatrix<double>& K_,
     : m_K(K_), m_chol(chol_)
 {
     // Verify the solver is initialized
-    if (m_chol.info() != Eigen::Success) {
+    if (m_chol.info() != Eigen::Success) 
+    {
         // Handle error - maybe throw an exception
     }
 }

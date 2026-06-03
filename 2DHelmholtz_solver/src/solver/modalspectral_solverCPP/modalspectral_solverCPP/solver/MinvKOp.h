@@ -37,7 +37,8 @@ public:
 
     // Optional: for compatibility with Eigen's matrix-free framework
     template<typename Derived>
-    void apply(const Eigen::MatrixBase<Derived>& x, Eigen::MatrixBase<Derived>& y) const {
+    void apply(const Eigen::MatrixBase<Derived>& x, Eigen::MatrixBase<Derived>& y) const 
+    {
         perform_op(x.derived().data(), y.derived().data());
     }
 

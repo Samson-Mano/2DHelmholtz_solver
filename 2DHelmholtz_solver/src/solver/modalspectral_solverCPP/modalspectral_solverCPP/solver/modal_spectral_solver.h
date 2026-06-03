@@ -39,6 +39,12 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 
 using namespace Spectra;
 
+
+// ARPACK
+#include <Eigen/Sparse>
+#include <Eigen/ArpackSupport>
+
+
 #pragma warning(pop)
 
 
@@ -52,13 +58,36 @@ using namespace Spectra;
 #include "../spectral_elements/spectral_lib/spectral_tri_element.h"
 
 
-#include <fstream>
-
-
 #include <iomanip> // to get std::setprecision()
 
 
 #include "MinvKOp.h"
+
+#include <vector>
+#include <string>
+#include <fstream>
+#include <cstdint>
+
+
+struct BinaryFileHeader 
+{
+	char magic[4];        // 'SEMF' - Spectral Element Modal Format
+	uint32_t version;     // Version 2 (with index table)
+	uint32_t num_modes;   // Number of modes
+	uint32_t num_nodes;   // Number of nodes
+	uint64_t mode_data_offset;  // File position where mode data starts
+	uint64_t mode_index_offset; // File position where mode index table starts
+};
+
+
+
+struct ModeIndexEntry 
+{
+	uint32_t mode_id;           // Mode number (0-based)
+	double frequency;           // Natural frequency
+	uint64_t file_offset;       // Position in file where mode data starts
+	uint64_t data_size;         // Size of mode data in bytes
+};
 
 
 
@@ -75,7 +104,7 @@ public:
 
 	void create_global_matrices();
 
-	void solve_modal_analysis(int inpt_num_modes);
+	void solve_modal_analysis(int inpt_num_modes, int solver_type);
 
 
 
@@ -179,10 +208,15 @@ private:
 	void get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
 		Eigen::VectorXi& dirichlet_BC_flag);
 
+	//________________________________________________________________________________________________
+
+	void solveARPACKEigen(Eigen::VectorXd& eigenvalues,Eigen::MatrixXd& eigenvectors,
+		int number_of_modes,
+		const Eigen::SparseMatrix<double>& K,
+		const Eigen::SparseMatrix<double>& M);
 
 
-
-	void store_results();
+	void store_results_with_index();
 
 
 	void(*m_callback)(const char*) = nullptr;

@@ -84,7 +84,7 @@ namespace _2DHelmholtz_solver.other_windows
             if (int.TryParse(input, out int numofmodes) && numofmodes > 0)
             {
                 number_of_modes = numofmodes;
-                solver_type = comboBox_solvertype.SelectedIndex;
+                solver_type = comboBox_solvertype.SelectedIndex + 1;
 
             }
             else
@@ -96,14 +96,15 @@ namespace _2DHelmholtz_solver.other_windows
 
             double[] solver_settings = new double[1];
             solver_settings[0] = number_of_modes;
+            solver_settings[1] = solver_type;
 
             // C# GUI exports model to a .bin file.
             // C# calls your C++ DLL (using P/Invoke).
             // C++ DLL reads the.bin file, performs the simulation, and writes results to another .bin.
             // C# re-imports and displays results.
 
-            string inputPath = Path.Combine(Application.StartupPath, "model_input.bin");
-            string outputPath = Path.Combine(Application.StartupPath, "model_output.bin");
+            string inputPath = Path.Combine(Application.StartupPath, "modal_analysis_input.bin");
+            string outputPath = Path.Combine(Application.StartupPath, "modal_analysis_output.bin");
 
 
             // Write the binary file

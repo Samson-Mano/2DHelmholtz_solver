@@ -16,7 +16,7 @@
 int main()
 {
 
-	const char* input_file = "model_input.bin";   // Adjust path here
+	const char* input_file = "modal_analysis_input.bin";   // Adjust path here
 	// const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder
@@ -24,6 +24,7 @@ int main()
 	// std::ofstream outfile(output_file, std::ios::binary);
 
 	int number_of_modes = 10;
+	int solver_type = 1; // 1 = Spectra (Eigen based), 2 = ARPACK
 
 	stopwatch_events stopwatch;
 	std::stringstream stopwatch_elapsed_str;
@@ -284,7 +285,7 @@ int main()
 
 		//_________________________________________________________
 		// Helmholtz modal spectral solver
-	const char* output_file = "model_output.bin";
+	const char* output_file = "modal_analysis_output.bin";
 	void(*m_callback)(const char*) = nullptr;
 
 	modal_spectral_solver modal_spec_solver;

@@ -257,7 +257,7 @@ void modal_spectral_solver::create_global_matrices()
 
 
 
-void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes)
+void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_type)
 {
 	// 1) Build the free-DOF index (apply Dirichlet BC)
 
@@ -333,41 +333,53 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes)
 
 	// K and M are your reduced matrices (K_ff, M_ff)
 
-	Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> chol(M_ff);
-
-	if (chol.info() != Eigen::Success)
-	{
-		report("Cholesky failed!");
-		return;
-	}
-
-	report("Cholesky successful!");
-
-
-	MinvKOp op(K_ff, chol);
-
-	SymEigsSolver<MinvKOp> eigs(op, num_modes, 2 * num_modes);
-
-
-	eigs.init();
-	int nconv = eigs.compute(SortRule::SmallestAlge);
-
 	Eigen::VectorXd eigenvalues;
 	Eigen::MatrixXd eigenvectors;
 
-
-	if (eigs.info() == CompInfo::Successful)
+	if (solver_type == 1)
 	{
-		eigenvalues = eigs.eigenvalues();
-		eigenvectors = eigs.eigenvectors();
+		// Spectra - Eigen based
+		Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> chol(M_ff);
+
+		if (chol.info() != Eigen::Success)
+		{
+			report("Cholesky failed!");
+			return;
+		}
+
+		report("Cholesky successful!");
+
+		MinvKOp op(K_ff, chol);
+
+		SymEigsSolver<MinvKOp> eigs(op, num_modes, 2 * num_modes);
+
+		eigs.init();
+		int nconv = eigs.compute(SortRule::SmallestAlge);
+
+		if (eigs.info() == CompInfo::Successful)
+		{
+			eigenvalues = eigs.eigenvalues();
+			eigenvectors = eigs.eigenvectors();
+		}
+		else
+		{
+			report("Eigen Spectra solver failed!");
+			return;
+		}
+
+		report("Eigen Spectra solve successful!");
 	}
-	else
+	else if (solver_type == 2)
 	{
-		report("Eigen solver failed!");
-		return;
+		// ARPACK
+		solveARPACKEigen(eigenvalues, eigenvectors,
+			num_modes,
+			K_ff,
+			M_ff);
+
 	}
 
-	report("Eigen solve successful!");
+	
 
 	// 4) Convert eigenvalues => frequencies
 	this->natural_frequencies.clear();
@@ -405,17 +417,12 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes)
 		this->natural_modes.row(free_dofs[i]) = eigenvectors.row(i);
 	}
 
-	
-
+	// Store results
+	store_results_with_index();
 
 	report("Eigen vectors stored!");
 
 }
-
-
-
-
-
 
 
 
@@ -806,111 +813,6 @@ void modal_spectral_solver::set_global_BC_flag_vector(const std::vector<int>& el
 
 
 
-
-
-void modal_spectral_solver::store_results()
-{
-
-	std::ofstream bin_file(this->output_file.c_str(), std::ios::binary);
-	if (!bin_file.is_open()) 
-	{
-		std::string error_msg = "Failed to open output file: " + this->output_file;
-		report(error_msg.c_str());
-		throw std::runtime_error(error_msg);
-	}
-
-
-	// Write header
-	struct { char magic[4]; uint32_t version; } header = { {'S','E','M','F'}, 1 };
-	bin_file.write(reinterpret_cast<const char*>(&header), sizeof(header));
-
-	// Write frequencies
-	int32_t num_modes = static_cast<int32_t>(this->natural_frequencies.size());
-	bin_file.write(reinterpret_cast<const char*>(&num_modes), sizeof(int32_t));
-	bin_file.write(reinterpret_cast<const char*>(this->natural_frequencies.data()),
-		num_modes * sizeof(double));
-
-	// Write nodes
-	int32_t node_count = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
-	bin_file.write(reinterpret_cast<const char*>(&node_count), sizeof(int32_t));
-
-	// Prepare node data buffers (avoid repeated writes)
-	std::vector<int32_t> node_ids(node_count);
-	std::vector<double> node_xy(node_count * 2);
-
-	for (size_t i = 0; i < spec_mesh2d.renderer_node_points.size(); ++i) 
-	{
-		const auto& node = spec_mesh2d.renderer_node_points[i];
-		node_ids[i] = static_cast<int32_t>(node.n_id);
-		node_xy[2 * i] = node.x;
-		node_xy[2 * i + 1] = node.y;
-	}
-
-	bin_file.write(reinterpret_cast<const char*>(node_ids.data()), node_count * sizeof(int32_t));
-	bin_file.write(reinterpret_cast<const char*>(node_xy.data()), node_count * 2 * sizeof(double));
-
-	// Write all mode shapes in one contiguous block
-	// Assumes natural_modes is stored row-major with shape (node_count, num_modes)
-	bin_file.write(reinterpret_cast<const char*>(this->natural_modes.data()),
-		node_count * num_modes * sizeof(double));
-
-	// Write edges
-	int32_t edge_count = static_cast<int32_t>(spec_mesh2d.renderer_edge_lines.size());
-	bin_file.write(reinterpret_cast<const char*>(&edge_count), sizeof(int32_t));
-
-	std::vector<int32_t> edges(edge_count * 2);
-	for (size_t i = 0; i < spec_mesh2d.renderer_edge_lines.size(); ++i) 
-	{
-		edges[2 * i] = static_cast<int32_t>(spec_mesh2d.renderer_edge_lines[i].nstart);
-		edges[2 * i + 1] = static_cast<int32_t>(spec_mesh2d.renderer_edge_lines[i].nend);
-	}
-	bin_file.write(reinterpret_cast<const char*>(edges.data()), edge_count * 2 * sizeof(int32_t));
-
-	// Write triangles
-	int32_t tri_count = static_cast<int32_t>(spec_mesh2d.renderer_element_triangles.size());
-	bin_file.write(reinterpret_cast<const char*>(&tri_count), sizeof(int32_t));
-
-	std::vector<int32_t> triangles(tri_count * 3);
-	for (size_t i = 0; i < spec_mesh2d.renderer_element_triangles.size(); ++i) 
-	{
-		const auto& tri = spec_mesh2d.renderer_element_triangles[i];
-		triangles[3 * i] = static_cast<int32_t>(tri.n1);
-		triangles[3 * i + 1] = static_cast<int32_t>(tri.n2);
-		triangles[3 * i + 2] = static_cast<int32_t>(tri.n3);
-	}
-	bin_file.write(reinterpret_cast<const char*>(triangles.data()), tri_count * 3 * sizeof(int32_t));
-
-
-	bin_file.flush();
-	
-	auto file_size = bin_file.tellp();  // tellp() for output file (tellg() is for input)
-
-	bin_file.close();
-
-	// Report Success and file size
-	std::string success_msg = "Results stored successfully: " +
-		this->output_file +
-		" (" + std::to_string(node_count) + " nodes, " +
-		std::to_string(num_modes) + " modes)";
-	report(success_msg.c_str());
-
-
-
-	//// Calculate MB
-	//double size_mb = static_cast<double>(file_size) / (1024.0 * 1024.0);
-
-	//// Format and report
-	//success_msg = fmt::format("Results stored successfully: {} ({:.2f} MB)",
-	//	this->output_file, size_mb);
-
-	//report(success_msg.c_str());
-
-	//
-}
-
-
-
-
 void modal_spectral_solver::report_vandermondematrix_conditioning(const Eigen::MatrixXd& invVanderMondematrix)
 {
 	std::stringstream ss;
@@ -1003,6 +905,333 @@ void modal_spectral_solver::report(const char* msg)
 		m_callback(final_msg.c_str());
 	//
 }
+
+
+
+void modal_spectral_solver::store_results_with_index()
+{
+	// Open file in binary mode
+	std::ofstream bin_file(output_file, std::ios::binary);
+
+	if (!bin_file.is_open()) 
+	{
+		std::string error_msg = "Failed to open output file: " + this->output_file;
+		report(error_msg.c_str());
+		throw std::runtime_error("Failed to open output file: " + output_file);
+	}
+
+	// Get counts
+	int32_t num_nodes = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
+	int32_t num_modes = static_cast<int32_t>(natural_frequencies.size());
+
+	// Calculate offsets (will be updated after writing)
+	uint64_t header_size = sizeof(BinaryFileHeader);
+	uint64_t node_data_offset = header_size;
+
+	// Node data size
+	uint64_t node_data_size = num_nodes * (sizeof(int32_t) + 2 * sizeof(double));
+	uint64_t edge_data_offset = node_data_offset + node_data_size;
+
+	// Edge data size
+	uint64_t edge_data_size = spec_mesh2d.renderer_edge_lines.size() * (2 * sizeof(int32_t));
+	uint64_t triangle_data_offset = edge_data_offset + edge_data_size;
+
+	// Triangle data size
+	uint64_t triangle_data_size = spec_mesh2d.renderer_element_triangles.size() * (3 * sizeof(int32_t));
+	uint64_t mode_index_offset = triangle_data_offset + triangle_data_size;
+
+	// Mode index table size
+	uint64_t mode_index_size = num_modes * sizeof(ModeIndexEntry);
+	uint64_t mode_data_offset = mode_index_offset + mode_index_size;
+
+	std::string success_msg = "";
+
+	// Write header
+	BinaryFileHeader header;
+	std::memcpy(header.magic, "SEMF", 4);
+	header.version = 2;
+	header.num_modes = num_modes;
+	header.num_nodes = num_nodes;
+	header.mode_data_offset = mode_data_offset;
+	header.mode_index_offset = mode_index_offset;
+
+	bin_file.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+	// Write nodes
+	for (const auto& node : spec_mesh2d.renderer_node_points) 
+	{
+		int32_t node_id = static_cast<int32_t>(node.n_id);
+		bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
+		bin_file.write(reinterpret_cast<const char*>(&node.x), sizeof(double));
+		bin_file.write(reinterpret_cast<const char*>(&node.y), sizeof(double));
+	}
+
+	report("Result mesh: Nodes written");
+
+	// Write edges
+	for (const auto& edge : spec_mesh2d.renderer_edge_lines) 
+	{
+		int32_t start_id = static_cast<int32_t>(edge.nstart);
+		int32_t end_id = static_cast<int32_t>(edge.nend);
+		bin_file.write(reinterpret_cast<const char*>(&start_id), sizeof(int32_t));
+		bin_file.write(reinterpret_cast<const char*>(&end_id), sizeof(int32_t));
+	}
+
+	report("Result mesh: Edges written");
+
+	// Write triangles
+	for (const auto& tri : spec_mesh2d.renderer_element_triangles) 
+	{
+		int32_t n1 = static_cast<int32_t>(tri.n1);
+		int32_t n2 = static_cast<int32_t>(tri.n2);
+		int32_t n3 = static_cast<int32_t>(tri.n3);
+		bin_file.write(reinterpret_cast<const char*>(&n1), sizeof(int32_t));
+		bin_file.write(reinterpret_cast<const char*>(&n2), sizeof(int32_t));
+		bin_file.write(reinterpret_cast<const char*>(&n3), sizeof(int32_t));
+	}
+
+	report("Result mesh: Triangles written");
+
+	// Write mode index table (to be updated with offsets)
+	std::vector<ModeIndexEntry> mode_index;
+	uint64_t current_offset = mode_data_offset;
+
+	for (int32_t i = 0; i < num_modes; i++) 
+	{
+		ModeIndexEntry entry;
+		entry.mode_id = i;
+		entry.frequency = natural_frequencies[i];
+		entry.file_offset = current_offset;
+
+		// Calculate data size for this mode: node_id + mode_value for each node
+		entry.data_size = num_nodes * (sizeof(int32_t) + sizeof(double));
+
+		mode_index.push_back(entry);
+		current_offset += entry.data_size;
+	}
+
+	// Write mode index table
+	for (const auto& entry : mode_index) 
+	{
+		bin_file.write(reinterpret_cast<const char*>(&entry), sizeof(ModeIndexEntry));
+	}
+
+	// Write mode data (each mode separately)
+	for (int32_t mode_id = 0; mode_id < num_modes; mode_id++) 
+	{
+		// Write mode ID first (for redundancy)
+		bin_file.write(reinterpret_cast<const char*>(&mode_id), sizeof(int32_t));
+
+		// Write mode shape values for each node
+		for (const auto& node : spec_mesh2d.renderer_node_points) 
+		{
+			int32_t node_id = static_cast<int32_t>(node.n_id);
+			int nd_idx = nodeid_map[node.n_id];
+			double mode_value = natural_modes(nd_idx, mode_id);
+
+			bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
+			bin_file.write(reinterpret_cast<const char*>(&mode_value), sizeof(double));
+		}
+	}
+
+	bin_file.flush();
+	bin_file.close();
+
+	success_msg = "Modal results stored successfully: " + this->output_file +
+				" (" + std::to_string(num_nodes) + " nodes, " +
+				std::to_string(num_modes) + " modes)";
+
+	report(success_msg.c_str());
+
+}
+
+
+
+void modal_spectral_solver::solveARPACKEigen(Eigen::VectorXd& eigenvalues,
+	Eigen::MatrixXd& eigenvectors,
+	int number_of_modes,
+	const Eigen::SparseMatrix<double>& K,
+	const Eigen::SparseMatrix<double>& M)
+{
+	int nev = number_of_modes; // std::min(static_cast<int>(K.rows()), 20); // Don't compute all eigenvalues! Use a reasonable number
+	int ncv = std::min(2 * nev + 1, static_cast<int>(K.rows())); // Number of Lanczos vectors
+
+	std::string solver_msg;
+
+	// Matrix sizes
+	solver_msg = "K size: " + std::to_string(K.rows()) + " x " + std::to_string(K.cols());
+	report(solver_msg.c_str());
+
+	solver_msg = "M size: " + std::to_string(M.rows()) + " x " + std::to_string(M.cols());
+	report(solver_msg.c_str());
+
+	// Eigenvalue info
+	solver_msg = "Computing " + std::to_string(nev) + " eigenvalues";
+	report(solver_msg.c_str());
+
+	// Symmetry checks
+	solver_msg = std::string("K symmetric? ") + (K.isApprox(K.transpose()) ? "true" : "false");
+	report(solver_msg.c_str());
+
+	solver_msg = std::string("M symmetric? ") + (M.isApprox(M.transpose()) ? "true" : "false");
+	report(solver_msg.c_str());
+
+
+	// Use the correct solver type
+	Eigen::ArpackGeneralizedSelfAdjointEigenSolver<Eigen::SparseMatrix<double>> solver;
+
+	// The compute() method expects: matrix K, matrix M, number of eigenvalues, 
+	// spectrum type, and optionally ncv
+	solver.compute(K, M, nev, "SM", Eigen::ComputeEigenvectors, ncv);
+
+	// Check ARPACK's convergence status
+	if (solver.info() != Eigen::Success) 
+	{
+		solver_msg = "ARPACK info: " + solver.info();
+		report(solver_msg.c_str());
+
+		throw std::runtime_error("ARPACK failed to converge.");
+	}
+
+
+	// Check if eigenvectors were computed
+	if (!solver.eigenvectors().size()) 
+	{
+		solver_msg = "Eigenvectors not computed." + solver.info();
+		report(solver_msg.c_str());
+
+		throw std::runtime_error("Eigenvectors not computed.");
+	}
+
+	eigenvalues = solver.eigenvalues();
+	eigenvectors = solver.eigenvectors();
+
+}
+
+
+
+//std::ofstream bin_file(this->output_file.c_str(), std::ios::binary);
+//
+//if (!bin_file.is_open())
+//{
+//	std::string error_msg = "Failed to open output file: " + this->output_file;
+//	report(error_msg.c_str());
+//	throw std::runtime_error(error_msg);
+//}
+//
+//
+////// Write header
+////struct { char magic[4]; uint32_t version; } header = { {'S','E','M','F'}, 1 };
+////bin_file.write(reinterpret_cast<const char*>(&header), sizeof(header));
+//
+//
+//int32_t node_points_count = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
+//bin_file.write(reinterpret_cast<const char*>(&node_points_count), sizeof(int32_t));
+//
+//// Write the nodes
+//for (const auto& node : spec_mesh2d.renderer_node_points)
+//{
+//	int32_t nodeid = static_cast<int32_t>(node.n_id);
+//
+//	// retrive the results
+//	int nd_idx = nodeid_map[nodeid];
+//
+//	bin_file.write(reinterpret_cast<const char*>(&nodeid), sizeof(int32_t));
+//	bin_file.write(reinterpret_cast<const char*>(&node.x), sizeof(double));
+//	bin_file.write(reinterpret_cast<const char*>(&node.y), sizeof(double));
+//}
+//
+//report("Result mesh: Nodes written");
+//
+//int32_t edge_lines_count = static_cast<int32_t>(spec_mesh2d.renderer_edge_lines.size());
+//bin_file.write(reinterpret_cast<const char*>(&edge_lines_count), sizeof(int32_t));
+//
+//// Write the edges
+//for (const auto& edge : spec_mesh2d.renderer_edge_lines)
+//{
+//	int32_t start_nodeid = static_cast<int32_t>(edge.nstart);
+//	int32_t end_nodeid = static_cast<int32_t>(edge.nend);
+//
+//	bin_file.write(reinterpret_cast<const char*>(&start_nodeid), sizeof(int32_t));
+//	bin_file.write(reinterpret_cast<const char*>(&end_nodeid), sizeof(int32_t));
+//}
+//
+//report("Result mesh: Edges written");
+//
+//int32_t triangles_count = static_cast<int32_t>(spec_mesh2d.renderer_element_triangles.size());
+//bin_file.write(reinterpret_cast<const char*>(&triangles_count), sizeof(int32_t));
+//
+//// Write the triangles
+//for (const auto& tri : spec_mesh2d.renderer_element_triangles)
+//{
+//	int32_t n1 = static_cast<int32_t>(tri.n1);
+//	int32_t n2 = static_cast<int32_t>(tri.n2);
+//	int32_t n3 = static_cast<int32_t>(tri.n3);
+//
+//	bin_file.write(reinterpret_cast<const char*>(&n1), sizeof(int32_t));
+//	bin_file.write(reinterpret_cast<const char*>(&n2), sizeof(int32_t));
+//	bin_file.write(reinterpret_cast<const char*>(&n3), sizeof(int32_t));
+//}
+//
+//report("Result mesh: Triangles written");
+//
+//
+//// Report Success and file size
+//std::string success_msg = "Result mesh written: " +
+//this->output_file +
+//" (" + std::to_string(node_points_count) + " nodes, " +
+//std::to_string(triangles_count) + " triangles)";
+//report(success_msg.c_str());
+//
+//
+//// Write the Modal results
+//
+//// Write frequencies
+//int32_t num_modes = static_cast<int32_t>(this->natural_frequencies.size());
+//bin_file.write(reinterpret_cast<const char*>(&num_modes), sizeof(int32_t));
+//
+//
+//for (int32_t i = 0; i < num_modes; i++)
+//{
+//	// Write the Mode ID
+//	bin_file.write(reinterpret_cast<const char*>(&i), sizeof(int32_t));
+//
+//	// Write the Natural frequency
+//	bin_file.write(reinterpret_cast<const char*>(&this->natural_frequencies[i]), sizeof(double));
+//
+//	// Write the mode shapes of each node
+//	for (const auto& node : spec_mesh2d.renderer_node_points)
+//	{
+//		// retrive the results
+//		int nd_idx = nodeid_map[node.n_id];
+//
+//		// Mode shape at node
+//		double node_mode_value = this->natural_modes(nd_idx, i);
+//
+//		// Node id
+//		int32_t node_id = static_cast<int32_t>(node.n_id);
+//
+//		bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
+//		bin_file.write(reinterpret_cast<const char*>(&node_mode_value), sizeof(double));
+//
+//	}
+//
+//}
+//
+//
+//bin_file.flush();
+//
+//auto file_size = bin_file.tellp();  // tellp() for output file (tellg() is for input)
+//
+//bin_file.close();
+//
+//// Report Success and file size
+//success_msg = "Modal results stored successfully: " +
+//this->output_file +
+//" (" + std::to_string(node_points_count) + " nodes, " +
+//std::to_string(num_modes) + " modes)";
+//report(success_msg.c_str());
+
 
 
 

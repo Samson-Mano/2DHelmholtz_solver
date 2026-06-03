@@ -32,14 +32,27 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 
 
 	int number_of_modes = -1;
+	int solver_type = -1;
 
 	if (solver_settings && solver_settings_count >= 2)
 	{
 		number_of_modes = static_cast<int>(solver_settings[0]);
+		solver_type = static_cast<int>(solver_settings[1]);
 
 		msg = "Solver settings received: Number of modes requested = " + std::to_string(number_of_modes);
-
 		if (callback) callback(msg.c_str());
+
+		if (solver_type == 1)
+		{
+			msg = "Solver type = Spectra Eigen based";
+			if (callback) callback(msg.c_str());
+		}
+		else if (solver_type == 2)
+		{
+			msg = "Solver type = ARPACK";
+			if (callback) callback(msg.c_str());
+		}
+
 	}
 	else
 	{
