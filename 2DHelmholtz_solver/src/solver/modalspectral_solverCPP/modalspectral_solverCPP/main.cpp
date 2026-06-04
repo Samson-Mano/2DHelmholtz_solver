@@ -299,7 +299,7 @@ int main()
 	std::cout << "Spectral mesh and global matrices complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
 	// Perform modal analysis solve
-	modal_spec_solver.solve_modal_analysis(number_of_modes);
+	modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type);
 
 	std::cout << "Solve complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 

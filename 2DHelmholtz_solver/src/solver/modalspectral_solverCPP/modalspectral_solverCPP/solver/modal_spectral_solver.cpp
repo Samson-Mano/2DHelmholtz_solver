@@ -259,168 +259,149 @@ void modal_spectral_solver::create_global_matrices()
 
 void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_type)
 {
+
+	auto start_time = std::chrono::high_resolution_clock::now();
+
+
 	// 1) Build the free-DOF index (apply Dirichlet BC)
-
 	std::vector<int> free_dofs;
-	// free_dofs.reserve(global_dirichlet_BC_flags_vector.size());
-
-	for (int i = 0; i < global_dirichlet_BC_flags_vector.size(); ++i)
+	for (int i = 0; i < global_dirichlet_BC_flags_vector.size(); ++i) 
 	{
 		if (global_dirichlet_BC_flags_vector[i] == 0)
 			free_dofs.push_back(i);
 	}
 
 
-
 	// 2) Extract reduced matrices Kff, Mff
 	int n_free = static_cast<int>(free_dofs.size());
+	int num_modes = std::min(inpt_num_modes, n_free);
 
-	// Set the number of modes
-	int num_modes = inpt_num_modes;
-	if (inpt_num_modes > n_free)
-	{
-		num_modes = n_free;
-	}
-
-	std::string msg = "Number of modes: " + std::to_string(num_modes);
+	std::string msg = "Number of free DOFs: " + std::to_string(n_free);
+	report(msg.c_str());
+	msg = "Number of modes to compute: " + std::to_string(num_modes);
 	report(msg.c_str());
 
-	Eigen::SparseMatrix<double> K_ff(n_free, n_free);
-	Eigen::SparseMatrix<double> M_ff(n_free, n_free);
+	if (num_modes == 0) 
+	{
+		report("Warning: No free DOFs found!");
+		return;
+	}
 
-	std::vector<Eigen::Triplet<double>> Kt, Mt;
-	// Kt.reserve(n_free * 20); 
-	// Mt.reserve(n_free * 20);
-
-	// Build a map: global => reduced index
+	// Build mapping from global to reduced index
 	std::vector<int> map(global_k_matrix.rows(), -1);
 	for (int i = 0; i < n_free; ++i)
 		map[free_dofs[i]] = i;
 
-	// Traverse original sparse matrices
-	for (int k = 0; k < global_k_matrix.outerSize(); ++k)
-	{
-		for (Eigen::SparseMatrix<double>::InnerIterator it(global_k_matrix, k); it; ++it)
-		{
-			int i = it.row();
-			int j = it.col();
+	// Reserve space for triplets (estimate ~20 entries per DOF)
+	std::vector<Eigen::Triplet<double>> Kt, Mt;
+	// Kt.reserve(n_free * 15);
+	// Mt.reserve(n_free * 15);
 
-			if (map[i] != -1 && map[j] != -1)
+	// Extract K_ff
+	for (int k = 0; k < global_k_matrix.outerSize(); ++k) 
+	{
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_k_matrix, k); it; ++it) 
+		{
+			int i = static_cast<int>(it.row());
+			int j = static_cast<int>(it.col());
+			if (map[i] != -1 && map[j] != -1) 
+			{
 				Kt.emplace_back(map[i], map[j], it.value());
+			}
 		}
 	}
 
-	for (int k = 0; k < global_m_matrix.outerSize(); ++k)
+	// Extract M_ff
+	for (int k = 0; k < global_m_matrix.outerSize(); ++k) 
 	{
-		for (Eigen::SparseMatrix<double>::InnerIterator it(global_m_matrix, k); it; ++it)
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_m_matrix, k); it; ++it) 
 		{
-			int i = it.row();
-			int j = it.col();
-
-			if (map[i] != -1 && map[j] != -1)
+			int i = static_cast<int>(it.row());
+			int j = static_cast<int>(it.col());
+			if (map[i] != -1 && map[j] != -1) 
+			{
 				Mt.emplace_back(map[i], map[j], it.value());
+			}
 		}
 	}
 
+	Eigen::SparseMatrix<double> K_ff(n_free, n_free);
+	Eigen::SparseMatrix<double> M_ff(n_free, n_free);
 	K_ff.setFromTriplets(Kt.begin(), Kt.end());
 	M_ff.setFromTriplets(Mt.begin(), Mt.end());
 
-	report("K_ff, M_ff reduced matrices created");
+	// Compress matrices for better performance
+	K_ff.makeCompressed();
+	M_ff.makeCompressed();
 
-	// 3) Solve the generalized eigenvalue problem
-	// Spectra (Eigen - based)
-	// ARPACK (eigsh equivalent)
+	report("Reduced matrices created successfully");
 
-	// K and M are your reduced matrices (K_ff, M_ff)
-
+	// 3) Solve eigenvalue problem
 	Eigen::VectorXd eigenvalues;
 	Eigen::MatrixXd eigenvectors;
 
-	if (solver_type == 1)
+	if (solver_type == SOLVER_SPECTRA) 
 	{
-		// Spectra - Eigen based
-		Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> chol(M_ff);
-
-		if (chol.info() != Eigen::Success)
-		{
-			report("Cholesky failed!");
-			return;
-		}
-
-		report("Cholesky successful!");
-
-		MinvKOp op(K_ff, chol);
-
-		SymEigsSolver<MinvKOp> eigs(op, num_modes, 2 * num_modes);
-
-		eigs.init();
-		int nconv = eigs.compute(SortRule::SmallestAlge);
-
-		if (eigs.info() == CompInfo::Successful)
-		{
-			eigenvalues = eigs.eigenvalues();
-			eigenvectors = eigs.eigenvectors();
-		}
-		else
-		{
-			report("Eigen Spectra solver failed!");
-			return;
-		}
-
-		report("Eigen Spectra solve successful!");
+		solveWithSpectra(num_modes, K_ff, M_ff, eigenvalues, eigenvectors);
 	}
-	else if (solver_type == 2)
+	else if (solver_type == SOLVER_ARPACK) 
 	{
-		// ARPACK
-		solveARPACKEigen(eigenvalues, eigenvectors,
-			num_modes,
-			K_ff,
-			M_ff);
-
+		solveWithARPACK(num_modes, K_ff, M_ff, eigenvalues, eigenvectors);
+	}
+	else 
+	{
+		throw std::runtime_error("Unknown solver type");
 	}
 
-	
-
-	// 4) Convert eigenvalues => frequencies
+	// 4) Convert eigenvalues to frequencies
 	this->natural_frequencies.clear();
+	// this->natural_frequencies.reserve(eigenvalues.size());
 
-	for (int i = 0; i < eigenvalues.size(); ++i)
+	for (int i = 0; i < eigenvalues.size(); ++i) 
 	{
 		double lambda = eigenvalues[i];
-
-		if (lambda > 0.0)
-		{
+		if (lambda > 1e-12) 
+		{  // Positive definite check
 			double omega = std::sqrt(lambda);
 			double freq = omega / (2.0 * M_PI);
 			this->natural_frequencies.push_back(freq);
 		}
+		else 
+		{
+			// Rigid body mode
+			this->natural_frequencies.push_back(0.0);
+		}
 	}
 
-
-	// 5) Normalize mode shapes
-	for (int i = 0; i < eigenvectors.cols(); ++i)
+	// 5) Normalize mode shapes (mass-normalized)
+	for (int i = 0; i < eigenvectors.cols(); ++i) 
 	{
 		Eigen::VectorXd phi = eigenvectors.col(i);
-
 		double norm = std::sqrt(phi.transpose() * M_ff * phi);
-		eigenvectors.col(i) /= norm;
+
+		if (norm > 1e-12) 
+		{
+			eigenvectors.col(i) /= norm;
+		}
 	}
 
-
 	// 6) Reconstruct full mode shapes
-	int total_dofs = global_k_matrix.rows();
-	this->natural_modes.resize(total_dofs, eigenvectors.cols());	
+	int total_dofs = static_cast<int>(global_k_matrix.rows());
+	this->natural_modes.resize(total_dofs, eigenvectors.cols());
 	this->natural_modes.setZero();
 
-	for (int i = 0; i < n_free; ++i)
+	for (int i = 0; i < n_free; ++i) 
 	{
 		this->natural_modes.row(free_dofs[i]) = eigenvectors.row(i);
 	}
 
+	auto end_time = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+	msg = "Modal analysis completed in " + std::to_string(duration.count()) + " ms";
+	report(msg.c_str());
+
 	// Store results
 	store_results_with_index();
-
-	report("Eigen vectors stored!");
 
 }
 
@@ -847,8 +828,8 @@ void modal_spectral_solver::report_vandermondematrix_conditioning(const Eigen::M
 	}
 
 
-	int rows = invVanderMondematrix.rows();
-	int cols = invVanderMondematrix.cols();
+	int rows = static_cast<int>(invVanderMondematrix.rows());
+	int cols = static_cast<int>(invVanderMondematrix.cols());
 
 	// Additional statistics
 	double min_sv_db = 20.0 * std::log10(min_sv);
@@ -905,6 +886,168 @@ void modal_spectral_solver::report(const char* msg)
 		m_callback(final_msg.c_str());
 	//
 }
+
+
+
+
+void modal_spectral_solver::solveWithSpectra(int num_modes,
+	const Eigen::SparseMatrix<double>& K_ff,
+	const Eigen::SparseMatrix<double>& M_ff,
+	Eigen::VectorXd& eigenvalues,
+	Eigen::MatrixXd& eigenvectors)
+{
+
+	report("Solving with Spectra solver...");
+	auto start_time = std::chrono::high_resolution_clock::now();
+
+	int n = static_cast<int>(K_ff.rows());
+	int ncv = std::min(2 * num_modes + 1, n);  // Number of Lanczos vectors
+
+	// Method 1: Using Cholesky to convert to standard eigenvalue problem
+	Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> chol(M_ff);
+
+
+	if (chol.info() != Eigen::Success) 
+	{
+		throw std::runtime_error("Mass matrix is not positive definite");
+	}
+
+	// Create the operator for (M^{-1} * K)
+	MinvKOp op(K_ff, chol);
+
+	// Create the solver for standard eigenvalue problem
+	// Note: Spectra::SymEigsSolver expects only the operator type
+	Spectra::SymEigsSolver<MinvKOp> eigs(op, num_modes, ncv);
+
+	// Initialize and compute
+	eigs.init();
+
+	// Compute eigenvalues (smallest algebraic values for lowest frequencies)
+	int nconv = static_cast<int>(eigs.compute(Spectra::SortRule::SmallestAlge));
+
+	if (eigs.info() == Spectra::CompInfo::Successful) 
+	{
+		eigenvalues = eigs.eigenvalues();
+		eigenvectors = eigs.eigenvectors();
+
+		// Convert eigenvalues from standard to generalized
+		// For standard problem: K*x = λ*M*x, we solved M^{-1}K*x = λ*x
+		// So λ are the same
+		for (int i = 0; i < eigenvalues.size(); ++i) 
+		{
+			if (eigenvalues(i) < 0) 
+			{
+				report("Warning: Negative eigenvalue detected");
+			}
+		}
+	}
+	else 
+	{
+		throw std::runtime_error("Spectra solver failed to converge");
+	}
+
+	auto end_time = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+	std::string msg = "Spectra solver completed in " + std::to_string(duration.count()) + " ms";
+	report(msg.c_str());
+
+}
+
+
+
+
+
+void modal_spectral_solver::solveWithARPACK(int num_modes,
+	const Eigen::SparseMatrix<double>& K_ff,
+	const Eigen::SparseMatrix<double>& M_ff,
+	Eigen::VectorXd& eigenvalues,
+	Eigen::MatrixXd& eigenvectors)
+{
+	report("Solving with ARPACK (sparse mode via Eigen wrapper)...");
+	auto start_time = std::chrono::high_resolution_clock::now();
+
+	int nev = num_modes; // std::min(static_cast<int>(K.rows()), 20); // Don't compute all eigenvalues! Use a reasonable number
+	int ncv = std::min(2 * nev + 1, static_cast<int>(K_ff.rows())); // Number of Lanczos vectors
+
+	// Validate inputs
+	if (nev <= 0)
+	{
+		throw std::runtime_error("Number of modes must be positive");
+	}
+
+	std::string solver_msg;
+
+	// Matrix sizes
+	solver_msg = "Kff size: " + std::to_string(K_ff.rows()) + " x " + std::to_string(K_ff.cols());
+	report(solver_msg.c_str());
+
+	solver_msg = "Mff size: " + std::to_string(M_ff.rows()) + " x " + std::to_string(M_ff.cols());
+	report(solver_msg.c_str());
+
+	// Eigenvalue info
+	solver_msg = "Computing " + std::to_string(nev) + " eigenvalues";
+	report(solver_msg.c_str());
+
+
+	// Use the correct solver type
+	Eigen::ArpackGeneralizedSelfAdjointEigenSolver<Eigen::SparseMatrix<double>> solver;
+
+
+	// The compute() method expects: matrix K, matrix M, number of eigenvalues, 
+	// spectrum type, and optionally ncv
+	solver.compute(K_ff, M_ff, nev, "SM", Eigen::ComputeEigenvectors, ncv);
+
+	// Check ARPACK's convergence status
+	if (solver.info() != Eigen::Success)
+	{
+		std::string error_msg = "ARPACK failed to converge. ";
+		error_msg += "Number of converged eigenvalues: " + std::to_string(solver.getNbrConvergedEigenValues());
+		report(error_msg.c_str());
+		throw std::runtime_error(error_msg);
+	}
+
+
+	// Check if eigenvectors were computed
+	if (!solver.eigenvectors().size() == 0)
+	{
+		solver_msg = "Eigenvectors not computed." + solver.info();
+		report(solver_msg.c_str());
+
+		throw std::runtime_error("Eigenvectors not computed by ARPACK");
+	}
+
+
+	eigenvalues = solver.eigenvalues();
+	eigenvectors = solver.eigenvectors();
+
+	// Post-processing: ensure eigenvalues are sorted (should be, but just in case)
+   // and remove any negative eigenvalues near zero (numerical noise)
+	for (int i = 0; i < eigenvalues.size(); ++i)
+	{
+		if (eigenvalues(i) < 0 && eigenvalues(i) > -1e-9)
+		{
+			eigenvalues(i) = 0.0;  // Treat as zero (rigid body mode)
+			report("Warning: Near-zero eigenvalue detected (rigid body mode)");
+		}
+		else if (eigenvalues(i) < 0)
+		{
+			report("Warning: Negative eigenvalue detected. Check matrix definiteness.");
+		}
+	}
+
+	auto end_time = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+	solver_msg = "ARPACK solver completed in " + std::to_string(duration.count()) + " ms";
+	report(solver_msg.c_str());
+
+	// Report convergence statistics
+	solver_msg = "Converged eigenvalues: " + std::to_string(solver.getNbrConvergedEigenValues()) +
+		" / " + std::to_string(nev);
+	report(solver_msg.c_str());
+
+}
+
+
 
 
 
@@ -1042,69 +1185,6 @@ void modal_spectral_solver::store_results_with_index()
 				std::to_string(num_modes) + " modes)";
 
 	report(success_msg.c_str());
-
-}
-
-
-
-void modal_spectral_solver::solveARPACKEigen(Eigen::VectorXd& eigenvalues,
-	Eigen::MatrixXd& eigenvectors,
-	int number_of_modes,
-	const Eigen::SparseMatrix<double>& K,
-	const Eigen::SparseMatrix<double>& M)
-{
-	int nev = number_of_modes; // std::min(static_cast<int>(K.rows()), 20); // Don't compute all eigenvalues! Use a reasonable number
-	int ncv = std::min(2 * nev + 1, static_cast<int>(K.rows())); // Number of Lanczos vectors
-
-	std::string solver_msg;
-
-	// Matrix sizes
-	solver_msg = "K size: " + std::to_string(K.rows()) + " x " + std::to_string(K.cols());
-	report(solver_msg.c_str());
-
-	solver_msg = "M size: " + std::to_string(M.rows()) + " x " + std::to_string(M.cols());
-	report(solver_msg.c_str());
-
-	// Eigenvalue info
-	solver_msg = "Computing " + std::to_string(nev) + " eigenvalues";
-	report(solver_msg.c_str());
-
-	// Symmetry checks
-	solver_msg = std::string("K symmetric? ") + (K.isApprox(K.transpose()) ? "true" : "false");
-	report(solver_msg.c_str());
-
-	solver_msg = std::string("M symmetric? ") + (M.isApprox(M.transpose()) ? "true" : "false");
-	report(solver_msg.c_str());
-
-
-	// Use the correct solver type
-	Eigen::ArpackGeneralizedSelfAdjointEigenSolver<Eigen::SparseMatrix<double>> solver;
-
-	// The compute() method expects: matrix K, matrix M, number of eigenvalues, 
-	// spectrum type, and optionally ncv
-	solver.compute(K, M, nev, "SM", Eigen::ComputeEigenvectors, ncv);
-
-	// Check ARPACK's convergence status
-	if (solver.info() != Eigen::Success) 
-	{
-		solver_msg = "ARPACK info: " + solver.info();
-		report(solver_msg.c_str());
-
-		throw std::runtime_error("ARPACK failed to converge.");
-	}
-
-
-	// Check if eigenvectors were computed
-	if (!solver.eigenvectors().size()) 
-	{
-		solver_msg = "Eigenvectors not computed." + solver.info();
-		report(solver_msg.c_str());
-
-		throw std::runtime_error("Eigenvectors not computed.");
-	}
-
-	eigenvalues = solver.eigenvalues();
-	eigenvectors = solver.eigenvectors();
 
 }
 

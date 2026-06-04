@@ -12,13 +12,16 @@
 #pragma warning (disable : 26813)
 #pragma warning (disable : 26454)
 #pragma warning (disable : 4244)
-
+#pragma warning (disable : 4091)
+#pragma warning (disable : 6011)
+#pragma warning (disable : 6387)
 
 // Optimization for Eigen Library
 // 1) OpenMP (Yes (/openmp)
 //	 Solution Explorer->Configuration Properties -> C/C++ -> Language -> Open MP Support
 // 2) For -march=native, choose "AVX2" or the latest supported instruction set.
 //   Solution Explorer->Configuration Properties -> C/C++ -> Code Generation -> Enable Enhanced Instruction Set 
+#include <iostream>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -32,13 +35,13 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 
 // Spectra
 #include <Spectra/SymEigsSolver.h>
+#include <Spectra/GenEigsSolver.h>
 #include <Spectra/MatOp/SparseSymMatProd.h>
 #include <Spectra/MatOp/SparseCholesky.h>
-
-#include <Spectra/GenEigsSolver.h>
+#include <Spectra/MatOp/SparseGenMatProd.h>
+#include <Spectra/MatOp/SparseRegularInverse.h>
 
 using namespace Spectra;
-
 
 // ARPACK
 #include <Eigen/Sparse>
@@ -107,6 +110,11 @@ public:
 	void solve_modal_analysis(int inpt_num_modes, int solver_type);
 
 
+	enum SolverType 
+	{
+		SOLVER_SPECTRA = 1,
+		SOLVER_ARPACK = 2
+	};
 
 
 private:
@@ -210,10 +218,20 @@ private:
 
 	//________________________________________________________________________________________________
 
-	void solveARPACKEigen(Eigen::VectorXd& eigenvalues,Eigen::MatrixXd& eigenvectors,
-		int number_of_modes,
-		const Eigen::SparseMatrix<double>& K,
-		const Eigen::SparseMatrix<double>& M);
+
+	void solveWithSpectra(int num_modes,
+		const Eigen::SparseMatrix<double>& K_ff,
+		const Eigen::SparseMatrix<double>& M_ff,
+		Eigen::VectorXd& eigenvalues,
+		Eigen::MatrixXd& eigenvectors);
+
+
+
+	void solveWithARPACK(int num_modes,
+		const Eigen::SparseMatrix<double>& K_ff,
+		const Eigen::SparseMatrix<double>& M_ff,
+		Eigen::VectorXd& eigenvalues,
+		Eigen::MatrixXd& eigenvectors);
 
 
 	void store_results_with_index();

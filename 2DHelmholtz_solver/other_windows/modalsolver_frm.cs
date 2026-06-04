@@ -11,6 +11,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -19,6 +20,39 @@ using System.Windows.Forms;
 
 namespace _2DHelmholtz_solver.other_windows
 {
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct BinaryFileHeader
+    {
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public byte[] Magic;  // 'SEMF'
+        public uint Version;
+        public uint NumModes;
+        public uint NumNodes;
+        public ulong ModeDataOffset;
+        public ulong ModeIndexOffset;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct ModeIndexEntry
+    {
+        public uint ModeId;
+        public double Frequency;
+        public ulong FileOffset;
+        public ulong DataSize;
+    }
+
+
+    public class ModeInfo
+    {
+        public int Id { get; set; }
+        public double Frequency { get; set; }
+        public long FileOffset { get; set; }
+        public long DataSize { get; set; }
+    }
+
+
+
     public partial class modalsolver_frm : Form
     {
         private fedata_store fe_data;
@@ -153,67 +187,73 @@ namespace _2DHelmholtz_solver.other_windows
 
                     try
                     {
+                        using (var fs = new FileStream(outputPath, FileMode.Open, FileAccess.Read))
+
                         using (var reader = new BinaryReader(File.Open(outputPath, FileMode.Open, FileAccess.Read)))
                         {
-                            fe_data.resultmeshdata = new rsltdata_store();
 
-                            // Read number of nodes
-                            int node_points_count = reader.ReadInt32();
+
+                            // Read header
+                            var header = ReadStruct<BinaryFileHeader>(reader);
+
+                            if (System.Text.Encoding.ASCII.GetString(header.Magic) != "SEMF")
+                                throw new InvalidDataException("Invalid file format");
+
+                            AppendStatus($"File version: {header.Version}");
+                            AppendStatus($"Number of modes: {header.NumModes}");
+                            AppendStatus($"Number of nodes: {header.NumNodes}");
+
                             AppendStatus($"Reading results started...\n");
 
-                            for (int i = 0; i < node_points_count; i++)
+                            fe_data.modalresultmeshdata = new modal_rsltdata_store();
+
+                            // Read nodes
+              
+                            for (int i = 0; i < header.NumNodes; i++)
                             {
                                 int node_id = reader.ReadInt32();
                                 double node_xcoord = reader.ReadDouble();
                                 double node_ycoord = reader.ReadDouble();
-                                double field_u_real = reader.ReadDouble();
-                                double field_u_imag = reader.ReadDouble();
-                                double field_u_mag =  reader.ReadDouble();
-                                double field_u_phase = reader.ReadDouble();
 
-                                fe_data.resultmeshdata.rslt_nodes.Add(node_id, 
-                                    new rsltnode_store { node_id = node_id,
+                                fe_data.modalresultmeshdata.modal_rslt_nodes.Add(node_id, 
+                                    new modal_rsltnode_store { node_id = node_id,
                                                         node_pt_x_coord = node_xcoord,
-                                                        node_pt_y_coord = node_ycoord,
-                                                        node_u_real = field_u_real,
-                                                        node_u_imag = field_u_imag,
-                                                        node_u_magnitude = field_u_mag,
-                                                        node_u_phase = field_u_phase,
+                                                        node_pt_y_coord = node_ycoord
                                     });
 
                             }
 
-                            AppendStatus($"Reading results for {node_points_count} nodes complete \n");
+                            AppendStatus($"Reading results for {header.NumNodes} nodes complete \n");
 
 
                             // Read number of edges
-                            int edge_lines_count = reader.ReadInt32();
+                            long edgesCount = (long)(header.ModeIndexOffset - (ulong)fs.Position) / (2 * sizeof(int));
 
-                            for (int i = 0; i < edge_lines_count; i++)
+                            for (int i = 0; i < edgesCount; i++)
                             {
                                 int start_nodeid = reader.ReadInt32();
                                 int end_nodeid = reader.ReadInt32();
 
-                                fe_data.resultmeshdata.rslt_edges.Add(new rsltedge_store
+                                fe_data.modalresultmeshdata.rslt_edges.Add(new rsltedge_store
                                 {
                                     startnode = start_nodeid,
                                     endnode = end_nodeid
                                 });
                             }
 
-                            AppendStatus($"Reading results for {edge_lines_count} edges complete \n");
+                            AppendStatus($"Reading results for {edgesCount} edges complete \n");
 
 
                             // Read number of triangles
-                            int triangles_count = reader.ReadInt32();
+                            long trianglesCount = (long)(header.ModeDataOffset - (ulong)fs.Position) / (3 * sizeof(int));
 
-                            for (int i = 0; i < triangles_count; i++)
+                            for (int i = 0; i < trianglesCount; i++)
                             {
                                 int n1 = reader.ReadInt32();
                                 int n2 = reader.ReadInt32();
                                 int n3 = reader.ReadInt32();
 
-                                fe_data.resultmeshdata.rslt_tris.Add(new rslttri_store
+                                fe_data.modalresultmeshdata.rslt_tris.Add(new rslttri_store
                                 {
                                     tri_node1 = n1,
                                     tri_node2 = n2,
@@ -221,14 +261,27 @@ namespace _2DHelmholtz_solver.other_windows
                                 });
                             }
 
-                            AppendStatus($"Reading results for {triangles_count} triangles complete \n");
+                            AppendStatus($"Reading results for {trianglesCount} triangles complete \n");
 
                             // Set the Result mesh
+                            // Read mode index table
+                            for (int i = 0; i < header.NumModes; i++)
+                            {
+                                var modeIndex = ReadStruct<ModeIndexEntry>(reader);
+                                fe_data.modalresultmeshdata.modes.Add(new modeInfo
+                                {
+                                    Id = (int)modeIndex.ModeId,
+                                    Frequency = modeIndex.Frequency,
+                                    FileOffset = (long)modeIndex.FileOffset,
+                                    DataSize = (long)modeIndex.DataSize
+                                });
+                            }
 
 
-                            fe_data.resultmeshdata.setResultMesh();
-                            fe_data.resultmeshdata.setResultExtremes();
-                            fe_data.resultmeshdata.isResultSet = true;
+
+                            fe_data.modalresultmeshdata.setResultMesh();
+                            fe_data.modalresultmeshdata.updateSelectedMode(0);
+                            fe_data.modalresultmeshdata.isModalResultSet = true;
 
                             fe_data.update_openTK_uniforms(true, true, true);
                         }
@@ -265,6 +318,16 @@ namespace _2DHelmholtz_solver.other_windows
             }
 
 
+        }
+
+
+        private T ReadStruct<T>(BinaryReader reader) where T : struct
+        {
+            byte[] bytes = reader.ReadBytes(Marshal.SizeOf<T>());
+            GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            T structure = Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
+            handle.Free();
+            return structure;
         }
 
 

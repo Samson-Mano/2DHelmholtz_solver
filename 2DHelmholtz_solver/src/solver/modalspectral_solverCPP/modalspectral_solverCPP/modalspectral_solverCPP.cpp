@@ -347,7 +347,7 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	modal_spec_solver.create_global_matrices();
 
 	// Perform modal analysis solve
-	modal_spec_solver.solve_modal_analysis(number_of_modes);
+	modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type);
 
 
 

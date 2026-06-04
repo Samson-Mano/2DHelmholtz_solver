@@ -105,9 +105,7 @@
     <Compile Include="other_windows\option_frm.Designer.cs">
       <DependentUpon>option_frm.cs</DependentUpon>
     </Compile>
-    <Compile Include="other_windows\modalsolver_frm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="other_windows\modalsolver_frm.cs" />
     <Compile Include="other_windows\modalsolver_frm.Designer.cs">
       <DependentUpon>modalsolver_frm.cs</DependentUpon>
     </Compile>
