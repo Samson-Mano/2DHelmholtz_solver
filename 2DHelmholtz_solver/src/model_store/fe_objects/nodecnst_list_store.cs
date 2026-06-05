@@ -249,8 +249,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 return;
 
 
-            ndcnst_meshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
-                graphic_events_control.projectionMatrix,
+            ndcnst_meshdata.update_openTK_uniforms(graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix,
                 graphic_events_control.viewMatrix,
                 gvariables_static.geom_transparency);

@@ -847,8 +847,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
 
 
-        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency,
-           Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
+        public void update_openTK_uniforms(Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
         {
             // Following graphics operation is performed
             // 1) Zoom to Fit (Ctrl + F)
@@ -857,80 +856,50 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // 4) Drawing Area change (Resize of drawing area)
 
 
-            // Update the openGl uniform matrices
-            if (set_modelmatrix == true)
-            {
-                // Set the model matrix
-                mesh_quads.quad_shader.SetMatrix4("modelMatrix", modelMatrix);
-                mesh_tris.tri_shader.SetMatrix4("modelMatrix", modelMatrix);
-                selected_mesh_quads.quad_shader.SetMatrix4("modelMatrix", modelMatrix);
-                selected_mesh_tris.tri_shader.SetMatrix4("modelMatrix", modelMatrix);
 
-                mesh_boundaries.line_shader.SetMatrix4("modelMatrix", modelMatrix);
-                mesh_lines.line_shader.SetMatrix4("modelMatrix", modelMatrix);
-
-                selected_mesh_edges.line_shader.SetMatrix4("modelMatrix", modelMatrix);
-
-                selected_mesh_points.point_shader.SetMatrix4("modelMatrix", modelMatrix);
-                mesh_points.point_shader.SetMatrix4("modelMatrix", modelMatrix);
-
-                // drawing_boundary_lines.line_shader.SetMatrix4("modelMatrix", graphic_events_control.modelMatrix);
-
-                // Set the projection matrix
-                mesh_quads.quad_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-                mesh_tris.tri_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-                selected_mesh_quads.quad_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-                selected_mesh_tris.tri_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-
-                mesh_boundaries.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-                mesh_lines.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-
-                selected_mesh_edges.line_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-
-                selected_mesh_points.point_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-                mesh_points.point_shader.SetMatrix4("projectionMatrix", projectionMatrix);
-
-            }
-
-            if (set_viewmatrix == true)
-            {
-                // Set the view matrix
-                mesh_quads.quad_shader.SetMatrix4("viewMatrix", viewMatrix);
-                mesh_tris.tri_shader.SetMatrix4("viewMatrix", viewMatrix);
-                selected_mesh_quads.quad_shader.SetMatrix4("viewMatrix", viewMatrix);
-                selected_mesh_tris.tri_shader.SetMatrix4("viewMatrix", viewMatrix);
-
-                mesh_boundaries.line_shader.SetMatrix4("viewMatrix", viewMatrix);
-                mesh_lines.line_shader.SetMatrix4("viewMatrix", viewMatrix);
-
-                selected_mesh_edges.line_shader.SetMatrix4("viewMatrix", viewMatrix);
-
-                selected_mesh_points.point_shader.SetMatrix4("viewMatrix", viewMatrix);
-                mesh_points.point_shader.SetMatrix4("viewMatrix", viewMatrix);
-
-            }
-
-            if (set_transparency == true)
-            {
-                // Set the transparency float
-                mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
-                mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
-                selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
-                selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
-
-                mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f * geom_transparency);
-                mesh_lines.line_shader.SetFloat("vertexTransparency", geom_transparency);
-
-                selected_mesh_edges.line_shader.SetFloat("vertexTransparency", 0.2f * geom_transparency);
-
-                selected_mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
-                mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
-
-            }
+            Matrix4 uMVP = projectionMatrix * viewMatrix * modelMatrix;
 
 
-            // mesh_tri_material_ids.update_opengl_uniforms(set_modelmatrix, set_viewmatrix, set_transparency);
-            // mesh_quad_material_ids.update_opengl_uniforms(set_modelmatrix, set_viewmatrix, set_transparency);
+            // Set the MVP
+            mesh_quads.quad_shader.SetMatrix4("uMVP", uMVP);
+            mesh_tris.tri_shader.SetMatrix4("uMVP", uMVP);
+            selected_mesh_quads.quad_shader.SetMatrix4("uMVP", uMVP);
+            selected_mesh_tris.tri_shader.SetMatrix4("uMVP", uMVP);
+
+            mesh_boundaries.line_shader.SetMatrix4("uMVP", uMVP);
+            mesh_lines.line_shader.SetMatrix4("uMVP", uMVP);
+
+            selected_mesh_edges.line_shader.SetMatrix4("uMVP", uMVP);
+
+            selected_mesh_points.point_shader.SetMatrix4("uMVP", uMVP);
+            mesh_points.point_shader.SetMatrix4("uMVP", uMVP);
+
+
+
+            // Set the transparency float
+            mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
+            mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
+            selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
+            selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
+
+            mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f * geom_transparency);
+            mesh_lines.line_shader.SetFloat("vertexTransparency", geom_transparency);
+
+            selected_mesh_edges.line_shader.SetFloat("vertexTransparency", 0.2f * geom_transparency);
+
+            selected_mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
+            mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
+
+        }
+
+
+        public void updateAnimation(float sinevalue)
+        {
+
+
+            mesh_tris.tri_shader.SetFloat("sinevalue", sinevalue);
+            mesh_boundaries.line_shader.SetFloat("sinevalue", sinevalue);
+            mesh_points.point_shader.SetFloat("sinevalue", sinevalue);
 
         }
 

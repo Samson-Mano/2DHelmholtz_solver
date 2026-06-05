@@ -48,6 +48,15 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public bool isModalResultSet = false;
 
 
+
+        // Animation control data
+        public System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        //private double accumulatedTime = 0.0;
+        //private int time_step = 0;
+
+
+
+
         public modal_rsltdata_store()
         {
             modal_rslt_nodes = new Dictionary<int, modal_rsltnode_store>();
@@ -184,23 +193,77 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         }
 
 
-        public void update_modal_animation(double animation_time)
-        {
 
+        public void start_animation()
+        {
+            // Restart the animation stopwatch
+            stopwatch.Start();
 
         }
 
 
-        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency,
-           Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
+        public void pause_animation()
+        {
+            // Pause the animation
+            stopwatch.Stop();
+
+        }
+
+        public void stop_animation()
+        {
+
+            // Reset the animation stopwatch and time step
+            stopwatch.Reset();
+            stopwatch.Stop();
+
+            // pendulum_data.reset_simulation();
+
+        }
+
+
+
+        public void update_modal_animation()
+        {
+            if (!isModalResultSet || !gvariables_static.is_paint_modalresults)
+                return;
+
+
+            // Results are stored, animate the modal results
+            double elapsedRealTime = stopwatch.Elapsed.TotalSeconds;
+
+
+            if (gvariables_static.animate_play == true)
+            {
+
+                double animscale = Math.Cos(Math.PI * elapsedRealTime * gvariables_static.modal_animation_speed);
+
+                float sinevalue = (float)(1.0f + animscale) * 0.5f;
+
+                modal_rsltmeshdata.updateAnimation(sinevalue);
+
+                //if (isModalAnalysisPaint == true)
+                //{
+                //    double displ_scale = displextent * gvariables_static.displacement_scale;
+
+                //    // Update the modal analysis results
+                //    stringlinemodalresults_data.update_modalresults_time_step(elapsedRealTime, selected_mode_shape, displ_scale);
+                //}
+
+
+                // pendulum_data.simulate(elapsedRealTime);
+
+            }
+
+
+            //
+        }
+
+
+        public void update_openTK_uniforms(Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
         {
             if (isModalResultSet == true)
             {
-                modal_rsltmeshdata.update_openTK_uniforms(
-                    set_modelmatrix,
-                    set_viewmatrix,
-                    set_transparency,
-                    projectionMatrix,
+                modal_rsltmeshdata.update_openTK_uniforms(projectionMatrix,
                     modelMatrix,
                     viewMatrix,
                     gvariables_static.rslt_transparency);

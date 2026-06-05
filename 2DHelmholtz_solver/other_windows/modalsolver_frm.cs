@@ -43,13 +43,13 @@ namespace _2DHelmholtz_solver.other_windows
     }
 
 
-    public class ModeInfo
-    {
-        public int Id { get; set; }
-        public double Frequency { get; set; }
-        public long FileOffset { get; set; }
-        public long DataSize { get; set; }
-    }
+    //public struct ModeInfo
+    //{
+    //    public int Id { get; set; }
+    //    public double Frequency { get; set; }
+    //    public long FileOffset { get; set; }
+    //    public long DataSize { get; set; }
+    //}
 
 
 
@@ -67,7 +67,7 @@ namespace _2DHelmholtz_solver.other_windows
 
         }
 
-        private void solver_frm_Load(object sender, EventArgs e)
+        private void modalsolver_frm_Load(object sender, EventArgs e)
         {
        
         }
@@ -109,7 +109,7 @@ namespace _2DHelmholtz_solver.other_windows
                 richTextBox_AnalysisUpdate.Clear();
                 AppendStatus("No boundary conditions applied...\n");
 
-                MessageBox.Show("No Boundary Conditions applied!!!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // MessageBox.Show("No Boundary Conditions applied!!!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
 
@@ -128,7 +128,7 @@ namespace _2DHelmholtz_solver.other_windows
                 return;
             }
 
-            double[] solver_settings = new double[1];
+            double[] solver_settings = new double[2];
             solver_settings[0] = number_of_modes;
             solver_settings[1] = solver_type;
 
@@ -167,7 +167,7 @@ namespace _2DHelmholtz_solver.other_windows
                 await Task.Run(() =>
                 {
                     // Call C++ solver
-                    modalSolverInterop.solve_spectralmodalanalysisCPP(inputPath, outputPath,
+                    modalSolverInterop.solve_modalspectralanalysisCPP(inputPath, outputPath,
                         solver_settings, solver_settings.Length,
                         ref isAnalysisSuccess, OnStatusUpdate);
 
@@ -280,7 +280,7 @@ namespace _2DHelmholtz_solver.other_windows
 
 
                             fe_data.modalresultmeshdata.setResultMesh();
-                            fe_data.modalresultmeshdata.updateSelectedMode(0);
+                            fe_data.modalresultmeshdata.updateSelectedMode(0); 
                             fe_data.modalresultmeshdata.isModalResultSet = true;
 
                             fe_data.update_openTK_uniforms(true, true, true);
@@ -289,7 +289,7 @@ namespace _2DHelmholtz_solver.other_windows
                         // Call the main form
                         if (this.Owner is main_frm mainForm)
                         {
-                            mainForm.set_ResultOption(1);
+                            mainForm.set_ResultOption(5); // Set the result option = 5, Paint modal results
                         }
 
                         AppendStatus("Results read complete!\n");
@@ -350,7 +350,7 @@ namespace _2DHelmholtz_solver.other_windows
             richTextBox_AnalysisUpdate.ScrollToCaret();
         }
 
-        private void solver_frm_FormClosing(object sender, FormClosingEventArgs e)
+        private void modalsolver_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Clear the status update rich text box 
             richTextBox_AnalysisUpdate.Clear();

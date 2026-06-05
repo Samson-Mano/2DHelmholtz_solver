@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace _2DHelmholtz_solver.src.solver
 {
@@ -17,8 +19,8 @@ namespace _2DHelmholtz_solver.src.solver
 
 
         // Import the DLL function (updated to accept callback)
-        [DllImport("spectralmodalanalysis_solverCPP.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void solve_spectralmodalanalysisCPP(
+        [DllImport("modalspectral_solverCPP.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void solve_modalspectralanalysisCPP(
             [MarshalAs(UnmanagedType.LPStr)] string inputPath,
             [MarshalAs(UnmanagedType.LPStr)] string outputPath,
             double[] solver_settings,

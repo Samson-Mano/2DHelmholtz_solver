@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(modalsolver_frm));
             this.richTextBox_AnalysisUpdate = new System.Windows.Forms.RichTextBox();
             this.button_performsolve = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -182,15 +181,14 @@
             this.Controls.Add(this.button_performsolve);
             this.Controls.Add(this.richTextBox_AnalysisUpdate);
             this.Font = new System.Drawing.Font("Cambria", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.MaximumSize = new System.Drawing.Size(615, 590);
             this.MinimumSize = new System.Drawing.Size(610, 585);
             this.Name = "modalsolver_frm";
             this.Opacity = 0.85D;
-            this.Text = "2D Helmholtz Solver";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.solver_frm_FormClosing);
-            this.Load += new System.EventHandler(this.solver_frm_Load);
+            this.Text = "2D Modal Solver";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.modalsolver_frm_FormClosing);
+            this.Load += new System.EventHandler(this.modalsolver_frm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

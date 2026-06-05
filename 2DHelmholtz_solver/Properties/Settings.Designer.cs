@@ -46,5 +46,29 @@ namespace _2DHelmholtz_solver.Properties {
                 this["Sett_spec_option"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Sett_modal_selected_index {
+            get {
+                return ((int)(this["Sett_modal_selected_index"]));
+            }
+            set {
+                this["Sett_modal_selected_index"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public double Sett_modal_animation_speed {
+            get {
+                return ((double)(this["Sett_modal_animation_speed"]));
+            }
+            set {
+                this["Sett_modal_animation_speed"] = value;
+            }
+        }
     }
 }

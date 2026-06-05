@@ -148,6 +148,23 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static bool is_paint_modalresults = false;
 
+
+        // Control Modal Animation
+        public static bool animate_play = true;
+        public static bool animate_pause = false;
+        public static bool animate_stop = false;
+
+        // Animation speed control
+        public static double modal_animation_speed = 1.0f; // real-time speed
+
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern bool PeekMessage(out Message msg, IntPtr hWnd,
+                            uint messageFilterMin, uint messageFilterMax, uint flags);
+
+
+
+
         public static int RoundOff(this int i)
         {
             // Roundoff to nearest 10 (used to display zoom value)

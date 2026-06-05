@@ -98,6 +98,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             // Result data
             resultmeshdata = new rsltdata_store();
+            modalresultmeshdata = new modal_rsltdata_store();
+
 
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
@@ -202,7 +204,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             gvariables_static.rslt_transparency = 0.0f;
 
             // Update the openGL uniform
-            meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
+            meshdata.update_openTK_uniforms(graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
                 gvariables_static.geom_transparency);
 
@@ -309,7 +311,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             gvariables_static.rslt_transparency = 0.0f;
 
             // Update the openGL uniform
-            meshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
+            meshdata.update_openTK_uniforms(graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
                 gvariables_static.geom_transparency);
 
@@ -587,7 +589,13 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             }
 
 
+            // Paint the Modal results
+            if(gvariables_static.is_paint_modalresults == true)
+            {
+                // Paint the modal results
+                modalresultmeshdata.paint_modalresult_mesh();
 
+            }
 
         }
 
@@ -600,8 +608,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 return;
 
 
-            meshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
-                graphic_events_control.projectionMatrix,
+            meshdata.update_openTK_uniforms(graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix,
                 graphic_events_control.viewMatrix,
                 gvariables_static.geom_transparency);
@@ -616,11 +623,17 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 graphic_events_control);
 
 
-                resultmeshdata.update_openTK_uniforms(set_modelmatrix, set_viewmatrix, set_transparency,
-                graphic_events_control.projectionMatrix,
+            resultmeshdata.update_openTK_uniforms(graphic_events_control.projectionMatrix,
                 graphic_events_control.modelMatrix,
                 graphic_events_control.viewMatrix,
                 gvariables_static.rslt_transparency);
+
+
+            modalresultmeshdata.update_openTK_uniforms(graphic_events_control.projectionMatrix,
+                graphic_events_control.modelMatrix,
+                graphic_events_control.viewMatrix,
+                gvariables_static.rslt_transparency);
+
 
         }
 

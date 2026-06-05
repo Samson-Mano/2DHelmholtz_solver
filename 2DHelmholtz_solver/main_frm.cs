@@ -44,6 +44,7 @@ namespace _2DHelmholtz_solver
         private edgeconstraint_frm edgeconstraint_Form;
         private solver_frm solver_Form;
         private modalsolver_frm modalsolver_Form;
+        private modalresultoption_frm modalresultoption_Form;
 
         public main_frm()
         {
@@ -65,6 +66,10 @@ namespace _2DHelmholtz_solver
 
             // Add loads is covered in Nodal Boundary condition (so hidden)
             addLoadsToolStripMenuItem.Visible = false;
+
+
+            // Render timer
+            Application.Idle += OnApplicationIdle;
 
         }
 
@@ -126,23 +131,23 @@ namespace _2DHelmholtz_solver
             // Update the zoom value
             double zm_val = fedata.graphic_events_control.zoom_val;
             toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(zm_val * 100))).ToString() + "%";
-            toolStripStatusLabel_IsRefresh.Invalidate();
+            toolStripStatusLabel_FPS.Invalidate();
 
             // Update FPS every second
             if (fpsStopwatch.ElapsedMilliseconds >= 1000)
             {
                 fpsStopwatch.Restart();
 
-                SetRefreshStatus(true); // Update status bar
+                // SetRefreshStatus(true); // Update status bar
             }
 
         }
 
         private void glControl_main_panel_SizeChanged(object sender, EventArgs e)
         {
-           // Note: SizeChanged can fire before the OpenGL context exists (e.g., during form initialization, Load etc).
-           if (glControl_main_panel == null || fedata == null)
-                 return;
+            // Note: SizeChanged can fire before the OpenGL context exists (e.g., during form initialization, Load etc).
+            if (glControl_main_panel == null || fedata == null)
+                return;
 
             // Update the size of the drawing area
             fedata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
@@ -163,101 +168,83 @@ namespace _2DHelmholtz_solver
 
         private void glControl_main_panel_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            bool isRefresh = false;
             if (e.Button == MouseButtons.Left)
             {
                 // Left button down
-                isRefresh = fedata.graphic_events_control.handleMouseLeftButtonClick(true, e.X, e.Y);
+                fedata.graphic_events_control.handleMouseLeftButtonClick(true, e.X, e.Y);
 
             }
             else if (e.Button == MouseButtons.Right)
             {
                 // Right button down
-                isRefresh = fedata.graphic_events_control.handleMouseRightButtonClick(true, e.X, e.Y);
+                fedata.graphic_events_control.handleMouseRightButtonClick(true, e.X, e.Y);
 
             }
 
-            if (isRefresh == true)
-            {
-                glControl_main_panel.Invalidate();
-
-            }
+            glControl_main_panel.Invalidate();
 
         }
 
         private void glControl_main_panel_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // Mouse wheel
-            bool isRefresh = fedata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
+            fedata.graphic_events_control.handleMouseScroll(e.Delta, e.X, e.Y);
 
-            if (isRefresh == true)
-            {
-                glControl_main_panel.Invalidate();
-
-            }
+            glControl_main_panel.Invalidate();
 
         }
 
         private void glControl_main_panel_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // Mouse move 
-            bool isRefresh = fedata.graphic_events_control.handleMouseMove(e.X, e.Y);
+            fedata.graphic_events_control.handleMouseMove(e.X, e.Y);
 
-            if (isRefresh == true)
-            {
-                glControl_main_panel.Invalidate();
-
-            }
+            glControl_main_panel.Invalidate();
 
         }
 
         private void glControl_main_panel_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            bool isRefresh = false;
             if (e.Button == MouseButtons.Left)
             {
                 // Left button up
-                isRefresh = fedata.graphic_events_control.handleMouseLeftButtonClick(false, e.X, e.Y);
+                fedata.graphic_events_control.handleMouseLeftButtonClick(false, e.X, e.Y);
 
             }
             else if (e.Button == MouseButtons.Right)
             {
                 // Right button up
-                isRefresh = fedata.graphic_events_control.handleMouseRightButtonClick(false, e.X, e.Y);
+                fedata.graphic_events_control.handleMouseRightButtonClick(false, e.X, e.Y);
 
             }
 
-            if (isRefresh == true)
+            glControl_main_panel.Invalidate();
+
+            // Update the Material Property Form data
+            if (fedata.isMaterialUpdateInProgress == true)
             {
-                glControl_main_panel.Invalidate();
+                matprop_Form.update_selected_element_list();
 
-                // Update the Material Property Form data
-                if (fedata.isMaterialUpdateInProgress == true)
-                {
-                    matprop_Form.update_selected_element_list();
+            }
 
-                }
+            // Update the Load Form data
+            if (fedata.isLoadUpdateInProgress == true)
+            {
+                load_Form.update_selected_node_list();
 
-                // Update the Load Form data
-                if(fedata.isLoadUpdateInProgress  == true)
-                {
-                    load_Form.update_selected_node_list();
+            }
 
-                }
+            // Update the Nodal Constraint Form data
+            if (fedata.isNodalConstraintUpdateInProgress == true)
+            {
+                nodalconstraint_Form.update_selected_node_list();
 
-                // Update the Nodal Constraint Form data
-                if(fedata.isNodalConstraintUpdateInProgress == true)
-                {
-                    nodalconstraint_Form.update_selected_node_list();
+            }
 
-                }
-
-                // Update the Edge Constraint Form data
-                if (fedata.isEdgeConstraintUpdateInProgress == true)
-                {
-                    edgeconstraint_Form.update_selected_edge_list();
-
-                }
+            // Update the Edge Constraint Form data
+            if (fedata.isEdgeConstraintUpdateInProgress == true)
+            {
+                edgeconstraint_Form.update_selected_edge_list();
 
             }
 
@@ -266,26 +253,18 @@ namespace _2DHelmholtz_solver
         private void glControl_main_panel_KeyDown(object sender, KeyEventArgs e)
         {
             // Keyboard Key Down
-            bool isRefresh = fedata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
+            fedata.graphic_events_control.handleKeyboardAction(true, e.KeyValue);
 
-            if (isRefresh == true)
-            {
-                glControl_main_panel.Invalidate();
-
-            }
+            glControl_main_panel.Invalidate();
 
         }
 
         private void glControl_main_panel_KeyUp(object sender, KeyEventArgs e)
         {
             // Keyboard Key Up
-            bool isRefresh = fedata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
+            fedata.graphic_events_control.handleKeyboardAction(false, e.KeyValue);
 
-            if (isRefresh == true)
-            {
-                glControl_main_panel.Invalidate();
-
-            }
+            glControl_main_panel.Invalidate();
 
             // If zoom-to-fit started, start the timer
             if (fedata.graphic_events_control.isZoomToFitInProgress == true)
@@ -325,7 +304,7 @@ namespace _2DHelmholtz_solver
         private void RefreshStatusResetTimer_Tick(object sender, EventArgs e)
         {
             refreshStatusResetTimer.Stop();
-            SetRefreshStatus(false);
+            // SetRefreshStatus(false);
 
         }
 
@@ -336,9 +315,9 @@ namespace _2DHelmholtz_solver
 
             if (isRefreshing)
             {
-                toolStripStatusLabel_IsRefresh.Text = "REFRESH";
-                toolStripStatusLabel_IsRefresh.ForeColor = Color.Green;
-                toolStripStatusLabel_IsRefresh.Invalidate();
+               //  toolStripStatusLabel_FPS.Text = "REFRESH";
+                // toolStripStatusLabel_FPS.ForeColor = Color.Green;
+                // toolStripStatusLabel_FPS.Invalidate();
 
                 // Start timer to reset status
                 refreshStatusResetTimer.Stop(); // restart if already running
@@ -347,9 +326,9 @@ namespace _2DHelmholtz_solver
             }
             else
             {
-                toolStripStatusLabel_IsRefresh.Text = "";
-                toolStripStatusLabel_IsRefresh.ForeColor = SystemColors.Control;
-                toolStripStatusLabel_IsRefresh.Invalidate();
+                // toolStripStatusLabel_FPS.Text = "";
+                // toolStripStatusLabel_FPS.ForeColor = SystemColors.Control;
+                // toolStripStatusLabel_FPS.Invalidate();
 
             }
 
@@ -705,14 +684,14 @@ namespace _2DHelmholtz_solver
 
         public void CallFrom_matprop_frm(int material_id, bool isAssignMaterial = false, bool isDeleteMaterial = false)
         {
-            if(isAssignMaterial == true)
+            if (isAssignMaterial == true)
             {
                 // Assign the material to the selected elements
                 fedata.update_material_id(material_id, false);
             }
 
 
-            if(isDeleteMaterial == true)
+            if (isDeleteMaterial == true)
             {
                 // Material is deleted, update with default material
                 fedata.update_material_id(material_id, true);
@@ -725,12 +704,12 @@ namespace _2DHelmholtz_solver
 
         public void CallFrom_option_frm(bool isShrinkMesh = false)
         {
-            if(isShrinkMesh == true)
+            if (isShrinkMesh == true)
             {
                 // Perform the shrinkage of the mesh
                 fedata.meshdata.update_mesh_shrinkage();
 
-                if(fedata.resultmeshdata.isResultSet == true)
+                if (fedata.resultmeshdata.isResultSet == true)
                 {
                     fedata.resultmeshdata.rsltmeshdata.update_mesh_shrinkage();
                 }
@@ -742,7 +721,11 @@ namespace _2DHelmholtz_solver
         }
 
 
-
+        public void CallFrom_modaloption_frm()
+        {
+            // Refresh 
+            glControl_main_panel.Invalidate();
+        }
 
         #endregion
 
@@ -849,24 +832,52 @@ namespace _2DHelmholtz_solver
         private void hideResultsToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(0);
 
 
-        private void nextModeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void modeResultsSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (gvariables_static.is_paint_modalresults == false)
+            if (!fedata.modalresultmeshdata.isModalResultSet)
                 return;
 
+            // Check if modal_Form is null or disposed
+            if (modalresultoption_Form == null || modalresultoption_Form.IsDisposed)
+            {
+                modalresultoption_Form = new modalresultoption_frm(ref this.fedata);
+
+                // Make it behave like a tool window
+                modalresultoption_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                modalresultoption_Form.ShowInTaskbar = false;
+                modalresultoption_Form.TopLevel = true;
+                modalresultoption_Form.Owner = this;
+
+                // Manually center the form on the parent
+                int x = this.Location.X + (this.Width - modalresultoption_Form.Width) / 2;
+                int y = this.Location.Y + (this.Height - modalresultoption_Form.Height) / 2;
+                modalresultoption_Form.StartPosition = FormStartPosition.Manual;
+                modalresultoption_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+            }
+
+            // Show the form
+            modalresultoption_Form.initialize_modal_form();
+
+            modalresultoption_Form.Show(this);
+            modalresultoption_Form.BringToFront();
+
+            modalresultoption_Form.Invalidate();
 
         }
 
-        private void previousModeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (gvariables_static.is_paint_modalresults == false)
-                return;
-
-        }
 
 
         private void TrySetResultOption(int option)
         {
+            if (option == 5)
+            {
+                if (!fedata.modalresultmeshdata.isModalResultSet)
+                    return;
+
+                set_ResultOption(option);
+            }
+
             if (!fedata.resultmeshdata.isResultSet)
                 return;
 
@@ -945,6 +956,20 @@ namespace _2DHelmholtz_solver
 
 
 
+        private bool IsApplicationIdle()
+        {
+            Message msg;
+            return !gvariables_static.PeekMessage(out msg, IntPtr.Zero, 0, 0, 0);
+        }
+
+        private void OnApplicationIdle(object sender, EventArgs e)
+        {
+            while (IsApplicationIdle())
+            {
+                fedata.modalresultmeshdata.update_modal_animation();   // Update animation
+                glControl_main_panel.Invalidate(); // Redraw
+            }
+        }
 
 
         #endregion

@@ -262,16 +262,11 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         }
 
 
-        public void update_openTK_uniforms(bool set_modelmatrix, bool set_viewmatrix, bool set_transparency,
-           Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
+        public void update_openTK_uniforms(Matrix4 projectionMatrix, Matrix4 modelMatrix, Matrix4 viewMatrix, float geom_transparency)
         {
             if (isResultSet == true)
             {
-                rsltmeshdata.update_openTK_uniforms(
-                    set_modelmatrix, 
-                    set_viewmatrix, 
-                    set_transparency,
-                    projectionMatrix,
+                rsltmeshdata.update_openTK_uniforms(projectionMatrix,
                     modelMatrix,
                     viewMatrix,
                     gvariables_static.rslt_transparency);

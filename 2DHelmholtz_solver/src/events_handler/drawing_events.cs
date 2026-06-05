@@ -78,7 +78,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
 
 
         #region "Handle Mouse Events"
-        public bool handleMouseLeftButtonClick(bool isDown, float e_X, float e_Y)
+        public void handleMouseLeftButtonClick(bool isDown, float e_X, float e_Y)
         {
             if (isDown == true)
             {
@@ -92,7 +92,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                     // Select operation starts (Left drag)
                     select_operation_start(new Vector2(e_X, e_Y), false);
-                    return true;
+                    
                 }
             }
             else
@@ -105,14 +105,12 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                     select_operation_end(new Vector2(e_X, e_Y));
                 }
-                return true;
-            }
 
-            return false;
+            }
 
         }
 
-        public bool handleMouseRightButtonClick(bool isDown, float e_X, float e_Y)
+        public void handleMouseRightButtonClick(bool isDown, float e_X, float e_Y)
         {
             if (isDown == true)
             {
@@ -122,15 +120,14 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                     // Pan operation
                     pan_operation_start(new Vector2(e_X, e_Y));
-                    return true;
+
                 }
 
                 if (isShiftDown == true)
                 {
                     // Select operation starts (Right drag)
                     select_operation_start(new Vector2(e_X, e_Y), true);
-                    return true;
-                }
+                    }
 
             }
             else
@@ -149,40 +146,35 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                        select_operation_end(new Vector2(e_X, e_Y));
                 }
-                return true;
             }
-            return false;
 
         }
 
 
-        public bool handleMouseMove(float e_X, float e_Y)
+        public void handleMouseMove(float e_X, float e_Y)
         {
             if (isCtrlDown == true || isShiftDown == true)
             {
                 // Perform the mouse move operation
                 Vector2 loc = new Vector2(e_X, e_Y);
                 mouse_location(loc);
-                return true;
+             
             }
-            return false;
 
         }
 
-        public bool handleMouseScroll(int e_Delta, float e_X, float e_Y)
+        public void handleMouseScroll(int e_Delta, float e_X, float e_Y)
         {
             if (isCtrlDown == true)
             {
                 // Perform zoom operation
                 zoom_operation(e_Delta, e_X, e_Y);
 
-                return true;
             }
-            return false;
 
         }
 
-        public bool handleKeyboardAction(bool isDown, int key)
+        public void handleKeyboardAction(bool isDown, int key)
         {
             if (isDown == true)
             {
@@ -198,7 +190,6 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 {
                     // Perform zoom to fit
                     zoom_to_fit();
-                    return true;
                 }
             }
             else
@@ -206,9 +197,7 @@ namespace _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw
                 // key released
                 isCtrlDown = false;
                 isShiftDown = false;
-                return true;
             }
-            return false;
 
         }
 

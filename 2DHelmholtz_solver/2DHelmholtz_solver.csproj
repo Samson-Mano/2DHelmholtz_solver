@@ -75,6 +75,12 @@
     <Compile Include="other_windows\edgeconstraint_frm.Designer.cs">
       <DependentUpon>edgeconstraint_frm.cs</DependentUpon>
     </Compile>
+    <Compile Include="other_windows\modalresultoption_frm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="other_windows\modalresultoption_frm.Designer.cs">
+      <DependentUpon>modalresultoption_frm.cs</DependentUpon>
+    </Compile>
     <Compile Include="other_windows\nodalconstraint_frm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -105,7 +111,9 @@
     <Compile Include="other_windows\option_frm.Designer.cs">
       <DependentUpon>option_frm.cs</DependentUpon>
     </Compile>
-    <Compile Include="other_windows\modalsolver_frm.cs" />
+    <Compile Include="other_windows\modalsolver_frm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="other_windows\modalsolver_frm.Designer.cs">
       <DependentUpon>modalsolver_frm.cs</DependentUpon>
     </Compile>
@@ -157,6 +165,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="other_windows\edgeconstraint_frm.resx">
       <DependentUpon>edgeconstraint_frm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="other_windows\modalresultoption_frm.resx">
+      <DependentUpon>modalresultoption_frm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="other_windows\nodalconstraint_frm.resx">
       <DependentUpon>nodalconstraint_frm.cs</DependentUpon>
@@ -235,6 +246,8 @@
     <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspe.5e388ece.tlog\unsuccessfulbuild" />
     <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\modalspectral_solverCPP.log" />
     <None Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\vc145.idb" />
+    <None Include="src\solver\modalspectral_solverCPP\x64\Release\modalspectral_solverCPP.exp" />
+    <None Include="src\solver\modalspectral_solverCPP\x64\Release\modalspectral_solverCPP.lib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -282,6 +295,29 @@
     <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\system_store\stopwatch_events.cpp" />
     <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\system_store\stopwatch_events.h" />
     <Content Include="src\solver\modalspectral_solverCPP\modalspectral_solverCPP\x64\Debug\vc145.pdb" />
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\libarpack.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\libgcc_s_seh-1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\libgfortran-5.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\liblapack.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\libquadmath-0.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\libwinpthread-1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\modalspectral_solverCPP.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\modalspectral_solverCPP.pdb" />
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\openblas.dll" />
     <None Include="Resources\automorphism_view_polar_2.png" />
     <Content Include="src\global_variables\Junk_code.txt" />
   </ItemGroup>
@@ -301,6 +337,20 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(ProjectDir)src\solver\helmholtz_solverCPP\x64\Release\helmholtz_solverCPP.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\modalspectral_solverCPP.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\libarpack.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\libgcc_s_seh-1.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\libgfortran-5.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\liblapack.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\libquadmath-0.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\libwinpthread-1.dll" "$(TargetDir)" /Y /I
 rmdir /S /Q "$(TargetDir)src"</PostBuildEvent>
   </PropertyGroup>
 </Project>
