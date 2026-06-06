@@ -303,6 +303,9 @@ int main()
 
 	std::cout << "Solve complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
+	// Debugg text results
+	modal_spec_solver.store_results_text_debug();
+
 	//_________________________________________________________
 	// Close the files
 	infile.close();

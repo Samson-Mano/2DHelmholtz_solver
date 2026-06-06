@@ -317,7 +317,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="src\solver\modalspectral_solverCPP\x64\Release\modalspectral_solverCPP.pdb" />
-    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\openblas.dll" />
+    <Content Include="src\solver\modalspectral_solverCPP\x64\Release\openblas.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\automorphism_view_polar_2.png" />
     <Content Include="src\global_variables\Junk_code.txt" />
   </ItemGroup>
@@ -351,6 +353,8 @@ rmdir /S /Q "$(TargetDir)src"
 xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\libquadmath-0.dll" "$(TargetDir)" /Y /I
 rmdir /S /Q "$(TargetDir)src"
 xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\libwinpthread-1.dll" "$(TargetDir)" /Y /I
+rmdir /S /Q "$(TargetDir)src"
+xcopy "$(ProjectDir)src\solver\modalspectral_solverCPP\x64\Release\openblas.dll" "$(TargetDir)" /Y /I
 rmdir /S /Q "$(TargetDir)src"</PostBuildEvent>
   </PropertyGroup>
 </Project>

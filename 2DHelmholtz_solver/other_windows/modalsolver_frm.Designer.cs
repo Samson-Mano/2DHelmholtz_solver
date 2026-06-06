@@ -147,8 +147,6 @@
             this.comboBox_spectralorderN.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_spectralorderN.FormattingEnabled = true;
             this.comboBox_spectralorderN.Items.AddRange(new object[] {
-            "1",
-            "2",
             "3",
             "4",
             "5",

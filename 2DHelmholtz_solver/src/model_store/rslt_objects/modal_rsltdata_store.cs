@@ -1,6 +1,7 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
 using OpenTK;
+using SharpFont.Cache;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -63,6 +64,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             rslt_edges = new List<rsltedge_store>();
             rslt_tris = new List<rslttri_store>();
 
+            modes = new List<modeInfo>();
+
+            natural_Frequencies = new List<double>();
+
             isModalResultSet = false;
 
         }
@@ -110,6 +115,9 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public void updateSelectedMode(int selected_mode)
         {
 
+            if (isModalResultSet == false)
+                return;
+
             if (selected_mode < 0 || selected_mode >= this.modes.Count())
                 return;
 
@@ -134,42 +142,40 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             if (readModeId != selected_mode)
                 Console.WriteLine($"Warning: Expected mode {selected_mode}, found {readModeId}");
 
-            // Read mode shape
+            Dictionary<int, double> mode_results = new Dictionary<int, double>();
+            double mode_max = Double.MinValue;
+            double mode_min = Double.MaxValue;
+
+            // Read mode shape and add to dictionary
             for (int i = 0; i < modal_rslt_nodes.Count; i++)
             {
                 int nodeId = _reader.ReadInt32();
                 double modal_rslt_value = _reader.ReadDouble();
 
-                modal_rsltnode_store rslt_nd = modal_rslt_nodes[nodeId];
+                mode_results[nodeId] = modal_rslt_value;
 
-                modal_rsltmeshdata.update_mesh_point(nodeId,
-                         rslt_nd.node_pt_x_coord,
-                         rslt_nd.node_pt_y_coord, 0.0, modal_rslt_value);
+                mode_max = Math.Max(mode_max, modal_rslt_value);
+                mode_min = Math.Min(mode_min, modal_rslt_value);
 
-               //  modeShape[i] = value;
             }
 
-            // _currentModeId = modeId;
-            // _currentModeShape = modeShape;
+            // Normalize to [-1, 1] range (symmetric around zero)
+            double maxAbs = Math.Max(Math.Abs(mode_max), Math.Abs(mode_min));
 
-            // return modeShape;
+            // Normalze the result and add to mesh
+            foreach (var md_rslt in mode_results)
+            {
+                // Normalize to -1..1
+                double normalized = maxAbs > 1e-12 ? md_rslt.Value / maxAbs : 0.0;
+                double val = (normalized + 1.0) / 2.0;
 
+                modal_rsltnode_store rslt_nd = modal_rslt_nodes[md_rslt.Key];
 
+                modal_rsltmeshdata.update_mesh_point(md_rslt.Key,
+                         rslt_nd.node_pt_x_coord,
+                         rslt_nd.node_pt_y_coord, 0.0, val);
 
-            //// Add the mesh points
-            //foreach (var r_nd_m in modal_rslt_nodes)
-            //{
-            //    modal_rsltnode_store r_nd = r_nd_m.Value;
-
-            //    double modal_rslt_value = r_nd.node_modal_displ_magnitude[selected_mode];
-
-            //    modal_rsltmeshdata.update_mesh_point(r_nd.node_id,
-            //        r_nd.node_pt_x_coord,
-            //        r_nd.node_pt_y_coord, 0.0, modal_rslt_value);
-
-
-            //}
-
+            }
 
             // Update the buffers once at the end
             modal_rsltmeshdata.update_buffer();
@@ -235,11 +241,17 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             if (gvariables_static.animate_play == true)
             {
 
-                double animscale = Math.Cos(Math.PI * elapsedRealTime * gvariables_static.modal_animation_speed);
+                // double animscale = Math.Cos(Math.PI * elapsedRealTime * gvariables_static.modal_animation_speed);
 
-                float sinevalue = (float)(1.0f + animscale) * 0.5f;
+                // float sinevalue = (float)(1.0f + animscale) * 0.5f;
 
-                modal_rsltmeshdata.updateAnimation(sinevalue);
+                // modal_rsltmeshdata.updateAnimation(sinevalue);
+
+
+                // Oscillation: -1 to 1
+                float oscillation = (float)Math.Sin(2.0 * Math.PI * elapsedRealTime * gvariables_static.modal_animation_speed);
+
+                modal_rsltmeshdata.updateAnimation((oscillation + 1.0f) * 0.5f);
 
                 //if (isModalAnalysisPaint == true)
                 //{

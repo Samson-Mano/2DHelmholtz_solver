@@ -1066,6 +1066,8 @@ void modal_spectral_solver::store_results_with_index()
 	// Get counts
 	int32_t num_nodes = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
 	int32_t num_modes = static_cast<int32_t>(natural_frequencies.size());
+	uint32_t num_edges = static_cast<uint32_t>(spec_mesh2d.renderer_edge_lines.size());
+	uint32_t num_triangles = static_cast<uint32_t>(spec_mesh2d.renderer_element_triangles.size());
 
 	// Calculate offsets (will be updated after writing)
 	uint64_t header_size = sizeof(BinaryFileHeader);
@@ -1084,7 +1086,7 @@ void modal_spectral_solver::store_results_with_index()
 	uint64_t mode_index_offset = triangle_data_offset + triangle_data_size;
 
 	// Mode index table size
-	uint64_t mode_index_size = num_modes * sizeof(ModeIndexEntry);
+	uint64_t mode_index_size = num_modes * (sizeof(uint32_t) + sizeof(double) + sizeof(uint64_t) + sizeof(uint64_t));
 	uint64_t mode_data_offset = mode_index_offset + mode_index_size;
 
 	std::string success_msg = "";
@@ -1095,10 +1097,14 @@ void modal_spectral_solver::store_results_with_index()
 	header.version = 2;
 	header.num_modes = num_modes;
 	header.num_nodes = num_nodes;
+	header.num_edges = num_edges;
+	header.num_triangles = num_triangles;
 	header.mode_data_offset = mode_data_offset;
 	header.mode_index_offset = mode_index_offset;
 
 	bin_file.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+	// uint64_t hd = sizeof(header);
 
 	// Write nodes
 	for (const auto& node : spec_mesh2d.renderer_node_points) 
@@ -1107,6 +1113,8 @@ void modal_spectral_solver::store_results_with_index()
 		bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
 		bin_file.write(reinterpret_cast<const char*>(&node.x), sizeof(double));
 		bin_file.write(reinterpret_cast<const char*>(&node.y), sizeof(double));
+
+		// hd += sizeof(int32_t) + sizeof(double) + sizeof(double);
 	}
 
 	report("Result mesh: Nodes written");
@@ -1118,6 +1126,8 @@ void modal_spectral_solver::store_results_with_index()
 		int32_t end_id = static_cast<int32_t>(edge.nend);
 		bin_file.write(reinterpret_cast<const char*>(&start_id), sizeof(int32_t));
 		bin_file.write(reinterpret_cast<const char*>(&end_id), sizeof(int32_t));
+
+		// hd += sizeof(int32_t) + sizeof(int32_t);
 	}
 
 	report("Result mesh: Edges written");
@@ -1131,33 +1141,34 @@ void modal_spectral_solver::store_results_with_index()
 		bin_file.write(reinterpret_cast<const char*>(&n1), sizeof(int32_t));
 		bin_file.write(reinterpret_cast<const char*>(&n2), sizeof(int32_t));
 		bin_file.write(reinterpret_cast<const char*>(&n3), sizeof(int32_t));
+
+		// hd += sizeof(int32_t) + sizeof(int32_t) + sizeof(int32_t);
 	}
 
 	report("Result mesh: Triangles written");
 
-	// Write mode index table (to be updated with offsets)
 	std::vector<ModeIndexEntry> mode_index;
 	uint64_t current_offset = mode_data_offset;
 
-	for (int32_t i = 0; i < num_modes; i++) 
+	// Write mode index table - field by field 
+	for (int32_t i = 0; i < num_modes; i++)
 	{
-		ModeIndexEntry entry;
-		entry.mode_id = i;
-		entry.frequency = natural_frequencies[i];
-		entry.file_offset = current_offset;
+		uint32_t mode_id = i;
+		double frequency = natural_frequencies[i];
+		uint64_t file_offset = current_offset;
+		uint64_t data_size = sizeof(int32_t) +  (num_nodes * (sizeof(int32_t) + sizeof(double)));
 
-		// Calculate data size for this mode: node_id + mode_value for each node
-		entry.data_size = num_nodes * (sizeof(int32_t) + sizeof(double));
+		// Write each field individually
+		bin_file.write(reinterpret_cast<const char*>(&mode_id), sizeof(uint32_t));
+		bin_file.write(reinterpret_cast<const char*>(&frequency), sizeof(double));
+		bin_file.write(reinterpret_cast<const char*>(&file_offset), sizeof(uint64_t));
+		bin_file.write(reinterpret_cast<const char*>(&data_size), sizeof(uint64_t));
 
-		mode_index.push_back(entry);
-		current_offset += entry.data_size;
+		mode_index.push_back({ mode_id, frequency, file_offset, data_size });
+		current_offset += data_size;
 	}
 
-	// Write mode index table
-	for (const auto& entry : mode_index) 
-	{
-		bin_file.write(reinterpret_cast<const char*>(&entry), sizeof(ModeIndexEntry));
-	}
+	report("Mode index table written");
 
 	// Write mode data (each mode separately)
 	for (int32_t mode_id = 0; mode_id < num_modes; mode_id++) 
@@ -1186,6 +1197,107 @@ void modal_spectral_solver::store_results_with_index()
 
 	report(success_msg.c_str());
 
+}
+
+
+
+void modal_spectral_solver::store_results_text_debug()
+{
+	std::string text_file_name = output_file + "_debug.txt";
+	std::ofstream text_file(text_file_name);
+
+	if (!text_file.is_open())
+	{
+		std::string error_msg = "Failed to open output file: " + output_file + ".txt";
+		report(error_msg.c_str());
+		throw std::runtime_error(error_msg);
+	}
+
+	// Get counts
+	int32_t num_nodes = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
+	int32_t num_modes = static_cast<int32_t>(natural_frequencies.size());
+
+	// Write header information
+	text_file << "# Modal Analysis Results\n";
+	text_file << "# Format: Debug Text Output\n";
+	text_file << "# Generated: " << __DATE__ << " " << __TIME__ << "\n\n";
+
+	text_file << "=== HEADER ===\n";
+	text_file << "Magic: SEMF\n";
+	text_file << "Version: 2 (Debug Text)\n";
+	text_file << "Number of Modes: " << num_modes << "\n";
+	text_file << "Number of Nodes: " << num_nodes << "\n\n";
+
+	// Write nodes
+	text_file << "=== NODES ===\n";
+	text_file << "Format: NodeID, X, Y\n";
+	for (const auto& node : spec_mesh2d.renderer_node_points)
+	{
+		int32_t node_id = static_cast<int32_t>(node.n_id);
+		text_file << node_id << ", " << node.x << ", " << node.y << "\n";
+	}
+	text_file << "\n";
+
+	report("Result mesh: Nodes written to text file");
+
+	// Write edges
+	text_file << "=== EDGES ===\n";
+	text_file << "Format: StartNodeID, EndNodeID\n";
+	for (const auto& edge : spec_mesh2d.renderer_edge_lines)
+	{
+		int32_t start_id = static_cast<int32_t>(edge.nstart);
+		int32_t end_id = static_cast<int32_t>(edge.nend);
+		text_file << start_id << ", " << end_id << "\n";
+	}
+	text_file << "\n";
+
+	report("Result mesh: Edges written to text file");
+
+	// Write triangles
+	text_file << "=== TRIANGLES ===\n";
+	text_file << "Format: Node1, Node2, Node3\n";
+	for (const auto& tri : spec_mesh2d.renderer_element_triangles)
+	{
+		int32_t n1 = static_cast<int32_t>(tri.n1);
+		int32_t n2 = static_cast<int32_t>(tri.n2);
+		int32_t n3 = static_cast<int32_t>(tri.n3);
+		text_file << n1 << ", " << n2 << ", " << n3 << "\n";
+	}
+	text_file << "\n";
+
+	report("Result mesh: Triangles written to text file");
+
+	// Write mode results
+	text_file << "=== MODE RESULTS ===\n";
+	for (int32_t mode_id = 0; mode_id < num_modes; mode_id++)
+	{
+		text_file << "\n--- Mode " << mode_id + 1 << " ---\n";
+		text_file << "Frequency: " << natural_frequencies[mode_id] << " Hz\n";
+		text_file << "Mode Shape Values (NodeID, Value):\n";
+
+		// Write mode shape values for each node
+		for (const auto& node : spec_mesh2d.renderer_node_points)
+		{
+			int32_t node_id = static_cast<int32_t>(node.n_id);
+			int nd_idx = nodeid_map[node.n_id];
+			double mode_value = natural_modes(nd_idx, mode_id);
+
+			text_file << "  " << node_id << ", " << mode_value << "\n";
+		}
+	}
+
+	text_file << "\n=== SUMMARY ===\n";
+	text_file << "Total Nodes: " << num_nodes << "\n";
+	text_file << "Total Modes: " << num_modes << "\n";
+	text_file << "Total Edges: " << spec_mesh2d.renderer_edge_lines.size() << "\n";
+	text_file << "Total Triangles: " << spec_mesh2d.renderer_element_triangles.size() << "\n";
+
+	text_file.flush();
+	text_file.close();
+
+
+	std::string msg = "Debug text output written to: " + text_file_name;
+	report(msg.c_str());
 }
 
 

@@ -78,6 +78,8 @@ struct BinaryFileHeader
 	uint32_t version;     // Version 2 (with index table)
 	uint32_t num_modes;   // Number of modes
 	uint32_t num_nodes;   // Number of nodes
+	uint32_t num_edges;      // Number of edges
+	uint32_t num_triangles; // Number of triangles
 	uint64_t mode_data_offset;  // File position where mode data starts
 	uint64_t mode_index_offset; // File position where mode index table starts
 };
@@ -116,6 +118,8 @@ public:
 		SOLVER_ARPACK = 2
 	};
 
+
+	void store_results_text_debug();
 
 private:
 	const double M_PI = 3.14159265;
@@ -235,6 +239,7 @@ private:
 
 
 	void store_results_with_index();
+
 
 
 	void(*m_callback)(const char*) = nullptr;

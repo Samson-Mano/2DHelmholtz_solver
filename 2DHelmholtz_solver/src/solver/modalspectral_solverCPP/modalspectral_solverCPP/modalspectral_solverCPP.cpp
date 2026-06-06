@@ -359,6 +359,9 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	outfile.close();
 
 
+	// Add a small delay to ensure OS releases handles
+	// Sleep(100);
+
 }
 
 

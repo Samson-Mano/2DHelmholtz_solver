@@ -945,7 +945,16 @@ namespace _2DHelmholtz_solver
                     break;
             }
 
-            fedata.resultmeshdata.updateResultType();
+
+            if(option != 5 && option != 0)
+            {
+                fedata.resultmeshdata.updateResultType();
+            }
+            else
+            {
+                // fedata.modalresultmeshdata.updateSelectedMode(0)
+            }
+            
             fedata.update_openTK_uniforms(false, false, true);
 
             // Refresh 
