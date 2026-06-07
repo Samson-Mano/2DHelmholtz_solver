@@ -120,6 +120,9 @@ void modal_spectral_solver::create_global_matrices()
 				element_k_matrix, element_m_matrix);
 
 
+			double wave_speed = spec_mesh2d.material_list[tri_elm.materialid].wave_speed; // get the material wave speed
+			element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
+
 			//________________________________________________________________________________________________
 			// Step 3: Create Element field vector
 			Eigen::VectorXi element_field_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element field vector BC flag
@@ -199,6 +202,10 @@ void modal_spectral_solver::create_global_matrices()
 				element_k_matrix, element_m_matrix);
 
 
+			double wave_speed = spec_mesh2d.material_list[quad_elm.materialid].wave_speed; // get the material wave speed
+			element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
+
+
 			//________________________________________________________________________________________________
 			// Step 3: Create Element field vector
 			Eigen::VectorXi element_field_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element field vector BC flag
@@ -263,12 +270,24 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	auto start_time = std::chrono::high_resolution_clock::now();
 
 
-	// 1) Build the free-DOF index (apply Dirichlet BC)
+	// Find the fixed and free nodes dof
 	std::vector<int> free_dofs;
-	for (int i = 0; i < global_dirichlet_BC_flags_vector.size(); ++i) 
+	std::vector<int> fixed_dofs;
+
+	for (int i = 0; i < this->numDOF; ++i)
 	{
-		if (global_dirichlet_BC_flags_vector[i] == 0)
+		if (global_dirichlet_BC_flags_vector(i))
+			fixed_dofs.push_back(i);
+		else
 			free_dofs.push_back(i);
+	}
+
+	// Map free DOF to Local indices
+	std::unordered_map<int, int> free_map;
+
+	for (int i = 0; i < free_dofs.size(); ++i)
+	{
+		free_map[free_dofs[i]] = i;
 	}
 
 
@@ -287,10 +306,6 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		return;
 	}
 
-	// Build mapping from global to reduced index
-	std::vector<int> map(global_k_matrix.rows(), -1);
-	for (int i = 0; i < n_free; ++i)
-		map[free_dofs[i]] = i;
 
 	// Reserve space for triplets (estimate ~20 entries per DOF)
 	std::vector<Eigen::Triplet<double>> Kt, Mt;
@@ -304,9 +319,16 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		{
 			int i = static_cast<int>(it.row());
 			int j = static_cast<int>(it.col());
-			if (map[i] != -1 && map[j] != -1) 
+
+			// keep only free-free block
+			if (global_dirichlet_BC_flags_vector(i) == 0 &&
+				global_dirichlet_BC_flags_vector(j) == 0)
 			{
-				Kt.emplace_back(map[i], map[j], it.value());
+				// Get the local indices of free nodes
+				int ii = free_map[i];
+				int jj = free_map[j];
+
+				Kt.emplace_back(ii, jj, it.value());
 			}
 		}
 	}
@@ -318,12 +340,20 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		{
 			int i = static_cast<int>(it.row());
 			int j = static_cast<int>(it.col());
-			if (map[i] != -1 && map[j] != -1) 
+
+			// keep only free-free block
+			if (global_dirichlet_BC_flags_vector(i) == 0 &&
+				global_dirichlet_BC_flags_vector(j) == 0)
 			{
-				Mt.emplace_back(map[i], map[j], it.value());
+				// Get the local indices of free nodes
+				int ii = free_map[i];
+				int jj = free_map[j];
+
+				Mt.emplace_back(ii, jj, it.value());
 			}
 		}
 	}
+
 
 	Eigen::SparseMatrix<double> K_ff(n_free, n_free);
 	Eigen::SparseMatrix<double> M_ff(n_free, n_free);
@@ -770,9 +800,6 @@ void modal_spectral_solver::set_global_matrix(const std::vector<int>& elem_nodes
 	}
 	//
 
-	global_k_matrix.setFromTriplets(k_triplets.begin(), k_triplets.end());
-	global_m_matrix.setFromTriplets(m_triplets.begin(), m_triplets.end());
-
 }
 
 
@@ -878,7 +905,7 @@ void modal_spectral_solver::report(const char* msg)
 	stopwatch_elapsed_str << std::fixed << std::setprecision(6)
 		<< this->m_stopwatch->elapsed();
 
-	std::string final_msg = std::string(msg) + " " +
+	std::string final_msg = std::string(msg) + " at " +
 		stopwatch_elapsed_str.str() +
 		" secs";
 
@@ -933,13 +960,13 @@ void modal_spectral_solver::solveWithSpectra(int num_modes,
 		// Convert eigenvalues from standard to generalized
 		// For standard problem: K*x = λ*M*x, we solved M^{-1}K*x = λ*x
 		// So λ are the same
-		for (int i = 0; i < eigenvalues.size(); ++i) 
-		{
-			if (eigenvalues(i) < 0) 
-			{
-				report("Warning: Negative eigenvalue detected");
-			}
-		}
+		//for (int i = 0; i < eigenvalues.size(); ++i) 
+		//{
+		//	if (eigenvalues(i) < 0) 
+		//	{
+		//		report("Warning: Negative eigenvalue detected");
+		//	}
+		//}
 	}
 	else 
 	{
@@ -1020,20 +1047,20 @@ void modal_spectral_solver::solveWithARPACK(int num_modes,
 	eigenvalues = solver.eigenvalues();
 	eigenvectors = solver.eigenvectors();
 
-	// Post-processing: ensure eigenvalues are sorted (should be, but just in case)
-   // and remove any negative eigenvalues near zero (numerical noise)
-	for (int i = 0; i < eigenvalues.size(); ++i)
-	{
-		if (eigenvalues(i) < 0 && eigenvalues(i) > -1e-9)
-		{
-			eigenvalues(i) = 0.0;  // Treat as zero (rigid body mode)
-			report("Warning: Near-zero eigenvalue detected (rigid body mode)");
-		}
-		else if (eigenvalues(i) < 0)
-		{
-			report("Warning: Negative eigenvalue detected. Check matrix definiteness.");
-		}
-	}
+	//// Post-processing: ensure eigenvalues are sorted (should be, but just in case)
+ //  // and remove any negative eigenvalues near zero (numerical noise)
+	//for (int i = 0; i < eigenvalues.size(); ++i)
+	//{
+	//	if (eigenvalues(i) < 0 && eigenvalues(i) > -1e-9)
+	//	{
+	//		eigenvalues(i) = 0.0;  // Treat as zero (rigid body mode)
+	//		report("Warning: Near-zero eigenvalue detected (rigid body mode)");
+	//	}
+	//	else if (eigenvalues(i) < 0)
+	//	{
+	//		report("Warning: Negative eigenvalue detected. Check matrix definiteness.");
+	//	}
+	//}
 
 	auto end_time = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
@@ -1104,7 +1131,6 @@ void modal_spectral_solver::store_results_with_index()
 
 	bin_file.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
-	// uint64_t hd = sizeof(header);
 
 	// Write nodes
 	for (const auto& node : spec_mesh2d.renderer_node_points) 
@@ -1114,7 +1140,6 @@ void modal_spectral_solver::store_results_with_index()
 		bin_file.write(reinterpret_cast<const char*>(&node.x), sizeof(double));
 		bin_file.write(reinterpret_cast<const char*>(&node.y), sizeof(double));
 
-		// hd += sizeof(int32_t) + sizeof(double) + sizeof(double);
 	}
 
 	report("Result mesh: Nodes written");
@@ -1127,7 +1152,6 @@ void modal_spectral_solver::store_results_with_index()
 		bin_file.write(reinterpret_cast<const char*>(&start_id), sizeof(int32_t));
 		bin_file.write(reinterpret_cast<const char*>(&end_id), sizeof(int32_t));
 
-		// hd += sizeof(int32_t) + sizeof(int32_t);
 	}
 
 	report("Result mesh: Edges written");
@@ -1142,7 +1166,6 @@ void modal_spectral_solver::store_results_with_index()
 		bin_file.write(reinterpret_cast<const char*>(&n2), sizeof(int32_t));
 		bin_file.write(reinterpret_cast<const char*>(&n3), sizeof(int32_t));
 
-		// hd += sizeof(int32_t) + sizeof(int32_t) + sizeof(int32_t);
 	}
 
 	report("Result mesh: Triangles written");
@@ -1200,15 +1223,178 @@ void modal_spectral_solver::store_results_with_index()
 }
 
 
-
-void modal_spectral_solver::store_results_text_debug()
+void modal_spectral_solver::store_matrices_text_debug()
 {
-	std::string text_file_name = output_file + "_debug.txt";
+	std::string text_file_name = "debug_matrices.txt";
 	std::ofstream text_file(text_file_name);
 
 	if (!text_file.is_open())
 	{
-		std::string error_msg = "Failed to open output file: " + output_file + ".txt";
+		std::string error_msg = "Failed to open output file: " + text_file_name;
+		report(error_msg.c_str());
+		throw std::runtime_error(error_msg);
+	}
+
+	// Print the global K and M matrices
+	// Only print 200 x 200, inform if the matrix size exceed 200 x 200
+
+	text_file << "# Modal Analysis Solver - Ke & Me matrix\n";
+	text_file << "# Format: Debug Text Output\n";
+	text_file << "# Generated: " << __DATE__ << " " << __TIME__ << "\n\n";
+
+	int max_print_size = 200;
+	int matrix_rows = global_k_matrix.rows();
+	int matrix_cols = global_k_matrix.cols();
+
+	// Write Ke Matrix
+	text_file << "=== Ke Matrix ===\n";
+	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
+	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
+	{
+		text_file << "WARNING: Matrix size exceeds " << max_print_size
+			<< " x " << max_print_size << ". Printing only the first "
+			<< max_print_size << " x " << max_print_size << " block.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+			for (int j = 0; j < std::min(max_print_size, matrix_cols); j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_k_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full matrix
+		for (int i = 0; i < matrix_rows; i++)
+		{
+			for (int j = 0; j < matrix_cols; j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_k_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+	// Write Me Matrix
+	text_file << "=== Me Matrix ===\n";
+	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
+	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
+	{
+		text_file << "WARNING: Matrix size exceeds " << max_print_size
+			<< " x " << max_print_size << ". Printing only the first "
+			<< max_print_size << " x " << max_print_size << " block.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+			for (int j = 0; j < std::min(max_print_size, matrix_cols); j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_m_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full matrix
+		for (int i = 0; i < matrix_rows; i++)
+		{
+			for (int j = 0; j < matrix_cols; j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_m_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+	// Optional: Print matrix statistics
+	text_file << "=== Matrix Statistics ===\n";
+
+	// K matrix statistics
+	double k_min = 0, k_max = 0, k_sum = 0;
+	int k_nonzero = 0;
+	for (int k = 0; k < global_k_matrix.outerSize(); ++k)
+	{
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_k_matrix, k); it; ++it)
+		{
+			double val = it.value();
+			if (k_nonzero == 0) {
+				k_min = val;
+				k_max = val;
+			}
+			k_min = std::min(k_min, val);
+			k_max = std::max(k_max, val);
+			k_sum += std::abs(val);
+			k_nonzero++;
+		}
+	}
+
+	text_file << "Ke (Stiffness) Matrix:\n";
+	text_file << "  Non-zero entries: " << k_nonzero << "\n";
+	text_file << "  Density: " << (100.0 * k_nonzero / (matrix_rows * matrix_cols)) << "%\n";
+	text_file << "  Min value: " << k_min << "\n";
+	text_file << "  Max value: " << k_max << "\n";
+	text_file << "  Mean absolute value: " << (k_nonzero > 0 ? k_sum / k_nonzero : 0) << "\n\n";
+
+	// M matrix statistics
+	double m_min = 0, m_max = 0, m_sum = 0;
+	int m_nonzero = 0;
+	for (int k = 0; k < global_m_matrix.outerSize(); ++k)
+	{
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_m_matrix, k); it; ++it)
+		{
+			double val = it.value();
+			if (m_nonzero == 0) {
+				m_min = val;
+				m_max = val;
+			}
+			m_min = std::min(m_min, val);
+			m_max = std::max(m_max, val);
+			m_sum += std::abs(val);
+			m_nonzero++;
+		}
+	}
+
+	text_file << "Me (Mass) Matrix:\n";
+	text_file << "  Non-zero entries: " << m_nonzero << "\n";
+	text_file << "  Density: " << (100.0 * m_nonzero / (matrix_rows * matrix_cols)) << "%\n";
+	text_file << "  Min value: " << m_min << "\n";
+	text_file << "  Max value: " << m_max << "\n";
+	text_file << "  Mean absolute value: " << (m_nonzero > 0 ? m_sum / m_nonzero : 0) << "\n\n";
+
+	// Check for symmetry
+	bool k_symmetric = global_k_matrix.isApprox(global_k_matrix.transpose());
+	bool m_symmetric = global_m_matrix.isApprox(global_m_matrix.transpose());
+
+	text_file << "=== Matrix Properties ===\n";
+	text_file << "Ke is symmetric: " << (k_symmetric ? "YES" : "NO") << "\n";
+	text_file << "Me is symmetric: " << (m_symmetric ? "YES" : "NO") << "\n";
+
+	text_file.close();
+
+	std::string msg = "Debug matrices written to: " + text_file_name;
+	report(msg.c_str());
+
+
+}
+
+
+
+void modal_spectral_solver::store_results_text_debug()
+{
+	std::string text_file_name = "_debug_results.txt";
+	std::ofstream text_file(text_file_name);
+
+	if (!text_file.is_open())
+	{
+		std::string error_msg = "Failed to open output file: " + text_file_name + ".txt";
 		report(error_msg.c_str());
 		throw std::runtime_error(error_msg);
 	}
@@ -1301,202 +1487,3 @@ void modal_spectral_solver::store_results_text_debug()
 }
 
 
-
-//std::ofstream bin_file(this->output_file.c_str(), std::ios::binary);
-//
-//if (!bin_file.is_open())
-//{
-//	std::string error_msg = "Failed to open output file: " + this->output_file;
-//	report(error_msg.c_str());
-//	throw std::runtime_error(error_msg);
-//}
-//
-//
-////// Write header
-////struct { char magic[4]; uint32_t version; } header = { {'S','E','M','F'}, 1 };
-////bin_file.write(reinterpret_cast<const char*>(&header), sizeof(header));
-//
-//
-//int32_t node_points_count = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
-//bin_file.write(reinterpret_cast<const char*>(&node_points_count), sizeof(int32_t));
-//
-//// Write the nodes
-//for (const auto& node : spec_mesh2d.renderer_node_points)
-//{
-//	int32_t nodeid = static_cast<int32_t>(node.n_id);
-//
-//	// retrive the results
-//	int nd_idx = nodeid_map[nodeid];
-//
-//	bin_file.write(reinterpret_cast<const char*>(&nodeid), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&node.x), sizeof(double));
-//	bin_file.write(reinterpret_cast<const char*>(&node.y), sizeof(double));
-//}
-//
-//report("Result mesh: Nodes written");
-//
-//int32_t edge_lines_count = static_cast<int32_t>(spec_mesh2d.renderer_edge_lines.size());
-//bin_file.write(reinterpret_cast<const char*>(&edge_lines_count), sizeof(int32_t));
-//
-//// Write the edges
-//for (const auto& edge : spec_mesh2d.renderer_edge_lines)
-//{
-//	int32_t start_nodeid = static_cast<int32_t>(edge.nstart);
-//	int32_t end_nodeid = static_cast<int32_t>(edge.nend);
-//
-//	bin_file.write(reinterpret_cast<const char*>(&start_nodeid), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&end_nodeid), sizeof(int32_t));
-//}
-//
-//report("Result mesh: Edges written");
-//
-//int32_t triangles_count = static_cast<int32_t>(spec_mesh2d.renderer_element_triangles.size());
-//bin_file.write(reinterpret_cast<const char*>(&triangles_count), sizeof(int32_t));
-//
-//// Write the triangles
-//for (const auto& tri : spec_mesh2d.renderer_element_triangles)
-//{
-//	int32_t n1 = static_cast<int32_t>(tri.n1);
-//	int32_t n2 = static_cast<int32_t>(tri.n2);
-//	int32_t n3 = static_cast<int32_t>(tri.n3);
-//
-//	bin_file.write(reinterpret_cast<const char*>(&n1), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&n2), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&n3), sizeof(int32_t));
-//}
-//
-//report("Result mesh: Triangles written");
-//
-//
-//// Report Success and file size
-//std::string success_msg = "Result mesh written: " +
-//this->output_file +
-//" (" + std::to_string(node_points_count) + " nodes, " +
-//std::to_string(triangles_count) + " triangles)";
-//report(success_msg.c_str());
-//
-//
-//// Write the Modal results
-//
-//// Write frequencies
-//int32_t num_modes = static_cast<int32_t>(this->natural_frequencies.size());
-//bin_file.write(reinterpret_cast<const char*>(&num_modes), sizeof(int32_t));
-//
-//
-//for (int32_t i = 0; i < num_modes; i++)
-//{
-//	// Write the Mode ID
-//	bin_file.write(reinterpret_cast<const char*>(&i), sizeof(int32_t));
-//
-//	// Write the Natural frequency
-//	bin_file.write(reinterpret_cast<const char*>(&this->natural_frequencies[i]), sizeof(double));
-//
-//	// Write the mode shapes of each node
-//	for (const auto& node : spec_mesh2d.renderer_node_points)
-//	{
-//		// retrive the results
-//		int nd_idx = nodeid_map[node.n_id];
-//
-//		// Mode shape at node
-//		double node_mode_value = this->natural_modes(nd_idx, i);
-//
-//		// Node id
-//		int32_t node_id = static_cast<int32_t>(node.n_id);
-//
-//		bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
-//		bin_file.write(reinterpret_cast<const char*>(&node_mode_value), sizeof(double));
-//
-//	}
-//
-//}
-//
-//
-//bin_file.flush();
-//
-//auto file_size = bin_file.tellp();  // tellp() for output file (tellg() is for input)
-//
-//bin_file.close();
-//
-//// Report Success and file size
-//success_msg = "Modal results stored successfully: " +
-//this->output_file +
-//" (" + std::to_string(node_points_count) + " nodes, " +
-//std::to_string(num_modes) + " modes)";
-//report(success_msg.c_str());
-
-
-
-
-
-
-
-
-
-
-//// Write th natural frequencies to the binary file
-//int32_t num_modes = static_cast<int32_t>(this->natural_frequencies.size());
-//bin_file.write(reinterpret_cast<const char*>(&num_modes), sizeof(int32_t));
-//
-//// Write the natural frequencies
-//for (double freq : this->natural_frequencies)
-//{
-//	bin_file.write(reinterpret_cast<const char*>(&freq), sizeof(double));
-//}
-//
-//
-//int32_t node_points_count = static_cast<int32_t>(spec_mesh2d.renderer_node_points.size());
-//bin_file.write(reinterpret_cast<const char*>(&node_points_count), sizeof(int32_t));
-//
-//// Write the nodes
-//for (const auto& node : spec_mesh2d.renderer_node_points)
-//{
-//	int32_t nodeid = static_cast<int32_t>(node.n_id);
-//
-//	// retrive the results
-//	int nd_idx = nodeid_map[nodeid];
-//
-//	// Get the eigen vectors of the node (mode 1, mode 2, mode 3, ...)
-//	Eigen::VectorXd node_modes = this->natural_modes.row(nd_idx);
-//
-//	// Node data (node id, x, y, mode 1 value, mode 2 value, ...)
-//	bin_file.write(reinterpret_cast<const char*>(&nodeid), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&node.x), sizeof(double));
-//	bin_file.write(reinterpret_cast<const char*>(&node.y), sizeof(double));
-//
-//	// Write the eigen vector values for the node (mode 1, mode 2, mode 3, ...)
-//	bin_file.write(reinterpret_cast<const char*>(node_modes.data()), node_modes.size() * sizeof(double));
-//}
-//
-//report("Results: Nodes written");
-//
-//int32_t edge_lines_count = static_cast<int32_t>(spec_mesh2d.renderer_edge_lines.size());
-//bin_file.write(reinterpret_cast<const char*>(&edge_lines_count), sizeof(int32_t));
-//
-//// Write the edges
-//for (const auto& edge : spec_mesh2d.renderer_edge_lines)
-//{
-//	int32_t start_nodeid = static_cast<int32_t>(edge.nstart);
-//	int32_t end_nodeid = static_cast<int32_t>(edge.nend);
-//
-//	bin_file.write(reinterpret_cast<const char*>(&start_nodeid), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&end_nodeid), sizeof(int32_t));
-//}
-//
-//report("Results: Edges written");
-//
-//int32_t triangles_count = static_cast<int32_t>(spec_mesh2d.renderer_element_triangles.size());
-//bin_file.write(reinterpret_cast<const char*>(&triangles_count), sizeof(int32_t));
-//
-//// Write the triangles
-//for (const auto& tri : spec_mesh2d.renderer_element_triangles)
-//{
-//	int32_t n1 = static_cast<int32_t>(tri.n1);
-//	int32_t n2 = static_cast<int32_t>(tri.n2);
-//	int32_t n3 = static_cast<int32_t>(tri.n3);
-//
-//	bin_file.write(reinterpret_cast<const char*>(&n1), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&n2), sizeof(int32_t));
-//	bin_file.write(reinterpret_cast<const char*>(&n3), sizeof(int32_t));
-//}
-//
-//report("Results: Triangles written");

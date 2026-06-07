@@ -183,12 +183,12 @@ int main()
 		infile.read(reinterpret_cast<char*>(&numelement), 4);
 
 		// Calculate the wave number
-		double angular_freq = 2.0 * 3.1415926535897932384626433 * 1.0;
-		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
+		//  double angular_freq = 2.0 * 3.1415926535897932384626433 * 1.0;
+		double wave_speed = std::sqrt(permittivity * permeability * 0.1) * 0.001;
 
 
 		// Add material to the helmholtz system store
-		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_number);
+		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_speed);
 
 	}
 
@@ -295,6 +295,8 @@ int main()
 
 	// Create spectral mesh and global matrices
 	modal_spec_solver.create_global_matrices();
+	
+	modal_spec_solver.store_matrices_text_debug();
 
 	std::cout << "Spectral mesh and global matrices complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 

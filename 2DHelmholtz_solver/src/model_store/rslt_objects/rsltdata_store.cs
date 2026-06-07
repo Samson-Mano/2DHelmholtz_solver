@@ -117,15 +117,6 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
             }
 
-            //// Add the mesh quads
-            //foreach (var quad_m in fe_quads.elementquadMap)
-            //{
-            //    elementquad_store quad = quad_m.Value;
-
-            //    rsltmeshdata.add_mesh_quads(quad.quad_id, quad.nodeid1, quad.nodeid2, quad.nodeid3, quad.nodeid4, quad.material_id);
-
-            //}
-
             // Create the mesh boundaries
             rsltmeshdata.set_mesh_wireframe();
 
@@ -133,11 +124,6 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             // Set the openTK buffer
             rsltmeshdata.set_shader();
             rsltmeshdata.set_buffer();
-
-            //// Update the openGL uniform
-            //resultmeshdata.update_openTK_uniforms(true, true, true, graphic_events_control.projectionMatrix,
-            //    graphic_events_control.modelMatrix, graphic_events_control.viewMatrix,
-            //    gvariables_static.rslt_transparency);
 
         }
 
@@ -177,10 +163,11 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             // Helper function for normalization
             double Normalize(double value, double min, double max)
             {
-                double range = max - min;
-                if (Math.Abs(range) < 1e-12)  // Prevent division by zero
-                    return 0.5; // Or 0.0 depending on what makes sense visually
-                return (value - min) / range;
+                double maxAbs = Math.Max(Math.Abs(max), Math.Abs(min));
+
+                if (Math.Abs(maxAbs) < 1e-12)  // Prevent division by zero
+                    return 0.0; // Or 0.0 depending on what makes sense visually
+                return value / maxAbs;
             }
 
             void UpdateMeshValues(Func<rsltnode_store, double> valueSelector, double min, double max)
@@ -248,15 +235,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         {
             if (isResultSet == true)
             {
-                
-
+         
                 rsltmeshdata.paint_static_mesh();
 
                 rsltmeshdata.paint_static_mesh_boundaries();
-
-
-                // gvariables_static.PointSize = 5.0f;
-                // rsltmeshdata.paint_static_mesh_points();
 
             }
         }

@@ -63,6 +63,9 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 	// std::vector<Eigen::Triplet<double>> triplets_K;
 	std::vector<Eigen::Triplet<std::complex<double>>> triplets_system;
+	std::vector<Eigen::Triplet<double>> k_triplets;
+	std::vector<Eigen::Triplet<double>> m_triplets;
+
 
 	global_field_vector.setZero(numDOF); // Global field Vector
 	global_normalderivfield_vector.setZero(numDOF); // Global derivative normal field Vector
@@ -163,6 +166,12 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 			//________________________________________________________________________________________________
 			// Step 7: Set the global matrix and global vector
+
+			//set_global_matrix(elem_nodes, nen,
+			//	element_k_grad_matrix,
+			//	element_k_mass_matrix,
+			//	k_triplets,
+			//	m_triplets);
 
 			set_complex_global_matrix(elem_nodes, nen,
 				element_k_matrix,
@@ -269,6 +278,13 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 7: Set the global matrix and global vector
 
+			//set_global_matrix(elem_nodes, nen,
+			//	element_k_grad_matrix,
+			//	element_k_mass_matrix,
+			//	k_triplets,
+			//	m_triplets);
+
+
 			set_complex_global_matrix(elem_nodes, nen,
 				element_k_matrix,
 				element_kI_matrix,
@@ -296,6 +312,17 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 	// Set the global sparse matrix
 	global_system_matrix.setFromTriplets(triplets_system.begin(), triplets_system.end());
+
+	//// Debuging the K and M matrix
+	//global_k_matrix.resize(numDOF, numDOF);
+	//global_k_matrix.setZero();
+
+	//global_m_matrix.resize(numDOF, numDOF);
+	//global_m_matrix.setZero();
+
+	//global_k_matrix.setFromTriplets(k_triplets.begin(), k_triplets.end());
+	//global_m_matrix.setFromTriplets(m_triplets.begin(), m_triplets.end());
+
 
 	// Create the message string and convert to const char*
 	std::string sizeMsg = "Global system matrix created. Size: " +
@@ -1079,6 +1106,35 @@ void helmholtz2d_spectral_solver::get_quadelement_source_vector(const spectral_q
 
 
 
+void helmholtz2d_spectral_solver::set_global_matrix(const std::vector<int>& elem_nodes,
+	int nen,
+	const Eigen::MatrixXd& element_k_matrix,
+	const Eigen::MatrixXd& element_m_matrix,
+	std::vector<Eigen::Triplet<double>>& k_triplets,
+	std::vector<Eigen::Triplet<double>>& m_triplets)
+{
+	for (int i = 0; i < nen; i++)
+	{
+		// get the global map id
+		int i_node_map = this->nodeid_map[elem_nodes[i]];
+
+		for (int j = 0; j < nen; j++)
+		{
+			// get the global map id
+			int j_node_map = this->nodeid_map[elem_nodes[j]];
+
+			k_triplets.emplace_back(i_node_map, j_node_map, element_k_matrix(i, j));
+			m_triplets.emplace_back(i_node_map, j_node_map, element_m_matrix(i, j));
+
+			// Note: Triplets don’t accumulate — Eigen accumulates when building the sparse matrix.
+		}
+	}
+	//
+}
+
+
+
+
 void helmholtz2d_spectral_solver::set_complex_global_matrix(const std::vector<int>& elem_nodes,
 	int nen,
 	const Eigen::MatrixXd& element_k_matrix,
@@ -1523,6 +1579,364 @@ void helmholtz2d_spectral_solver::report(const char* msg)
 
 
 
+void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
+{
+	std::string text_file_name = "debug_matrices.txt";
+	std::ofstream text_file(text_file_name);
+
+	if (!text_file.is_open())
+	{
+		std::string error_msg = "Failed to open output file: " + text_file_name;
+		report(error_msg.c_str());
+		throw std::runtime_error(error_msg);
+	}
+
+	// Print the global K and M matrices
+	// Only print 200 x 200, inform if the matrix size exceed 200 x 200
+
+	text_file << "# Modal Analysis Solver - Ke & Me matrix\n";
+	text_file << "# Format: Debug Text Output\n";
+	text_file << "# Generated: " << __DATE__ << " " << __TIME__ << "\n\n";
+
+	int max_print_size = 200;
+	int matrix_rows = global_k_matrix.rows();
+	int matrix_cols = global_k_matrix.cols();
+
+	// Write Ke Matrix
+	text_file << "=== Ke Matrix ===\n";
+	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
+	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
+	{
+		text_file << "WARNING: Matrix size exceeds " << max_print_size
+			<< " x " << max_print_size << ". Printing only the first "
+			<< max_print_size << " x " << max_print_size << " block.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+			for (int j = 0; j < std::min(max_print_size, matrix_cols); j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_k_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full matrix
+		for (int i = 0; i < matrix_rows; i++)
+		{
+			for (int j = 0; j < matrix_cols; j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_k_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+	// Write Me Matrix
+	text_file << "=== Me Matrix ===\n";
+	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
+	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
+	{
+		text_file << "WARNING: Matrix size exceeds " << max_print_size
+			<< " x " << max_print_size << ". Printing only the first "
+			<< max_print_size << " x " << max_print_size << " block.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+			for (int j = 0; j < std::min(max_print_size, matrix_cols); j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_m_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full matrix
+		for (int i = 0; i < matrix_rows; i++)
+		{
+			for (int j = 0; j < matrix_cols; j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_m_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+	// Optional: Print matrix statistics
+	text_file << "=== Matrix Statistics ===\n";
+
+	// K matrix statistics
+	double k_min = 0, k_max = 0, k_sum = 0;
+	int k_nonzero = 0;
+	for (int k = 0; k < global_k_matrix.outerSize(); ++k)
+	{
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_k_matrix, k); it; ++it)
+		{
+			double val = it.value();
+			if (k_nonzero == 0) {
+				k_min = val;
+				k_max = val;
+			}
+			k_min = std::min(k_min, val);
+			k_max = std::max(k_max, val);
+			k_sum += std::abs(val);
+			k_nonzero++;
+		}
+	}
+
+	text_file << "Ke (Stiffness) Matrix:\n";
+	text_file << "  Non-zero entries: " << k_nonzero << "\n";
+	text_file << "  Density: " << (100.0 * k_nonzero / (matrix_rows * matrix_cols)) << "%\n";
+	text_file << "  Min value: " << k_min << "\n";
+	text_file << "  Max value: " << k_max << "\n";
+	text_file << "  Mean absolute value: " << (k_nonzero > 0 ? k_sum / k_nonzero : 0) << "\n\n";
+
+	// M matrix statistics
+	double m_min = 0, m_max = 0, m_sum = 0;
+	int m_nonzero = 0;
+	for (int k = 0; k < global_m_matrix.outerSize(); ++k)
+	{
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_m_matrix, k); it; ++it)
+		{
+			double val = it.value();
+			if (m_nonzero == 0) {
+				m_min = val;
+				m_max = val;
+			}
+			m_min = std::min(m_min, val);
+			m_max = std::max(m_max, val);
+			m_sum += std::abs(val);
+			m_nonzero++;
+		}
+	}
+
+	text_file << "Me (Mass) Matrix:\n";
+	text_file << "  Non-zero entries: " << m_nonzero << "\n";
+	text_file << "  Density: " << (100.0 * m_nonzero / (matrix_rows * matrix_cols)) << "%\n";
+	text_file << "  Min value: " << m_min << "\n";
+	text_file << "  Max value: " << m_max << "\n";
+	text_file << "  Mean absolute value: " << (m_nonzero > 0 ? m_sum / m_nonzero : 0) << "\n\n";
+
+	// Check for symmetry
+	bool k_symmetric = global_k_matrix.isApprox(global_k_matrix.transpose());
+	bool m_symmetric = global_m_matrix.isApprox(global_m_matrix.transpose());
+
+	text_file << "=== Matrix Properties ===\n";
+	text_file << "Ke is symmetric: " << (k_symmetric ? "YES" : "NO") << "\n";
+	text_file << "Me is symmetric: " << (m_symmetric ? "YES" : "NO") << "\n";
+
+	text_file.close();
+
+	std::string msg = "Debug matrices written to: " + text_file_name;
+	report(msg.c_str());
+
+
+}
+
+
+
+
+void helmholtz2d_spectral_solver::store_matrices_text_debug()
+{
+
+	// Print the matrices in Text
+	const bool print_matrices = true;
+
+	if (print_matrices == true)
+	{
+
+		// Create debug directory if it doesn't exist
+		std::string debug_dir = "debug_output";
+		system(("mkdir " + debug_dir).c_str()); // Windows: "mkdir " + debug_dir, Linux: "mkdir -p " + debug_dir
+
+		// 1. Print node id map
+		std::ofstream node_map_file(debug_dir + "/nodeid_map.txt");
+
+		if (node_map_file.is_open())
+		{
+			node_map_file << "Node ID Map (original_id -> index):\n";
+
+			for (const auto& nd_map : nodeid_map)
+			{
+				node_map_file << "  Node " << nd_map.first << " -> Index " << nd_map.second << "\n";
+			}
+
+			node_map_file.close();
+			// std::cout << "  Wrote: " << debug_dir << "/nodeid_map.txt\n";
+		}
+
+
+		// 2. Print node details (CSV format for easy import to Excel/Python)
+		std::ofstream node_file(debug_dir + "/spectral_nodes.csv");
+
+		if (node_file.is_open())
+		{
+			node_file << "node_id,x_coord,y_coord,isboundarynode,isFieldBC,fieldvalue,sourcevalue\n";
+
+			for (const auto& spec_node_m : spec_mesh2d.spectral_node_list)
+			{
+				const auto& spec_node = spec_node_m.second;
+				node_file << spec_node.node_id << ","
+					<< spec_node.x_coord << ","
+					<< spec_node.y_coord << ","
+					<< spec_node.isboundarynode << ","
+					<< spec_node.isFieldBC << ","
+					<< spec_node.fieldvalue << ","
+					<< spec_node.sourcevalue << "\n";
+			}
+
+			node_file.close();
+			// std::cout << "  Wrote: " << debug_dir << "/spectral_nodes.csv\n";
+		}
+
+
+		// 3. Print global system matrix (sparse)
+		// 3. Print global system matrix (dense CSV format)
+		if (global_system_matrix.nonZeros() > 0)
+		{
+			std::ofstream matrix_file(debug_dir + "/global_system_matrix.csv");
+
+			if (matrix_file.is_open())
+			{
+				using MatrixType = std::decay<decltype(global_system_matrix)>::type;
+				using Scalar = typename MatrixType::Scalar;
+				bool is_complex = std::is_same<Scalar, std::complex<double>>::value;
+
+				if (is_complex)
+				{
+					// Convert to dense and print
+					Eigen::MatrixXcd dense = Eigen::MatrixXcd(global_system_matrix);
+					matrix_file << "Real Part:\n";
+					matrix_file << dense.real() << "\n\n";
+					matrix_file << "Imaginary Part:\n";
+					matrix_file << dense.imag() << "\n";
+				}
+				else
+				{
+					// Convert to dense and print
+					// Eigen::MatrixXd dense = Eigen::MatrixXd(helmholtz_spec_solver.global_system_matrix);
+					//matrix_file << dense;
+				}
+
+				matrix_file.close();
+				// std::cout << "  Wrote: " << debug_dir << "/global_system_matrix.csv\n";
+			}
+		}
+
+
+		// 4. Print global field vector
+		if (global_field_vector.size() > 0)
+		{
+			std::ofstream field_file(debug_dir + "/global_field_vector.txt");
+			if (field_file.is_open())
+			{
+				field_file << "Index,Value\n";
+				for (int i = 0; i < global_field_vector.size(); ++i)
+				{
+					field_file << i << "," << global_field_vector(i) << "\n";
+				}
+				field_file.close();
+				// std::cout << "  Wrote: " << debug_dir << "/global_field_vector.txt\n";
+			}
+		}
+
+		// 5. Print Dirichlet BC flags
+		if (global_dirichlet_BC_flags_vector.size() > 0)
+		{
+			std::ofstream bc_file(debug_dir + "/dirichlet_bc_flags.txt");
+			if (bc_file.is_open())
+			{
+				bc_file << "Index,IsDirichlet\n";
+				for (int i = 0; i < global_dirichlet_BC_flags_vector.size(); ++i)
+				{
+					bc_file << i << "," << global_dirichlet_BC_flags_vector(i) << "\n";
+				}
+				bc_file.close();
+				// std::cout << "  Wrote: " << debug_dir << "/dirichlet_bc_flags.txt\n";
+			}
+		}
+
+		// 6. Print reduced K_ff matrix
+		if (K_ff.nonZeros() > 0)
+		{
+			std::ofstream matrix_file(debug_dir + "/K_ff.csv");
+
+			if (matrix_file.is_open())
+			{
+				using MatrixType = std::decay<decltype(K_ff)>::type;
+				using Scalar = typename MatrixType::Scalar;
+				bool is_complex = std::is_same<Scalar, std::complex<double>>::value;
+
+				if (is_complex)
+				{
+					// Convert to dense and print
+					Eigen::MatrixXcd dense = Eigen::MatrixXcd(K_ff);
+					matrix_file << "Real Part:\n";
+					matrix_file << dense.real() << "\n\n";
+					matrix_file << "Imaginary Part:\n";
+					matrix_file << dense.imag() << "\n";
+				}
+				else
+				{
+					// Convert to dense and print
+					// Eigen::MatrixXd dense = Eigen::MatrixXd(helmholtz_spec_solver.global_system_matrix);
+					//matrix_file << dense;
+				}
+
+				matrix_file.close();
+				// std::cout << "  Wrote: " << debug_dir << "/K_ff.csv\n";
+			}
+		}
+
+
+		// 7. Print reduced F_f vector
+		if (F_f.size() > 0)
+		{
+			std::ofstream ff_file(debug_dir + "/F_f.txt");
+			if (ff_file.is_open())
+			{
+				ff_file << "Index,Value\n";
+				for (int i = 0; i < F_f.size(); ++i)
+				{
+					ff_file << i << "," << F_f(i) << "\n";
+				}
+				ff_file.close();
+				// std::cout << "  Wrote: " << debug_dir << "/F_f.txt\n";
+			}
+		}
+
+
+		// 8. Optional: Print summary statistics
+		std::ofstream summary_file(debug_dir + "/summary.txt");
+		if (summary_file.is_open())
+		{
+			summary_file << "=== Matrix Debug Summary ===\n";
+			summary_file << "Global system matrix: "
+				<< global_system_matrix.rows() << "x"
+				<< global_system_matrix.cols()
+				<< ", non-zeros: " << global_system_matrix.nonZeros() << "\n";
+			summary_file << "Global field vector size: " << global_field_vector.size() << "\n";
+			summary_file << "Dirichlet BC flags size: " << global_dirichlet_BC_flags_vector.size() << "\n";
+			summary_file << "K_ff matrix: " << K_ff.rows() << "x" << K_ff.cols() << "\n";
+			summary_file << "F_f vector size: " << F_f.size() << "\n";
+			summary_file << "Number of spectral nodes: " << spec_mesh2d.spectral_node_list.size() << "\n";
+			summary_file.close();
+			// std::cout << "  Wrote: " << debug_dir << "/summary.txt\n";
+		}
+
+		// std::cout << "Debug output completed to directory: " << debug_dir << std::endl;
+
+	}
+
+}
 
 
 

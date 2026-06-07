@@ -18,7 +18,6 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public double node_pt_x_coord { get; set; }
         public double node_pt_y_coord { get; set; }
 
-       // public List<double> node_modal_displ_magnitude { get; set; }
     }
 
     public class modeInfo
@@ -52,10 +51,6 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
         // Animation control data
         public System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-        //private double accumulatedTime = 0.0;
-        //private int time_step = 0;
-
-
 
 
         public modal_rsltdata_store()
@@ -167,13 +162,12 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             {
                 // Normalize to -1..1
                 double normalized = maxAbs > 1e-12 ? md_rslt.Value / maxAbs : 0.0;
-                double val = (normalized + 1.0) / 2.0;
 
                 modal_rsltnode_store rslt_nd = modal_rslt_nodes[md_rslt.Key];
 
                 modal_rsltmeshdata.update_mesh_point(md_rslt.Key,
                          rslt_nd.node_pt_x_coord,
-                         rslt_nd.node_pt_y_coord, 0.0, val);
+                         rslt_nd.node_pt_y_coord, 0.0, normalized);
 
             }
 
@@ -189,7 +183,6 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         {
             if (isModalResultSet == true)
             {
-
 
                 modal_rsltmeshdata.paint_static_mesh();
 
@@ -222,8 +215,6 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             stopwatch.Reset();
             stopwatch.Stop();
 
-            // pendulum_data.reset_simulation();
-
         }
 
 
@@ -240,29 +231,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
             if (gvariables_static.animate_play == true)
             {
-
-                // double animscale = Math.Cos(Math.PI * elapsedRealTime * gvariables_static.modal_animation_speed);
-
-                // float sinevalue = (float)(1.0f + animscale) * 0.5f;
-
-                // modal_rsltmeshdata.updateAnimation(sinevalue);
-
-
-                // Oscillation: -1 to 1
+               // Oscillation: -1 to 1
                 float oscillation = (float)Math.Sin(2.0 * Math.PI * elapsedRealTime * gvariables_static.modal_animation_speed);
 
-                modal_rsltmeshdata.updateAnimation((oscillation + 1.0f) * 0.5f);
-
-                //if (isModalAnalysisPaint == true)
-                //{
-                //    double displ_scale = displextent * gvariables_static.displacement_scale;
-
-                //    // Update the modal analysis results
-                //    stringlinemodalresults_data.update_modalresults_time_step(elapsedRealTime, selected_mode_shape, displ_scale);
-                //}
-
-
-                // pendulum_data.simulate(elapsedRealTime);
+                modal_rsltmeshdata.updateAnimation(oscillation);
 
             }
 

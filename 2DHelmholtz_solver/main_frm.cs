@@ -876,9 +876,10 @@ namespace _2DHelmholtz_solver
                     return;
 
                 set_ResultOption(option);
+                return;
             }
 
-            if (!fedata.resultmeshdata.isResultSet)
+            if (!fedata.resultmeshdata.isResultSet && !fedata.modalresultmeshdata.isModalResultSet)
                 return;
 
             set_ResultOption(option);

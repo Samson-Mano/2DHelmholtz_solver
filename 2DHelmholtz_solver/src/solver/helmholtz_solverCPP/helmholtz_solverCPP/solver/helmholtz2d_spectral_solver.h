@@ -55,7 +55,25 @@ public:
 	void solve_helmholtz_matrices(const int& solver_type);
 
 
-	// Temporarily made public for debugging
+	void store_k_m_matrices_text_debug();
+
+	void store_matrices_text_debug();
+
+
+private:
+	helmholtz_system_store* helmholtz_2dsystem_ptr;
+	
+	stopwatch_events* m_stopwatch;
+
+	std::string output_file;
+
+
+	Eigen::SparseMatrix<double> global_k_matrix; // Global ke Matrix [Ke]
+	Eigen::SparseMatrix<double> global_m_matrix; // Global ke Matrix [Me]
+
+
+
+	//___________________________________________________
 	spectral_mesh2d spec_mesh2d;
 
 	int numDOF = 0;
@@ -74,17 +92,10 @@ public:
 
 
 	Eigen::SparseMatrix<std::complex<double>> K_ff;
-	Eigen::VectorXcd F_f; 
+	Eigen::VectorXcd F_f;
 
 	Eigen::SparseMatrix<std::complex<double>> K_aug;
 	Eigen::VectorXcd F_aug;
-
-private:
-	helmholtz_system_store* helmholtz_2dsystem_ptr;
-	
-	stopwatch_events* m_stopwatch;
-
-	std::string output_file;
 
 
 
@@ -144,6 +155,16 @@ private:
 
 
 
+
+
+	void set_global_matrix(const std::vector<int>& elem_nodes,
+		int nen,
+		const Eigen::MatrixXd& element_k_matrix,
+		const Eigen::MatrixXd& element_m_matrix,
+		std::vector<Eigen::Triplet<double>>& k_triplets,
+		std::vector<Eigen::Triplet<double>>& m_triplets);
+
+
 	void set_complex_global_matrix(const std::vector<int>& elem_nodes,
 		int nen,
 		const Eigen::MatrixXd& element_k_matrix,
@@ -195,8 +216,6 @@ private:
 		Eigen::VectorXi& dirichlet_BC_flag,
 		Eigen::VectorXd& dirichlet_vector,
 		Eigen::VectorXd& source_vector);
-
-
 
 
 

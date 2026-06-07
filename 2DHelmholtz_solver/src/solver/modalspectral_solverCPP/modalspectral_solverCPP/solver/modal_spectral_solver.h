@@ -119,6 +119,8 @@ public:
 	};
 
 
+	void store_matrices_text_debug();
+
 	void store_results_text_debug();
 
 private:
@@ -138,7 +140,7 @@ private:
 
 
 	 Eigen::SparseMatrix<double> global_k_matrix; // Global ke Matrix [Ke]
-	 Eigen::SparseMatrix<double> global_m_matrix; // Global ke Matrix [Me]
+	 Eigen::SparseMatrix<double> global_m_matrix; // Global Me Matrix [Me]
 
 	Eigen::VectorXi global_dirichlet_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
 

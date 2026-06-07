@@ -45,16 +45,6 @@ namespace _2DHelmholtz_solver.other_windows
     }
 
 
-    //public struct ModeInfo
-    //{
-    //    public int Id { get; set; }
-    //    public double Frequency { get; set; }
-    //    public long FileOffset { get; set; }
-    //    public long DataSize { get; set; }
-    //}
-
-
-
     public partial class modalsolver_frm : Form
     {
         private fedata_store fe_data;
@@ -267,6 +257,43 @@ namespace _2DHelmholtz_solver.other_windows
                 string inputPath = Path.Combine(Application.StartupPath, "modal_analysis_input.bin");
                 string outputPath = Path.Combine(Application.StartupPath, "modal_analysis_output.bin");
 
+                // Delete existing input file if it exists
+                if (File.Exists(inputPath))
+                {
+                    try
+                    {
+                        File.Delete(inputPath);
+                        richTextBox_AnalysisUpdate.AppendText("Deleted existing input file.\n");
+                    }
+                    catch (IOException ex)
+                    {
+                        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing input file: {ex.Message}\n");
+                        // Try to force garbage collection to release any locks
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        File.Delete(inputPath);
+                    }
+                }
+
+                // Delete existing output file if it exists
+                if (File.Exists(outputPath))
+                {
+                    try
+                    {
+                        File.Delete(outputPath);
+                        richTextBox_AnalysisUpdate.AppendText("Deleted existing output file.\n");
+                    }
+                    catch (IOException ex)
+                    {
+                        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing output file: {ex.Message}\n");
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        File.Delete(outputPath);
+                    }
+                }
+
+
+
                 // Write input file
                 file_events.export_binary_mesh(inputPath,
                                                 fe_data.spectral_order_N,
@@ -478,9 +505,9 @@ namespace _2DHelmholtz_solver.other_windows
 
 
                         fe_data.modalresultmeshdata.setResultMesh();
+                        fe_data.modalresultmeshdata.isModalResultSet = true;
                         fe_data.modalresultmeshdata.updateSelectedMode(0);
                         fe_data.modalresultmeshdata.start_animation();
-                        fe_data.modalresultmeshdata.isModalResultSet = true;
 
                         fe_data.update_openTK_uniforms(true, true, true);
                     }

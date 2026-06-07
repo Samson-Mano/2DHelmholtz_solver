@@ -72,7 +72,7 @@ struct material_store
 	int materialid = 0;
 	double permittivity = 0.0;
 	double permeability = 0.0;
-	double wave_number = 0.0;
+	double wave_speed = 0.0;
 
 };
 
@@ -117,7 +117,7 @@ public:
 	void add_material(const int& materialid,
 		const double& permittivity,
 		const double& permeability,
-		const double& wave_number);
+		const double& wave_speed);
 
 	void add_nodeconstraint(const int& node_id,
 		const bool& isFieldBC,

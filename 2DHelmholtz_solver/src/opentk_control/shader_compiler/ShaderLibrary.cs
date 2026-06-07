@@ -33,7 +33,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
             layout(location = 0) in vec2 node_position;
             layout(location = 1) in vec3 vertexColor;
             layout(location = 2) in float is_dynamic;
-            layout(location = 3) in float deflscale; // Deflection scale value = normalized_deflscale (varies 0 to 1) * max deformation
+            layout(location = 3) in float deflscale; 
 
             out vec3 v_Color;
             out float v_is_dynamic;
@@ -79,8 +79,8 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             vec3 jetHeatmap(float value) 
             {
-
-                return clamp(vec3(1.5) - abs(4.0 * vec3(value) + vec3(-3, -2, -1)), vec3(0), vec3(1));
+                float t = (value + 1.0) * 0.5;
+                return clamp(vec3(1.5) - abs(4.0 * vec3(t) + vec3(-3, -2, -1)), vec3(0), vec3(1));
             }
 
 
