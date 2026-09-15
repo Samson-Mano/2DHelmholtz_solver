@@ -257,6 +257,16 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
         }
 
+        public void CloseResultFile()
+        {
+            _reader?.Dispose();      // disposes the underlying stream too, but be explicit
+            _fileStream?.Dispose();
+
+            _reader = null;
+            _fileStream = null;
+        }
+
+
         //
 
 

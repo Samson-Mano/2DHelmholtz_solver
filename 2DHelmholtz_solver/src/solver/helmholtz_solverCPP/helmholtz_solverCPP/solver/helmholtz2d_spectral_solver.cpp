@@ -167,11 +167,11 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 7: Set the global matrix and global vector
 
-			//set_global_matrix(elem_nodes, nen,
-			//	element_k_grad_matrix,
-			//	element_k_mass_matrix,
-			//	k_triplets,
-			//	m_triplets);
+			set_global_matrix(elem_nodes, nen,
+				element_k_grad_matrix,
+				element_k_mass_matrix,
+				k_triplets,
+				m_triplets);
 
 			set_complex_global_matrix(elem_nodes, nen,
 				element_k_matrix,
@@ -278,11 +278,11 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 7: Set the global matrix and global vector
 
-			//set_global_matrix(elem_nodes, nen,
-			//	element_k_grad_matrix,
-			//	element_k_mass_matrix,
-			//	k_triplets,
-			//	m_triplets);
+			set_global_matrix(elem_nodes, nen,
+				element_k_grad_matrix,
+				element_k_mass_matrix,
+				k_triplets,
+				m_triplets);
 
 
 			set_complex_global_matrix(elem_nodes, nen,
@@ -313,15 +313,15 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 	// Set the global sparse matrix
 	global_system_matrix.setFromTriplets(triplets_system.begin(), triplets_system.end());
 
-	//// Debuging the K and M matrix
-	//global_k_matrix.resize(numDOF, numDOF);
-	//global_k_matrix.setZero();
+	// Debuging the K and M matrix
+	global_k_matrix.resize(numDOF, numDOF);
+	global_k_matrix.setZero();
 
-	//global_m_matrix.resize(numDOF, numDOF);
-	//global_m_matrix.setZero();
+	global_m_matrix.resize(numDOF, numDOF);
+	global_m_matrix.setZero();
 
-	//global_k_matrix.setFromTriplets(k_triplets.begin(), k_triplets.end());
-	//global_m_matrix.setFromTriplets(m_triplets.begin(), m_triplets.end());
+	global_k_matrix.setFromTriplets(k_triplets.begin(), k_triplets.end());
+	global_m_matrix.setFromTriplets(m_triplets.begin(), m_triplets.end());
 
 
 	// Create the message string and convert to const char*
@@ -1598,6 +1598,10 @@ void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
 	text_file << "# Format: Debug Text Output\n";
 	text_file << "# Generated: " << __DATE__ << " " << __TIME__ << "\n\n";
 
+	double wave_number = spec_mesh2d.material_list[0].wave_number; // get the material wave number
+	text_file << "Wave Number: " << wave_number << "\n";
+	text_file << "Wave Number squared: " << (wave_number * wave_number) << "\n";
+
 	int max_print_size = 200;
 	int matrix_rows = global_k_matrix.rows();
 	int matrix_cols = global_k_matrix.cols();
@@ -1605,6 +1609,7 @@ void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
 	// Write Ke Matrix
 	text_file << "=== Ke Matrix ===\n";
 	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
 
 	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
 	{
@@ -1732,6 +1737,45 @@ void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
 	text_file << "=== Matrix Properties ===\n";
 	text_file << "Ke is symmetric: " << (k_symmetric ? "YES" : "NO") << "\n";
 	text_file << "Me is symmetric: " << (m_symmetric ? "YES" : "NO") << "\n";
+
+
+
+	// Write System Matrix
+	text_file << "=== System Matrix ===\n";
+	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
+	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
+	{
+		text_file << "WARNING: Matrix size exceeds " << max_print_size
+			<< " x " << max_print_size << ". Printing only the first "
+			<< max_print_size << " x " << max_print_size << " block.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+			for (int j = 0; j < std::min(max_print_size, matrix_cols); j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_system_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full matrix
+		for (int i = 0; i < matrix_rows; i++)
+		{
+			for (int j = 0; j < matrix_cols; j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_system_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+
+
 
 	text_file.close();
 

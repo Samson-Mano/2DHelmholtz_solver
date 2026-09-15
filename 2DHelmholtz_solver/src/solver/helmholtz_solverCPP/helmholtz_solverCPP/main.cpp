@@ -18,7 +18,7 @@
 int main()
 {
 
-	const char* input_file = "model_input.bin";   // Adjust path here
+	const char* input_file = "single_square1.bin";   // Adjust path here
 	// const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder
@@ -54,6 +54,8 @@ int main()
 	// ---------- Spectral Order ----------
 	int32_t spectral_order;
 	infile.read(reinterpret_cast<char*>(&spectral_order), 4);
+
+	spectral_order = 3; // For testing, override the spectral order to 3
 
 	helmholtz_2dsystem.spectral_order = spectral_order;
 
@@ -186,10 +188,14 @@ int main()
 
 		// Calculate the wave number
 		double angular_freq = 2.0 * 3.1415926535897932384626433 * frequency_value;
+
+		// Permittivity must be scaled by 10^-12
+		// Permeability must be scaled by 10^-7
+		// Frequency must be scaled by 10^6
+		// angular_freq * 10^6 * Sqrt(permittivity * permeability * 10^-19) 
+		// = angular_freq * Sqrt(permittivity * permeability * 0.1) * 10^-3
 		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
 
-		// Scale wave number
-		// wave_number = 0.001 * wave_number;
 
 		// Add material to the helmholtz system store
 		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_number);

@@ -109,7 +109,7 @@ public:
 
 	void create_global_matrices();
 
-	void solve_modal_analysis(int inpt_num_modes, int solver_type);
+	bool solve_modal_analysis(int inpt_num_modes, int solver_type);
 
 
 	enum SolverType 
@@ -225,7 +225,7 @@ private:
 	//________________________________________________________________________________________________
 
 
-	void solveWithSpectra(int num_modes,
+	bool solveWithSpectra(int num_modes,
 		const Eigen::SparseMatrix<double>& K_ff,
 		const Eigen::SparseMatrix<double>& M_ff,
 		Eigen::VectorXd& eigenvalues,
@@ -233,7 +233,7 @@ private:
 
 
 
-	void solveWithARPACK(int num_modes,
+	bool solveWithARPACK(int num_modes,
 		const Eigen::SparseMatrix<double>& K_ff,
 		const Eigen::SparseMatrix<double>& M_ff,
 		Eigen::VectorXd& eigenvalues,

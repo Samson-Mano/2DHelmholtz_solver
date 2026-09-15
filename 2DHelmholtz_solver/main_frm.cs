@@ -447,6 +447,37 @@ namespace _2DHelmholtz_solver
         }
 
 
+        private void CenterFormOnParent(Form childForm)
+        {
+            // Helper method to center a form on its owner
+            if (childForm.Owner == null)
+                return;
+
+            // Get the screen bounds of the parent form
+            Screen parentScreen = Screen.FromControl(childForm.Owner);
+            Rectangle parentBounds = childForm.Owner.Bounds;
+
+            // Calculate center position relative to the parent form
+            int x = parentBounds.X + (parentBounds.Width - childForm.Width) / 2;
+            int y = parentBounds.Y + (parentBounds.Height - childForm.Height) / 2;
+
+            // Ensure the form stays within the screen bounds
+            Rectangle screenBounds = parentScreen.WorkingArea;
+
+            // Adjust if the form would go off-screen
+            if (x < screenBounds.Left)
+                x = screenBounds.Left;
+            if (y < screenBounds.Top)
+                y = screenBounds.Top;
+            if (x + childForm.Width > screenBounds.Right)
+                x = screenBounds.Right - childForm.Width;
+            if (y + childForm.Height > screenBounds.Bottom)
+                y = screenBounds.Bottom - childForm.Height;
+
+            childForm.Location = new Point(x, y);
+        }
+
+
         private void optionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (fedata.isModelSet == false)
@@ -463,11 +494,11 @@ namespace _2DHelmholtz_solver
                 option_Form.TopLevel = true;
                 option_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - option_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - option_Form.Height) / 2;
+                // Set the start position to manual so we can control placement
                 option_Form.StartPosition = FormStartPosition.Manual;
-                option_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // Center the form on the parent
+                CenterFormOnParent(option_Form);
 
             }
 
@@ -511,11 +542,11 @@ namespace _2DHelmholtz_solver
                 load_Form.TopLevel = true;
                 load_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - load_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - load_Form.Height) / 2;
+                // Set the start position to manual so we can control placement
                 load_Form.StartPosition = FormStartPosition.Manual;
-                load_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // Center the form on the parent
+                CenterFormOnParent(load_Form);
 
             }
 
@@ -549,11 +580,11 @@ namespace _2DHelmholtz_solver
                 nodalconstraint_Form.TopLevel = true;
                 nodalconstraint_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - nodalconstraint_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - nodalconstraint_Form.Height) / 2;
+                // Set the start position to manual so we can control placement
                 nodalconstraint_Form.StartPosition = FormStartPosition.Manual;
-                nodalconstraint_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // Center the form on the parent
+                CenterFormOnParent(nodalconstraint_Form);
 
             }
 
@@ -589,13 +620,11 @@ namespace _2DHelmholtz_solver
                 // edgeconstraint_Form.MdiParent = this;
                 edgeconstraint_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - edgeconstraint_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - edgeconstraint_Form.Height) / 2;
+                // Set the start position to manual so we can control placement
                 edgeconstraint_Form.StartPosition = FormStartPosition.Manual;
-                edgeconstraint_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
 
-                // matprop_Form.StartPosition = FormStartPosition.CenterParent;
+                // Center the form on the parent
+                CenterFormOnParent(edgeconstraint_Form);
 
             }
 
@@ -630,13 +659,12 @@ namespace _2DHelmholtz_solver
                 // matprop_Form.MdiParent = this;
                 matprop_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - matprop_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - matprop_Form.Height) / 2;
-                matprop_Form.StartPosition = FormStartPosition.Manual;
-                matprop_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
 
-                // matprop_Form.StartPosition = FormStartPosition.CenterParent;
+                // Set the start position to manual so we can control placement
+                matprop_Form.StartPosition = FormStartPosition.Manual;
+
+                // Center the form on the parent
+                CenterFormOnParent(matprop_Form);
 
             }
 
@@ -749,11 +777,12 @@ namespace _2DHelmholtz_solver
                 solver_Form.TopLevel = true;
                 solver_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - solver_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - solver_Form.Height) / 2;
+
+                // Set the start position to manual so we can control placement
                 solver_Form.StartPosition = FormStartPosition.Manual;
-                solver_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // Center the form on the parent
+                CenterFormOnParent(solver_Form);
 
             }
 
@@ -790,11 +819,12 @@ namespace _2DHelmholtz_solver
                 modalsolver_Form.TopLevel = true;
                 modalsolver_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - modalsolver_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - modalsolver_Form.Height) / 2;
+
+                // Set the start position to manual so we can control placement
                 modalsolver_Form.StartPosition = FormStartPosition.Manual;
-                modalsolver_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // Center the form on the parent
+                CenterFormOnParent(modalsolver_Form);
 
             }
 
@@ -848,11 +878,12 @@ namespace _2DHelmholtz_solver
                 modalresultoption_Form.TopLevel = true;
                 modalresultoption_Form.Owner = this;
 
-                // Manually center the form on the parent
-                int x = this.Location.X + (this.Width - modalresultoption_Form.Width) / 2;
-                int y = this.Location.Y + (this.Height - modalresultoption_Form.Height) / 2;
+
+                // Set the start position to manual so we can control placement
                 modalresultoption_Form.StartPosition = FormStartPosition.Manual;
-                modalresultoption_Form.Location = new Point(Math.Max(x, 0), Math.Max(y, 0)); // avoid negative positions
+
+                // Center the form on the parent
+                CenterFormOnParent(modalresultoption_Form);
 
             }
 

@@ -231,9 +231,12 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 		infile.read(reinterpret_cast<char*>(&conductivity), 8);
 		infile.read(reinterpret_cast<char*>(&numelement), 4);
 
-		// Calculate the wave number
-		// double angular_freq = 2.0 * 3.1415926535897932384626433 * 1.0;
-		double wave_speed = std::sqrt(permittivity * permeability * 0.1) * 0.001;
+		// Calculate the wave speed based on permittivity and permeability
+		// Permittivity must be scaled by 10^-12
+		// Permeability must be scaled by 10^-7
+		// wave_speed = 1.0 / Sqrt(permittivity * permeability * 10^-19) 
+
+		double wave_speed = 1e9 / (std::sqrt(permittivity * permeability * 0.1));
 
 
 		// Add material to the helmholtz system store
@@ -347,11 +350,12 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	modal_spec_solver.create_global_matrices();
 
 	// Perform modal analysis solve
-	modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type);
+
+	(*isAnalysisSuccess) = modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type);
 
 
 
-	(*isAnalysisSuccess) = true;
+	// (*isAnalysisSuccess) = true;
 
 	//_________________________________________________________
 	// Close the files

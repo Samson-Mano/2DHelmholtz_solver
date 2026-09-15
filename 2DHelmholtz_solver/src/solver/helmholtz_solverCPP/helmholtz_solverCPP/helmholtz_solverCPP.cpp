@@ -222,8 +222,13 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 
 		// Calculate the wave number
 		double angular_freq = 2.0 * 3.1415926535897932384626433 * frequency_value;
-		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
 
+		// Permittivity must be scaled by 10^-12
+		// Permeability must be scaled by 10^-7
+		// Frequency must be scaled by 10^6
+		// angular_freq * 10^6 * Sqrt(permittivity * permeability * 10^-19) 
+		// = angular_freq * Sqrt(permittivity * permeability * 0.1) * 10^-3
+		double wave_number = angular_freq * std::sqrt(permittivity * permeability * 0.1) * 0.001;
 
 		// Add material to the helmholtz system store
 		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_number);

@@ -5,8 +5,8 @@ modal_spectral_solver::modal_spectral_solver()
 	// Empty constructor
 }
 
-void modal_spectral_solver::init(helmholtz_system_store * helmholtz_2dsystem_ptr, 
-	const char* output_file_char, stopwatch_events * stopwatch, void(*callback)(const char*))
+void modal_spectral_solver::init(helmholtz_system_store* helmholtz_2dsystem_ptr,
+	const char* output_file_char, stopwatch_events* stopwatch, void(*callback)(const char*))
 {
 	// Set the initialized system ptr
 	this->helmholtz_2dsystem_ptr = helmholtz_2dsystem_ptr;
@@ -60,7 +60,7 @@ void modal_spectral_solver::create_global_matrices()
 	global_m_matrix.setZero();
 
 	// Global boundary condition Vector (To track the nodes where prescribed field is applied)
-	global_dirichlet_BC_flags_vector.setZero(numDOF); 
+	global_dirichlet_BC_flags_vector.setZero(numDOF);
 
 	// get the quadrature points and the basis term
 	int spectral_order = spec_mesh2d.spectral_order;
@@ -120,8 +120,8 @@ void modal_spectral_solver::create_global_matrices()
 				element_k_matrix, element_m_matrix);
 
 
-			double wave_speed = spec_mesh2d.material_list[tri_elm.materialid].wave_speed; // get the material wave speed
-			element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
+			// double wave_speed = spec_mesh2d.material_list[tri_elm.materialid].wave_speed; // get the material wave speed
+			// element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
 
 			//________________________________________________________________________________________________
 			// Step 3: Create Element field vector
@@ -202,8 +202,8 @@ void modal_spectral_solver::create_global_matrices()
 				element_k_matrix, element_m_matrix);
 
 
-			double wave_speed = spec_mesh2d.material_list[quad_elm.materialid].wave_speed; // get the material wave speed
-			element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
+			// double wave_speed = spec_mesh2d.material_list[quad_elm.materialid].wave_speed; // get the material wave speed
+			// element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
 
 
 			//________________________________________________________________________________________________
@@ -264,7 +264,7 @@ void modal_spectral_solver::create_global_matrices()
 
 
 
-void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_type)
+bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_type)
 {
 
 	auto start_time = std::chrono::high_resolution_clock::now();
@@ -300,10 +300,10 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	msg = "Number of modes to compute: " + std::to_string(num_modes);
 	report(msg.c_str());
 
-	if (num_modes == 0) 
+	if (num_modes == 0)
 	{
 		report("Warning: No free DOFs found!");
-		return;
+		return false;
 	}
 
 
@@ -313,9 +313,9 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	// Mt.reserve(n_free * 15);
 
 	// Extract K_ff
-	for (int k = 0; k < global_k_matrix.outerSize(); ++k) 
+	for (int k = 0; k < global_k_matrix.outerSize(); ++k)
 	{
-		for (Eigen::SparseMatrix<double>::InnerIterator it(global_k_matrix, k); it; ++it) 
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_k_matrix, k); it; ++it)
 		{
 			int i = static_cast<int>(it.row());
 			int j = static_cast<int>(it.col());
@@ -334,9 +334,9 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	}
 
 	// Extract M_ff
-	for (int k = 0; k < global_m_matrix.outerSize(); ++k) 
+	for (int k = 0; k < global_m_matrix.outerSize(); ++k)
 	{
-		for (Eigen::SparseMatrix<double>::InnerIterator it(global_m_matrix, k); it; ++it) 
+		for (Eigen::SparseMatrix<double>::InnerIterator it(global_m_matrix, k); it; ++it)
 		{
 			int i = static_cast<int>(it.row());
 			int j = static_cast<int>(it.col());
@@ -370,50 +370,54 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	Eigen::VectorXd eigenvalues;
 	Eigen::MatrixXd eigenvectors;
 
-	if (solver_type == SOLVER_SPECTRA) 
+	bool isSolveSuccessful = false;
+
+	if (solver_type == SOLVER_SPECTRA)
 	{
-		solveWithSpectra(num_modes, K_ff, M_ff, eigenvalues, eigenvectors);
+		isSolveSuccessful = solveWithSpectra(num_modes, K_ff, M_ff, eigenvalues, eigenvectors);
 	}
-	else if (solver_type == SOLVER_ARPACK) 
+	else if (solver_type == SOLVER_ARPACK)
 	{
-		solveWithARPACK(num_modes, K_ff, M_ff, eigenvalues, eigenvectors);
+		isSolveSuccessful = solveWithARPACK(num_modes, K_ff, M_ff, eigenvalues, eigenvectors);
 	}
-	else 
+
+	if (!isSolveSuccessful)
 	{
-		throw std::runtime_error("Unknown solver type");
+		report("Eigenvalue solver failed!");
+		return false;
 	}
 
 	// 4) Convert eigenvalues to frequencies
 	this->natural_frequencies.clear();
 	// this->natural_frequencies.reserve(eigenvalues.size());
 
-	for (int i = 0; i < eigenvalues.size(); ++i) 
+	for (int i = 0; i < eigenvalues.size(); ++i)
 	{
 		double lambda = eigenvalues[i];
-		if (lambda > 1e-12) 
+		if (lambda > 1e-12)
 		{  // Positive definite check
 			double omega = std::sqrt(lambda);
 			double freq = omega / (2.0 * M_PI);
 			this->natural_frequencies.push_back(freq);
 		}
-		else 
+		else
 		{
 			// Rigid body mode
 			this->natural_frequencies.push_back(0.0);
 		}
 	}
 
-	// 5) Normalize mode shapes (mass-normalized)
-	for (int i = 0; i < eigenvectors.cols(); ++i) 
-	{
-		Eigen::VectorXd phi = eigenvectors.col(i);
-		double norm = std::sqrt(phi.transpose() * M_ff * phi);
+	//// 5) Normalize mode shapes (mass-normalized)
+	//for (int i = 0; i < eigenvectors.cols(); ++i)
+	//{
+	//	Eigen::VectorXd phi = eigenvectors.col(i);
+	//	double norm = std::sqrt(phi.transpose() * M_ff * phi);
 
-		if (norm > 1e-12) 
-		{
-			eigenvectors.col(i) /= norm;
-		}
-	}
+	//	if (norm > 1e-12)
+	//	{
+	//		eigenvectors.col(i) /= norm;
+	//	}
+	//}
 
 	// 6) Reconstruct full mode shapes
 	int total_dofs = static_cast<int>(global_k_matrix.rows());
@@ -425,6 +429,9 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		this->natural_modes.row(free_dofs[i]) = eigenvectors.row(i);
 	}
 
+
+
+
 	auto end_time = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 	msg = "Modal analysis completed in " + std::to_string(duration.count()) + " ms";
@@ -433,6 +440,7 @@ void modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	// Store results
 	store_results_with_index();
 
+	return true;
 }
 
 
@@ -917,7 +925,7 @@ void modal_spectral_solver::report(const char* msg)
 
 
 
-void modal_spectral_solver::solveWithSpectra(int num_modes,
+bool modal_spectral_solver::solveWithSpectra(int num_modes,
 	const Eigen::SparseMatrix<double>& K_ff,
 	const Eigen::SparseMatrix<double>& M_ff,
 	Eigen::VectorXd& eigenvalues,
@@ -934,9 +942,16 @@ void modal_spectral_solver::solveWithSpectra(int num_modes,
 	Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> chol(M_ff);
 
 
-	if (chol.info() != Eigen::Success) 
+	if (chol.info() != Eigen::Success)
 	{
-		throw std::runtime_error("Mass matrix is not positive definite");
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+		std::string msg = "Mass matrix is not positive definite, Solver failed in " + std::to_string(duration.count()) + " ms";
+		report(msg.c_str());
+
+		return false;
+		// throw std::runtime_error("Mass matrix is not positive definite");
 	}
 
 	// Create the operator for (M^{-1} * K)
@@ -952,7 +967,7 @@ void modal_spectral_solver::solveWithSpectra(int num_modes,
 	// Compute eigenvalues (smallest algebraic values for lowest frequencies)
 	int nconv = static_cast<int>(eigs.compute(Spectra::SortRule::SmallestAlge));
 
-	if (eigs.info() == Spectra::CompInfo::Successful) 
+	if (eigs.info() == Spectra::CompInfo::Successful)
 	{
 		eigenvalues = eigs.eigenvalues();
 		eigenvectors = eigs.eigenvectors();
@@ -968,9 +983,17 @@ void modal_spectral_solver::solveWithSpectra(int num_modes,
 		//	}
 		//}
 	}
-	else 
+	else
 	{
-		throw std::runtime_error("Spectra solver failed to converge");
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+		std::string msg = "Spectra solver failed to converge in " + std::to_string(duration.count()) + " ms";
+		report(msg.c_str());
+
+		return false;
+
+		// throw std::runtime_error("Spectra solver failed to converge");
 	}
 
 	auto end_time = std::chrono::high_resolution_clock::now();
@@ -978,13 +1001,14 @@ void modal_spectral_solver::solveWithSpectra(int num_modes,
 	std::string msg = "Spectra solver completed in " + std::to_string(duration.count()) + " ms";
 	report(msg.c_str());
 
+	return true;
 }
 
 
 
 
 
-void modal_spectral_solver::solveWithARPACK(int num_modes,
+bool modal_spectral_solver::solveWithARPACK(int num_modes,
 	const Eigen::SparseMatrix<double>& K_ff,
 	const Eigen::SparseMatrix<double>& M_ff,
 	Eigen::VectorXd& eigenvalues,
@@ -999,7 +1023,8 @@ void modal_spectral_solver::solveWithARPACK(int num_modes,
 	// Validate inputs
 	if (nev <= 0)
 	{
-		throw std::runtime_error("Number of modes must be positive");
+		report("Number of modes must be positive");
+		return false;
 	}
 
 	std::string solver_msg;
@@ -1030,7 +1055,7 @@ void modal_spectral_solver::solveWithARPACK(int num_modes,
 		std::string error_msg = "ARPACK failed to converge. ";
 		error_msg += "Number of converged eigenvalues: " + std::to_string(solver.getNbrConvergedEigenValues());
 		report(error_msg.c_str());
-		throw std::runtime_error(error_msg);
+		return false;
 	}
 
 
@@ -1040,7 +1065,7 @@ void modal_spectral_solver::solveWithARPACK(int num_modes,
 		solver_msg = "Eigenvectors not computed." + solver.info();
 		report(solver_msg.c_str());
 
-		throw std::runtime_error("Eigenvectors not computed by ARPACK");
+		return false;
 	}
 
 
@@ -1072,6 +1097,8 @@ void modal_spectral_solver::solveWithARPACK(int num_modes,
 		" / " + std::to_string(nev);
 	report(solver_msg.c_str());
 
+	return true;
+
 }
 
 
@@ -1083,7 +1110,7 @@ void modal_spectral_solver::store_results_with_index()
 	// Open file in binary mode
 	std::ofstream bin_file(output_file, std::ios::binary);
 
-	if (!bin_file.is_open()) 
+	if (!bin_file.is_open())
 	{
 		std::string error_msg = "Failed to open output file: " + this->output_file;
 		report(error_msg.c_str());
@@ -1133,7 +1160,7 @@ void modal_spectral_solver::store_results_with_index()
 
 
 	// Write nodes
-	for (const auto& node : spec_mesh2d.renderer_node_points) 
+	for (const auto& node : spec_mesh2d.renderer_node_points)
 	{
 		int32_t node_id = static_cast<int32_t>(node.n_id);
 		bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
@@ -1145,7 +1172,7 @@ void modal_spectral_solver::store_results_with_index()
 	report("Result mesh: Nodes written");
 
 	// Write edges
-	for (const auto& edge : spec_mesh2d.renderer_edge_lines) 
+	for (const auto& edge : spec_mesh2d.renderer_edge_lines)
 	{
 		int32_t start_id = static_cast<int32_t>(edge.nstart);
 		int32_t end_id = static_cast<int32_t>(edge.nend);
@@ -1157,7 +1184,7 @@ void modal_spectral_solver::store_results_with_index()
 	report("Result mesh: Edges written");
 
 	// Write triangles
-	for (const auto& tri : spec_mesh2d.renderer_element_triangles) 
+	for (const auto& tri : spec_mesh2d.renderer_element_triangles)
 	{
 		int32_t n1 = static_cast<int32_t>(tri.n1);
 		int32_t n2 = static_cast<int32_t>(tri.n2);
@@ -1179,7 +1206,7 @@ void modal_spectral_solver::store_results_with_index()
 		uint32_t mode_id = i;
 		double frequency = natural_frequencies[i];
 		uint64_t file_offset = current_offset;
-		uint64_t data_size = sizeof(int32_t) +  (num_nodes * (sizeof(int32_t) + sizeof(double)));
+		uint64_t data_size = sizeof(int32_t) + (num_nodes * (sizeof(int32_t) + sizeof(double)));
 
 		// Write each field individually
 		bin_file.write(reinterpret_cast<const char*>(&mode_id), sizeof(uint32_t));
@@ -1194,13 +1221,13 @@ void modal_spectral_solver::store_results_with_index()
 	report("Mode index table written");
 
 	// Write mode data (each mode separately)
-	for (int32_t mode_id = 0; mode_id < num_modes; mode_id++) 
+	for (int32_t mode_id = 0; mode_id < num_modes; mode_id++)
 	{
 		// Write mode ID first (for redundancy)
 		bin_file.write(reinterpret_cast<const char*>(&mode_id), sizeof(int32_t));
 
 		// Write mode shape values for each node
-		for (const auto& node : spec_mesh2d.renderer_node_points) 
+		for (const auto& node : spec_mesh2d.renderer_node_points)
 		{
 			int32_t node_id = static_cast<int32_t>(node.n_id);
 			int nd_idx = nodeid_map[node.n_id];
@@ -1215,8 +1242,8 @@ void modal_spectral_solver::store_results_with_index()
 	bin_file.close();
 
 	success_msg = "Modal results stored successfully: " + this->output_file +
-				" (" + std::to_string(num_nodes) + " nodes, " +
-				std::to_string(num_modes) + " modes)";
+		" (" + std::to_string(num_nodes) + " nodes, " +
+		std::to_string(num_modes) + " modes)";
 
 	report(success_msg.c_str());
 

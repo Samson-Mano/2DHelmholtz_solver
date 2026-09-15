@@ -280,6 +280,8 @@ namespace _2DHelmholtz_solver.other_windows
                 {
                     try
                     {
+                        fe_data.modalresultmeshdata.CloseResultFile();
+
                         File.Delete(outputPath);
                         richTextBox_AnalysisUpdate.AppendText("Deleted existing output file.\n");
                     }
@@ -345,6 +347,8 @@ namespace _2DHelmholtz_solver.other_windows
                 }
                 else
                 {
+
+                    
                     richTextBox_AnalysisUpdate.AppendText($"Solver failed: {result.ErrorMessage}\n");
                 }
             }
