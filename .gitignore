@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/2DHelmholtz_solver/Example_model/Binary_files/single_square1.bin
