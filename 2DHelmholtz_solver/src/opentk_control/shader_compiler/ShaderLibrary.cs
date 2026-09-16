@@ -13,7 +13,12 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
         {
             MeshShader,
             TextShader,
-            SelectionShader
+            SelectionShader,
+
+            DrawingAxisShader,
+           RsltTextShader,
+
+            ContourBarShader,
         }
 
 
@@ -182,6 +187,84 @@ void main()
 
 
 
+
+
+        #region "Result Text shaders"
+
+        public static string rslttext_vert_shader()
+        {
+            return @"
+
+            #version 330 core
+
+            uniform mat4 uMVP;           // Model-View-Projection matrix
+            uniform float zoomscale = 1.0f;
+
+            uniform float vertexTransparency = 1.0f; // Transparency of the mesh
+
+            layout(location = 0) in vec2 position;
+            layout(location = 1) in vec2 origin;
+            layout(location = 2) in vec2 textureCoord;
+            layout(location = 3) in vec3 textColor;
+
+            out vec4 v_textureColor;
+            out vec2 v_textureCoord;
+
+            void main()
+            {
+
+	            // apply Translation to the final position 
+	            vec4 finalPosition =  uMVP * vec4(position,0.0f,1.0f);
+
+	            // apply Translation to the text origin
+	            vec4 finalTextorigin =  uMVP * vec4(origin,0.0f,1.0f);
+    
+
+	            // Remove the zoom scale
+	            vec2 scaled_pt = vec2(finalPosition.x - finalTextorigin.x,finalPosition.y - finalTextorigin.y) / zoomscale;
+		
+	            // Set the final position of the vertex
+	            gl_Position = vec4(scaled_pt.x + finalTextorigin.x, scaled_pt.y + finalTextorigin.y, 0.0f, 1.0f);
+
+
+	            // Calculate texture coordinates for the glyph
+	            v_textureCoord = textureCoord;
+	
+	            // Pass the texture color to the fragment shader
+	            v_textureColor = vec4(textColor, vertexTransparency);
+            }
+
+                    ";
+
+        }
+
+
+        public static string rslttext_frag_shader()
+        {
+            return @"
+
+            #version 330 core
+            uniform sampler2D u_Texture;
+
+            in vec4 v_textureColor;
+            in vec2 v_textureCoord;
+
+            out vec4 f_Color; // fragment's final color (out to the fragment shader)
+
+            void main()
+            {
+	            vec4 texColor = vec4(1.0, 1.0, 1.0, texture(u_Texture, v_textureCoord).r);
+	            f_Color = v_textureColor * texColor;
+            }
+
+                    ";
+
+        }
+
+        #endregion
+
+
+
         #region "Selection Shader"
 
 
@@ -235,6 +318,124 @@ void main()
 
 
 
+        #region "Drawing Axis Shader"
+
+        private static string drawingaxis_vert_shader()
+        {
+            return @"
+
+            #version 330 core
+
+            layout(location = 0) in vec2 node_position;
+            layout(location = 1) in vec3 node_color;
+
+            out vec4 v_Color;
+
+            void main()
+            {
+	            v_Color = vec4(node_color, 1.0f);
+
+	            // Final position passed to fragment shader
+	            gl_Position = vec4(node_position,0.0f,1.0f);
+            }
+
+                    ";
+
+        }
+
+
+
+        private static string drawingaxis_frag_shader()
+        {
+            return @"
+
+            #version 330 core
+
+            in vec4 v_Color;
+
+            out vec4 f_Color; // fragment's final color (out to the fragment shader)
+
+            void main()
+            {
+	            f_Color = v_Color;
+            }
+
+                    ";
+
+        }
+
+
+        #endregion
+
+
+        #region "Contour Bar Shader"
+
+        private static string contourbar_vert_shader()
+        {
+            return @"
+
+            #version 330 core
+
+            layout(location = 0) in vec2 node_position;
+            layout(location = 1) in float node_value; // Value for the contour level between 0.0 and 1.0
+
+            out float v_node_value;
+
+            void main()
+            {
+	            // Map the node_value to a color (e.g., from blue to red)
+	            v_node_value = node_value;
+
+	            // Final position passed to fragment shader
+	            gl_Position = vec4(node_position,0.0f,1.0f);
+            }
+
+                    ";
+
+        }
+
+
+
+        private static string contourbar_frag_shader()
+        {
+            return @"
+
+            #version 330 core
+
+            in float v_node_value;
+
+            out vec4 f_Color; // fragment's final color (out to the fragment shader)
+            
+             vec3 jetHeatmap(float value) 
+            {
+                float t = value; // (value + 1.0) * 0.5;
+                return clamp(vec3(1.5) - abs(4.0 * vec3(t) + vec3(-3, -2, -1)), vec3(0), vec3(1));
+            }
+
+
+            void main()
+            {
+                vec3 contourColor = vec3(0.0); 
+                
+                if(v_node_value < 0.0f)
+                    contourColor = vec3(0.4f, 0.4f, 0.4f); // Dark gray for negative values
+                else if(v_node_value > 1.0f)
+                    contourColor = vec3(0.8f, 0.8f, 0.8f); // Light gray for values greater than 1
+                else
+                    contourColor = jetHeatmap(v_node_value); // Use the heatmap for values between 0 and 1
+
+
+	            f_Color = vec4(contourColor, 1.0f);
+            }
+
+                    ";
+
+        }
+
+
+        #endregion
+
+
 
 
         public static string get_vertex_shader(ShaderType type)
@@ -248,6 +449,12 @@ void main()
                     return selrect_vert_shader();
                 case ShaderType.TextShader:
                     return text_vert_shader();
+                case ShaderType.DrawingAxisShader:
+                    return drawingaxis_vert_shader();
+                case ShaderType.RsltTextShader:
+                    return rslttext_vert_shader();
+                case ShaderType.ContourBarShader:
+                    return contourbar_vert_shader();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), "Unknown shader type");
 
@@ -265,6 +472,12 @@ void main()
                     return selrect_frag_shader();
                 case ShaderType.TextShader:
                     return text_frag_shader();
+                case ShaderType.DrawingAxisShader:
+                    return drawingaxis_frag_shader();
+                case ShaderType.RsltTextShader:
+                    return rslttext_frag_shader();
+                case ShaderType.ContourBarShader:
+                    return contourbar_frag_shader();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), "Unknown shader type");
 

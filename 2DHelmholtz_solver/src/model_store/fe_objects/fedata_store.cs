@@ -100,7 +100,6 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             resultmeshdata = new rsltdata_store();
             modalresultmeshdata = new modal_rsltdata_store();
 
-
             // To control the drawing graphics
             graphic_events_control = new drawing_events(this);
 
@@ -636,6 +635,22 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
         }
+
+
+
+        public void update_contour_bar_position(int window_width, int window_height)
+        {
+            if (!isModelSet)
+                return;
+            if (resultmeshdata.isResultSet == false)
+                return;
+
+            resultmeshdata.contour_bar_data.UpdateContourLevelBarPosition(graphic_events_control.window_width,
+                graphic_events_control.window_height,
+                0.0f, 1.0f, "Dummy", false);
+
+        }
+
 
 
 

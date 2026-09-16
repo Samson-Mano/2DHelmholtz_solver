@@ -134,6 +134,8 @@ namespace _2DHelmholtz_solver.global_variables
         public static float LineWidth = 1.0f;
 
         public static fontAtlas main_font = new fontAtlas();
+        public static GDIFontAtlas rslt_font = new GDIFontAtlas();
+
 
 
         public static float geom_transparency = 1.0f;
@@ -145,6 +147,10 @@ namespace _2DHelmholtz_solver.global_variables
         public static bool is_paint_uimag = false;
         public static bool is_paint_umagnitude = false;
         public static bool is_paint_uphase = false;
+
+        public static float contourLevel_rangeMax = 1.0f;
+        public static float contourLevel_rangeMin = 0.0f;
+
 
         public static bool is_paint_modalresults = false;
 
@@ -324,6 +330,27 @@ namespace _2DHelmholtz_solver.global_variables
             if (value > max) return max;
             return value;
         }
+
+        // Manual clamp for .NET Framework 4.8
+        private static float Clamp(float value, float min, float max)
+        {
+            return (value < min) ? min : (value > max) ? max : value;
+        }
+
+
+
+        // Original jet colormap with clamping (for values in [0,1])
+        public static Vector3 GetJetColorClamped(float t)
+        {
+            float r = Clamp(1.5f - Math.Abs(4.0f * t - 3.0f), 0f, 1f);
+            float g = Clamp(1.5f - Math.Abs(4.0f * t - 2.0f), 0f, 1f);
+            float b = Clamp(1.5f - Math.Abs(4.0f * t - 1.0f), 0f, 1f);
+
+            return new Vector3(r, g, b);
+        }
+
+
+
 
         public static double UpdateZoom(double zoomVal, int eDelta, double zoomStep = 1.1f,
             double minZoom = 1e-3d, double maxZoom = 1e6d)

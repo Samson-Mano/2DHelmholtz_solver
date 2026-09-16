@@ -18,7 +18,7 @@
 int main()
 {
 
-	const char* input_file = "single_square1.bin";   // Adjust path here
+	const char* input_file = "single_square1_fieldval.bin";   // Adjust path here
 	// const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder
@@ -371,6 +371,9 @@ int main()
 
 
 	helmholtz_spec_solver.store_k_m_matrices_text_debug();
+
+	// helmholtz_spec_solver.store_matrices_text_debug();
+
 
 
 	//_________________________________________________________

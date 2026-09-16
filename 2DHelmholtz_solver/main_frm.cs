@@ -1,6 +1,8 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.other_windows;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
+using _2DHelmholtz_solver.src.model_store.geom_objects;
+
 // OpenTK library
 using OpenTK;
 using OpenTK.Graphics;
@@ -46,6 +48,12 @@ namespace _2DHelmholtz_solver
         private modalsolver_frm modalsolver_Form;
         private modalresultoption_frm modalresultoption_Form;
 
+
+        // Drawing area Axis data store
+        public axisdata_store axisdata;
+
+
+
         public main_frm()
         {
 
@@ -53,6 +61,8 @@ namespace _2DHelmholtz_solver
 
             // Initialize the finite element model data
             fedata = new fedata_store();
+
+            axisdata = new axisdata_store();
 
             // Initialize the timer
             zoomToFitTimer = new Timer();
@@ -82,6 +92,11 @@ namespace _2DHelmholtz_solver
 
             // Create the main font atlas
             gvariables_static.main_font.CreateAtlas();
+
+            gvariables_static.rslt_font.CreateAtlas("Calibri");
+
+            axisdata.InitializeAxisData(glControl_main_panel.Width, glControl_main_panel.Height);
+
 
         }
 
@@ -122,6 +137,10 @@ namespace _2DHelmholtz_solver
 
             fedata.paint_model();
 
+            // Draw the axis arrows
+            axisdata.draw_axis_arrows();
+
+
             // OpenTK windows are what's known as "double-buffered". In essence, the window manages two buffers.
             // One is rendered to while the other is currently displayed by the window.
             // This avoids screen tearing, a visual artifact that can happen if the buffer is modified while being displayed.
@@ -152,6 +171,10 @@ namespace _2DHelmholtz_solver
             // Update the size of the drawing area
             fedata.graphic_events_control.update_drawing_area_size(glControl_main_panel.Width,
                 glControl_main_panel.Height);
+
+            axisdata.UpdateAxisArrowCenter(glControl_main_panel.Width, glControl_main_panel.Height);
+            fedata.update_contour_bar_position(glControl_main_panel.Width, glControl_main_panel.Height);
+
 
             toolStripStatusLabel_zoom_value.Text = "Zoom: " + (gvariables_static.RoundOff((int)(1.0f * 100))).ToString() + "%";
 
@@ -980,7 +1003,7 @@ namespace _2DHelmholtz_solver
 
             if(option != 5 && option != 0)
             {
-                fedata.resultmeshdata.updateResultType();
+                fedata.resultmeshdata.updateResultType(fedata.graphic_events_control);
             }
             else
             {

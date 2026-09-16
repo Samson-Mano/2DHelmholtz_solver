@@ -1775,7 +1775,26 @@ void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
 	text_file << "\n";
 
 
+	text_file << "=== Field values (Real) ===\n";
 
+	for (int i = 0; i < numDOF; i++)
+	{
+		double real_part = u_real(i);
+
+		text_file << std::setw(15) << std::setprecision(6) << real_part << "\n";
+
+	}
+	text_file << "\n";
+
+	text_file << "=== Field values (Node ID mapped) ===\n";
+	for (int i = 0; i < numDOF; i++)
+	{
+		double real_part = u_real(nodeid_map[i]);
+
+		text_file << std::setw(15) << std::setprecision(6) << real_part << "\n";
+
+	}
+	text_file << "\n";
 
 	text_file.close();
 

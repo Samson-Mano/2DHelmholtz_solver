@@ -1,6 +1,7 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
+using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -75,6 +76,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public result_data_extremes result_extremes;
 
 
+        // Contour bar data for results visualization
+        public contourlevelbar_store contour_bar_data;
+
+
         public bool isResultSet = false;
 
 
@@ -83,6 +88,9 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             rslt_nodes = new Dictionary<int, rsltnode_store>();
             rslt_edges = new List<rsltedge_store>();
             rslt_tris = new List<rslttri_store>();
+
+            contour_bar_data = new contourlevelbar_store();
+    
 
             isResultSet = false;
 
@@ -116,6 +124,8 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                 tri_id++;
 
             }
+
+            contour_bar_data.InitializeContourLevelBarData(100, 100);
 
             // Create the mesh boundaries
             rsltmeshdata.set_mesh_wireframe();
@@ -158,7 +168,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
 
 
-        public void updateResultType()
+        public void updateResultType(drawing_events graphic_events_control)
         {
             // Helper function for normalization
             double Normalize(double value, double min, double max)
@@ -193,6 +203,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                     result_extremes.u_real_min,
                     result_extremes.u_real_max
                 );
+
+                contour_bar_data.UpdateContourLevelBarPosition(graphic_events_control.window_width,
+                        graphic_events_control.window_height,
+                        (float)result_extremes.u_real_min, (float)result_extremes.u_real_max, "Field (Real)" , true);
             }
 
             // U imaginary
@@ -203,6 +217,11 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                     result_extremes.u_imag_min,
                     result_extremes.u_imag_max
                 );
+
+                contour_bar_data.UpdateContourLevelBarPosition(graphic_events_control.window_width,
+                    graphic_events_control.window_height,
+                    (float)result_extremes.u_imag_min, (float)result_extremes.u_imag_max, "Field (Imag)", true);
+
             }
 
             // U magnitude
@@ -213,6 +232,11 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                     result_extremes.u_magnitude_min,
                     result_extremes.u_magnitude_max
                 );
+
+
+                contour_bar_data.UpdateContourLevelBarPosition(graphic_events_control.window_width,
+                    graphic_events_control.window_height,
+                    (float)result_extremes.u_magnitude_min, (float)result_extremes.u_magnitude_max, "Field (Mag)", true);
             }
 
             // U phase
@@ -223,6 +247,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                     result_extremes.u_phase_min,
                     result_extremes.u_phase_max
                 );
+
+                contour_bar_data.UpdateContourLevelBarPosition(graphic_events_control.window_width,
+                    graphic_events_control.window_height,
+                    (float)result_extremes.u_phase_min, (float)result_extremes.u_phase_max, "Field (Phase)", true);
             }
 
             // Update the buffers once at the end
@@ -239,6 +267,8 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                 rsltmeshdata.paint_static_mesh();
 
                 rsltmeshdata.paint_static_mesh_boundaries();
+
+                contour_bar_data.draw_contour_bar();
 
             }
         }
