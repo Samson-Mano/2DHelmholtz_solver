@@ -3,6 +3,75 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+
+# ======================
+# ALLOW ONLY bin/x64/Release
+# ======================
+
+# First, ignore ALL bin folders
+bin/
+# x64/
+
+# Then, specifically unignore bin/x64/Release and ALL its contents
+!bin/
+!bin/x64/
+!bin/x64/Release/
+!bin/x64/Release/*
+
+# Explicitly allow executable files if they exist
+!bin/x64/Release/*.exe
+!bin/x64/Release/*.dll
+!bin/x64/Release/*.pdb
+
+# ======================
+# IGNORE ALL OTHER RELEASE FOLDERS
+# ======================
+# x64/
+# [Rr]elease/
+*/[Rr]elease/
+*/*/[Rr]elease/
+
+# ======================
+# VISUAL STUDIO IGNORES (keep these at bottom)
+# ======================
+[Dd]ebug/
+[Dd]ebugPublic/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+
+
+# System files
+Thumbs.db
+Desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Large files
+*.bin
+*.dat
+*.h5
+*.hdf5
+*.log
+*.tmp
+*.temp
+
+
+
 # User-specific files
 *.rsuser
 *.suo
@@ -16,22 +85,6 @@
 # Mono auto generated files
 mono_crash.*
 
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-[Bb]in/
-[Oo]bj/
-[Oo]ut/
-[Ll]og/
-[Ll]ogs/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -363,3 +416,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /2DHelmholtz_solver/Example_model/Binary_files/single_square1.bin
 *.bin
+/2DHelmholtz_solver/src/solver/helmholtz_solverCPP/helmholtz_solverCPP/x64/Release/helmholt.21866450.tlog
+/2DHelmholtz_solver/src/solver/modalspectral_solverCPP/modalspectral_solverCPP/x64/Release
+/2DHelmholtz_solver/src/solver/helmholtz_solverCPP/helmholtz_solverCPP/x64/Release
