@@ -27,6 +27,7 @@ int main()
 
 	double frequency_value = 20.0;
 	int solver_type = 0;
+	int extendconstraints = 1;
 
 	stopwatch_events stopwatch;
 	std::stringstream stopwatch_elapsed_str;
@@ -58,7 +59,7 @@ int main()
 	spectral_order = 3; // For testing, override the spectral order to 3
 
 	helmholtz_2dsystem.spectral_order = spectral_order;
-
+	helmholtz_2dsystem.isExtendConstraints = extendconstraints == 1 ? true : false;
 
 	// ---------- Nodes ----------
 	int32_t nodeCount;
@@ -292,6 +293,18 @@ int main()
 
 	std::cout << "Finished reading edge constraints at " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
+	// Renumber the mesh
+	helmholtz_2dsystem.renumber_mesh();
+
+
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	std::cout << "Renumbering mesh completed at " + stopwatch_elapsed_str.str() + " secs" << std::endl;
+
+
+
 	/*
 	* Linear Solver not used
 	//____________ Set the Matrices _________________________
@@ -365,6 +378,7 @@ int main()
 
 
 	// Perform solve
+
 	helmholtz_spec_solver.solve_helmholtz_matrices(solver_type);
 
 	std::cout << "Solve complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;

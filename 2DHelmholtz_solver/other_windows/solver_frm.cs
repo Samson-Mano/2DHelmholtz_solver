@@ -147,9 +147,10 @@ namespace _2DHelmholtz_solver.other_windows
                 return;
             }
 
-            double[] solver_settings = new double[2];
+            double[] solver_settings = new double[3];
             solver_settings[0] = fe_data.wave_field_frequency_values;
             solver_settings[1] = solver_type;
+            solver_settings[2] = checkBox_extendnodeconstraints.Checked ? 1.0 : 0.0;
 
             // C# GUI exports model to a .bin file.
             // C# calls your C++ DLL (using P/Invoke).

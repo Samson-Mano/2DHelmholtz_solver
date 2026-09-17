@@ -77,7 +77,6 @@ private:
 	spectral_mesh2d spec_mesh2d;
 
 	int numDOF = 0;
-	std::unordered_map<int, int> nodeid_map; // Node ID map
 
 
 	// Eigen::SparseMatrix<double> global_k_matrix; // Global k Matrix (Ke - k^2 * Me)

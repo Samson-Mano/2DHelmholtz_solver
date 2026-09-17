@@ -11,6 +11,7 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 {
 	// Copy to local variable
 	this->linear_mesh = linear_mesh;
+	this->isExtendConstraints = linear_mesh.isExtendConstraints;
 
 	// Clear any existing spectral mesh data
 	spectral_node_list.clear();
@@ -201,20 +202,23 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double edge_node_fieldvalue = 0.0;
 				double edge_node_sourcevalue = 0.0;
 
-				if (edge_isboundarynode == true)
+				if (isExtendConstraints == true)
 				{
-					if (edge_isFieldBC == true)
+					// Extend the constraint from the end node to internal edge nodes using linear interpolation
+					if (edge_isboundarynode == true)
 					{
-						// Linear interpolation between start and end field values
-						edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
-							(1 + xi) * edge_endnode_fieldvalue);
+						if (edge_isFieldBC == true)
+						{
+							// Linear interpolation between start and end field values
+							edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
+								(1 + xi) * edge_endnode_fieldvalue);
+						}
+
+						// Linear interpolation for source value
+						edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
+							(1 + xi) * edge_endnode_sourcevalue);
 					}
-
-					// Linear interpolation for source value
-					edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
-						(1 + xi) * edge_endnode_sourcevalue);
 				}
-
 
 				create_spectral_nodes(node_id,
 					x, y, edge_isboundarynode, edge_isFieldBC, edge_node_fieldvalue, edge_node_sourcevalue); // Create edge node and store it
@@ -497,20 +501,25 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 				double edge_node_fieldvalue = 0.0;
 				double edge_node_sourcevalue = 0.0;
 
-				if (edge_isboundarynode == true)
+
+
+				if (isExtendConstraints == true)
 				{
-					if (edge_isFieldBC == true)
+					// Extend the constraint from the end node to internal edge nodes using linear interpolation
+					if (edge_isboundarynode == true)
 					{
-						// Linear interpolation between start and end field values
-						edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
-							(1 + xi) * edge_endnode_fieldvalue);
+						if (edge_isFieldBC == true)
+						{
+							// Linear interpolation between start and end field values
+							edge_node_fieldvalue = 0.5 * ((1 - xi) * edge_startnode_fieldvalue +
+								(1 + xi) * edge_endnode_fieldvalue);
+						}
+
+						// Linear interpolation for source value
+						edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
+							(1 + xi) * edge_endnode_sourcevalue);
 					}
-
-					// Linear interpolation for source value
-					edge_node_sourcevalue = 0.5 * ((1 - xi) * edge_startnode_sourcevalue +
-						(1 + xi) * edge_endnode_sourcevalue);
 				}
-
 
 				create_spectral_nodes(node_id,
 					x, y, edge_isboundarynode, edge_isFieldBC, edge_node_fieldvalue, edge_node_sourcevalue); // Create edge node and store it

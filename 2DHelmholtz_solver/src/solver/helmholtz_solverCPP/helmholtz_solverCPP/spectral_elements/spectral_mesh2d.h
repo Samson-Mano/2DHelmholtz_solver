@@ -182,6 +182,8 @@ class spectral_mesh2d
 {
 public:
 	int spectral_order = 1; // Spectral order of the finite element method (1 for linear, 2 for quadratic, etc.)
+	bool isExtendConstraints = false; // Flag to indicate whether to extend constraints to neighboring spectral nodes
+
 	std::unordered_map<int, spectral_node_store> spectral_node_list;
 	std::unordered_map<int, spectral_edge_store> spectral_edge_list;
 	std::unordered_map<int, spectral_trielement_store> spectral_trielement_list;

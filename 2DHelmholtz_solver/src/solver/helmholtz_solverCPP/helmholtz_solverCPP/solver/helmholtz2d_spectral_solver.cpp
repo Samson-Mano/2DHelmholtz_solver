@@ -43,15 +43,6 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 	report("Spectral mesh created");
 
 
-	// Create a node ID map (to create a nodes as ordered and numbered from 0,1,2...n)
-	int i = 0;
-	for (auto& nd : this->spec_mesh2d.spectral_node_list)
-	{
-		nodeid_map[nd.second.node_id] = i;
-		i++;
-	}
-
-
 	// Set the number of DOF
 	this->numDOF = static_cast<int>(spec_mesh2d.spectral_node_list.size());
 
@@ -269,7 +260,7 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			get_quadelement_normderivfield_vector(quad_elm, elem_coords, nen, element_normderivfield_vector);
 
 			//________________________________________________________________________________________________
-			// Step 6: Create Element source vector
+			// Step 6: Create Element source vector (Nodal source vector)
 			Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
 
 			get_quadelement_source_vector(quad_elm, element_field_BC_flag_vector,
@@ -1116,15 +1107,15 @@ void helmholtz2d_spectral_solver::set_global_matrix(const std::vector<int>& elem
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = this->nodeid_map[elem_nodes[i]];
+		int i_node= elem_nodes[i];
 
 		for (int j = 0; j < nen; j++)
 		{
 			// get the global map id
-			int j_node_map = this->nodeid_map[elem_nodes[j]];
+			int j_node = elem_nodes[j];
 
-			k_triplets.emplace_back(i_node_map, j_node_map, element_k_matrix(i, j));
-			m_triplets.emplace_back(i_node_map, j_node_map, element_m_matrix(i, j));
+			k_triplets.emplace_back(i_node, j_node, element_k_matrix(i, j));
+			m_triplets.emplace_back(i_node, j_node, element_m_matrix(i, j));
 
 			// Note: Triplets don’t accumulate — Eigen accumulates when building the sparse matrix.
 		}
@@ -1144,16 +1135,16 @@ void helmholtz2d_spectral_solver::set_complex_global_matrix(const std::vector<in
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = this->nodeid_map[elem_nodes[i]];
+		int i_node = elem_nodes[i];
 
 		for (int j = 0; j < nen; j++)
 		{
 			// get the global map id
-			int j_node_map = this->nodeid_map[elem_nodes[j]];
+			int j_node = elem_nodes[j];
 
 			std::complex<double> val = element_k_matrix(i, j) + element_kI_matrix(i, j);
 
-			triplets_system.emplace_back(i_node_map, j_node_map, val);
+			triplets_system.emplace_back(i_node, j_node, val);
 
 			// Note: Triplets don’t accumulate — Eigen accumulates when building the sparse matrix.
 		}
@@ -1169,9 +1160,9 @@ void helmholtz2d_spectral_solver::set_global_vector(const std::vector<int>& elem
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = this->nodeid_map[elem_nodes[i]];
+		int i_node = elem_nodes[i];
 
-		global_vector(i_node_map) += element_vector(i);
+		global_vector(i_node) += element_vector(i);
 	}
 	//
 }
@@ -1184,9 +1175,9 @@ void helmholtz2d_spectral_solver::set_global_BC_flag_vector(const std::vector<in
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = this->nodeid_map[elem_nodes[i]];
+		int i_node = elem_nodes[i];
 
-		global_BC_flag_vector(i_node_map) = element_BC_flag_vector(i);
+		global_BC_flag_vector(i_node) = element_BC_flag_vector(i);
 	}
 	//
 }
@@ -1415,7 +1406,7 @@ void helmholtz2d_spectral_solver::store_results()
 		// double rand_result = std::sin(node.x * 10.0) * std::cos(node.y * 10.0); // Random value between 0 and 1
 
 		// retrive the results
-		int nd_idx = nodeid_map[nodeid];
+		int nd_idx = nodeid;
 		double uR = this->u_real(nd_idx);
 		double uI = this->u_imag(nd_idx);
 		double uMag = std::abs(this->u_complex(nd_idx));
@@ -1786,15 +1777,6 @@ void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
 	}
 	text_file << "\n";
 
-	text_file << "=== Field values (Node ID mapped) ===\n";
-	for (int i = 0; i < numDOF; i++)
-	{
-		double real_part = u_real(nodeid_map[i]);
-
-		text_file << std::setw(15) << std::setprecision(6) << real_part << "\n";
-
-	}
-	text_file << "\n";
 
 	text_file.close();
 
@@ -1819,22 +1801,6 @@ void helmholtz2d_spectral_solver::store_matrices_text_debug()
 		// Create debug directory if it doesn't exist
 		std::string debug_dir = "debug_output";
 		system(("mkdir " + debug_dir).c_str()); // Windows: "mkdir " + debug_dir, Linux: "mkdir -p " + debug_dir
-
-		// 1. Print node id map
-		std::ofstream node_map_file(debug_dir + "/nodeid_map.txt");
-
-		if (node_map_file.is_open())
-		{
-			node_map_file << "Node ID Map (original_id -> index):\n";
-
-			for (const auto& nd_map : nodeid_map)
-			{
-				node_map_file << "  Node " << nd_map.first << " -> Index " << nd_map.second << "\n";
-			}
-
-			node_map_file.close();
-			// std::cout << "  Wrote: " << debug_dir << "/nodeid_map.txt\n";
-		}
 
 
 		// 2. Print node details (CSV format for easy import to Excel/Python)
