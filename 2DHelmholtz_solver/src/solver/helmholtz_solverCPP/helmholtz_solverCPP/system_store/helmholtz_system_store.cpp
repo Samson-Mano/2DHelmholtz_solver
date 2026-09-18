@@ -206,7 +206,7 @@ void helmholtz_system_store::renumber_mesh()
 	std::unordered_map<int, edge_store> temp_edge_list;
 	std::unordered_map<int, trielement_store> temp_trielement_list;
 	std::unordered_map<int, quadelement_store> temp_quadelement_list;
-	std::unordered_map<int, material_store> temp_material_list;
+	// std::unordered_map<int, material_store> temp_material_list;
 
 	std::unordered_map<int, std::vector<int>> temp_node_edge_map;
 
@@ -215,7 +215,7 @@ void helmholtz_system_store::renumber_mesh()
 	temp_edge_list.reserve(edge_list.size());
 	temp_trielement_list.reserve(trielement_list.size());
 	temp_quadelement_list.reserve(quadelement_list.size());
-	temp_material_list.reserve(material_list.size());
+	// temp_material_list.reserve(material_list.size());
 
 	temp_node_edge_map.reserve(node_edge_map.size());	
 

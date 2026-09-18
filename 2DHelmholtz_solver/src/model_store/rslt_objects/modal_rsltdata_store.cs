@@ -161,7 +161,12 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             foreach (var md_rslt in mode_results)
             {
                 // Normalize to -1..1
-                double normalized = maxAbs > 1e-12 ? md_rslt.Value / maxAbs : 0.0;
+                // double normalized = Math.Abs(mode_max - mode_min) > 1e-12 ? ((md_rslt.Value - mode_min) / (mode_max - mode_min) : 0.0;
+
+                // Normalize to -1..1
+                double normalized = maxAbs > 1e-12 ? ((md_rslt.Value / maxAbs) + 1.0) * 0.5 : 0.0;
+
+
 
                 modal_rsltnode_store rslt_nd = modal_rslt_nodes[md_rslt.Key];
 

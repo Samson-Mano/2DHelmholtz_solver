@@ -39,15 +39,6 @@ void modal_spectral_solver::create_global_matrices()
 	report("Spectral mesh created");
 
 
-	// Create a node ID map (to create a nodes as ordered and numbered from 0,1,2...n)
-	int i = 0;
-	for (auto& nd : this->spec_mesh2d.spectral_node_list)
-	{
-		nodeid_map[nd.second.node_id] = i;
-		i++;
-	}
-
-
 	// Set the number of DOF
 	this->numDOF = static_cast<int>(spec_mesh2d.spectral_node_list.size());
 
@@ -789,12 +780,12 @@ void modal_spectral_solver::set_global_matrix(const std::vector<int>& elem_nodes
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = this->nodeid_map[elem_nodes[i]];
+		int i_node_map = elem_nodes[i];
 
 		for (int j = 0; j < nen; j++)
 		{
 			// get the global map id
-			int j_node_map = this->nodeid_map[elem_nodes[j]];
+			int j_node_map = elem_nodes[j];
 
 			double k_val = element_k_matrix(i, j);
 			double m_val = element_m_matrix(i, j);
@@ -819,7 +810,7 @@ void modal_spectral_solver::set_global_BC_flag_vector(const std::vector<int>& el
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = this->nodeid_map[elem_nodes[i]];
+		int i_node_map = elem_nodes[i];
 
 		global_BC_flag_vector(i_node_map) = element_BC_flag_vector(i);
 	}
@@ -1230,7 +1221,7 @@ void modal_spectral_solver::store_results_with_index()
 		for (const auto& node : spec_mesh2d.renderer_node_points)
 		{
 			int32_t node_id = static_cast<int32_t>(node.n_id);
-			int nd_idx = nodeid_map[node.n_id];
+			int nd_idx = node_id;
 			double mode_value = natural_modes(nd_idx, mode_id);
 
 			bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
@@ -1492,7 +1483,7 @@ void modal_spectral_solver::store_results_text_debug()
 		for (const auto& node : spec_mesh2d.renderer_node_points)
 		{
 			int32_t node_id = static_cast<int32_t>(node.n_id);
-			int nd_idx = nodeid_map[node.n_id];
+			int nd_idx = node_id;
 			double mode_value = natural_modes(nd_idx, mode_id);
 
 			text_file << "  " << node_id << ", " << mode_value << "\n";

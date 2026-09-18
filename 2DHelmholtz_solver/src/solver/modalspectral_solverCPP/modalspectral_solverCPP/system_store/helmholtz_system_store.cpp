@@ -201,6 +201,151 @@ void helmholtz_system_store::add_edgeconstraint(const int& edge_id,
 
 
 
+void helmholtz_system_store::renumber_mesh()
+{
+	std::unordered_map<int, node_store> temp_node_list;
+	std::unordered_map<int, edge_store> temp_edge_list;
+	std::unordered_map<int, trielement_store> temp_trielement_list;
+	std::unordered_map<int, quadelement_store> temp_quadelement_list;
+	// std::unordered_map<int, material_store> temp_material_list;
+
+	std::unordered_map<int, std::vector<int>> temp_node_edge_map;
+
+	// Reserve space to prevent rehashing
+	temp_node_list.reserve(node_list.size());
+	temp_edge_list.reserve(edge_list.size());
+	temp_trielement_list.reserve(trielement_list.size());
+	temp_quadelement_list.reserve(quadelement_list.size());
+	// temp_material_list.reserve(material_list.size());
+
+	temp_node_edge_map.reserve(node_edge_map.size());
+
+
+	//____________________________________________________________________________________________
+	// Create the node map
+	std::unordered_map<int, int> nodeid_map;
+	nodeid_map.reserve(node_list.size());
+
+	// Process nodes and create a new node list with renumbered IDs
+	int nd_id_t = 0;
+	for (const auto& nd_m : node_list)
+	{
+		const node_store& nd = nd_m.second;
+
+		// Node addition with move semantics
+		node_store temp_node;
+		temp_node.node_id = nd_id_t;
+		temp_node.x_coord = nd.x_coord;
+		temp_node.y_coord = nd.y_coord;
+
+		temp_node.isboundarynode = nd.isboundarynode;
+		temp_node.isFieldBC = nd.isFieldBC;
+		temp_node.fieldvalue = nd.fieldvalue; // Field value in the node
+		temp_node.sourcevalue = nd.sourcevalue; // Source value in the node
+
+
+		temp_node_list.emplace(nd_id_t, std::move(temp_node));
+		nodeid_map.emplace(nd.node_id, nd_id_t);
+		nd_id_t++;
+	}
+
+
+	//____________________________________________________________________________________________
+	// Create the element id map
+	std::unordered_map<int, int> elemid_map;
+	elemid_map.reserve(trielement_list.size() + quadelement_list.size());
+
+	int elem_id_t = 0;
+
+	// Process triangles and create a new element list with renumbered IDs
+	for (const auto& tri_m : trielement_list)
+	{
+		const trielement_store& tri = tri_m.second;
+
+		trielement_store temp_trielement;
+		temp_trielement.tri_id = elem_id_t;
+		temp_trielement.nodeid1 = nodeid_map[tri.nodeid1];
+		temp_trielement.nodeid2 = nodeid_map[tri.nodeid2];
+		temp_trielement.nodeid3 = nodeid_map[tri.nodeid3];
+		temp_trielement.materialid = tri.materialid;
+
+		temp_trielement_list.emplace(elem_id_t, std::move(temp_trielement));
+		elemid_map.emplace(tri.tri_id, elem_id_t);
+		elem_id_t++;
+	}
+
+	// Process quads and create a new element list with renumbered IDs
+	for (const auto& quad_m : quadelement_list)
+	{
+		const quadelement_store& quad = quad_m.second;
+
+		quadelement_store temp_quadelement;
+		temp_quadelement.quad_id = elem_id_t;
+		temp_quadelement.nodeid1 = nodeid_map[quad.nodeid1];
+		temp_quadelement.nodeid2 = nodeid_map[quad.nodeid2];
+		temp_quadelement.nodeid3 = nodeid_map[quad.nodeid3];
+		temp_quadelement.nodeid4 = nodeid_map[quad.nodeid4];
+		temp_quadelement.materialid = quad.materialid;
+
+		temp_quadelement_list.emplace(elem_id_t, std::move(temp_quadelement));
+		elemid_map.emplace(quad.quad_id, elem_id_t);
+		elem_id_t++;
+	}
+
+
+
+	//____________________________________________________________________________________________
+	// Create the edge id map
+	//std::unordered_map<int, int> edgeid_map;
+	//edgeid_map.reserve(edge_list.size());
+
+	// reset adjacency map
+	node_edge_map.clear();
+
+	// Process edges and create a new edge list with renumbered IDs
+	int edge_id_t = 0;
+	for (const auto& edge_m : edge_list)
+	{
+		const edge_store& edge = edge_m.second;
+
+		edge_store temp_edge;
+		temp_edge.edge_id = edge_id_t;
+		temp_edge.startnodeid = nodeid_map[edge.startnodeid];
+		temp_edge.endnodeid = nodeid_map[edge.endnodeid];
+
+		temp_edge.leftfaceid = (edge.leftfaceid != -1) ? elemid_map[edge.leftfaceid] : -1;
+		temp_edge.rightfaceid = (edge.rightfaceid != -1) ? elemid_map[edge.rightfaceid] : -1;
+
+		temp_edge.isboundaryedge = edge.isboundaryedge;
+		temp_edge.isSommerfieldBC = edge.isSommerfieldBC;
+		temp_edge.isFieldBC = edge.isFieldBC;
+		temp_edge.isDerivFieldBC = edge.isDerivFieldBC;
+		temp_edge.fieldvalue = edge.fieldvalue;
+		temp_edge.normalderivfieldvalue = edge.normalderivfieldvalue;
+
+
+		temp_edge_list.emplace(edge_id_t, std::move(temp_edge));
+
+		// create the node-to-edge map for both start and end nodes
+		node_edge_map[nodeid_map[edge.startnodeid]].push_back(edge_id_t);
+		node_edge_map[nodeid_map[edge.endnodeid]].push_back(edge_id_t);
+
+		// edgeid_map.emplace(edge.edge_id, edge_id_t);
+		edge_id_t++;
+	}
+
+	// Move to original 
+	node_list = std::move(temp_node_list);
+	edge_list = std::move(temp_edge_list);
+	trielement_list = std::move(temp_trielement_list);
+	quadelement_list = std::move(temp_quadelement_list);
+
+}
+
+
+
+
+
 void helmholtz_system_store::set_edge_faceid(const int& startnodeid,
 	const int& endnodeid, const int& face_id)
 {

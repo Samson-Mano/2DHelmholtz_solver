@@ -173,11 +173,11 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             // Helper function for normalization
             double Normalize(double value, double min, double max)
             {
-                double maxAbs = Math.Max(Math.Abs(max), Math.Abs(min));
+                // double maxAbs = Math.Max(Math.Abs(max), Math.Abs(min));
 
-                if (Math.Abs(maxAbs) < 1e-12)  // Prevent division by zero
+                if (Math.Abs(max - min) < 1e-12)  // Prevent division by zero
                     return 0.0; // Or 0.0 depending on what makes sense visually
-                return value / maxAbs;
+                return (value - min) / (max - min);
             }
 
             void UpdateMeshValues(Func<rsltnode_store, double> valueSelector, double min, double max)

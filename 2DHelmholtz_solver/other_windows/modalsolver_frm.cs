@@ -324,10 +324,10 @@ namespace _2DHelmholtz_solver.other_windows
                     return;
                 }
 
-                double[] solver_settings = new double[2];
+                double[] solver_settings = new double[3];
                 solver_settings[0] = number_of_modes;
                 solver_settings[1] = solver_type;
-
+                solver_settings[2] = 1; // Extend constraint default
 
                 // Step 5: Safely call the solver
                 var result = await Task.Run(() => modalSolverInterop.SolveSafely(

@@ -25,7 +25,7 @@ int main()
 	std::ifstream infile(input_file, std::ios::binary);
 	// std::ofstream outfile(output_file, std::ios::binary);
 
-	double frequency_value = 20.0;
+	double frequency_value = 1.0;
 	int solver_type = 0;
 	int extendconstraints = 1;
 
@@ -386,7 +386,7 @@ int main()
 
 	helmholtz_spec_solver.store_k_m_matrices_text_debug();
 
-	// helmholtz_spec_solver.store_matrices_text_debug();
+	helmholtz_spec_solver.store_matrices_text_debug();
 
 
 

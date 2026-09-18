@@ -80,7 +80,7 @@ struct material_store
 class helmholtz_system_store
 {
 public:
-	int spectral_order = 1; // Spectral order of the finite element method (1 for linear, 2 for quadratic, etc.)
+	int spectral_order = 1; // Spectral order of the spectral element method
 	bool isExtendConstraints = false; // Flag to indicate whether to extend constraints to neighboring spectral nodes
 
 	std::unordered_map<int, node_store> node_list;

@@ -83,11 +83,12 @@ private:
 	// Eigen::SparseMatrix<std::complex<double>> global_kI_matrix; // kI Global kI Matrix Boundary impedance matrix (Absorbing Boundary condition - Sommerfield)
 	Eigen::SparseMatrix<std::complex<double>> global_system_matrix; // (Ke - k^2 * Me) + kI 
 
-	Eigen::VectorXd global_field_vector; // Global field Vector
-	Eigen::VectorXd global_normalderivfield_vector; // Global derivative normal field Vector
+	Eigen::VectorXd global_dirichlet_field_vector; // Global field Vector
+	Eigen::VectorXd global_neumann_normalderivfield_vector; // Global derivative normal field Vector
 	Eigen::VectorXd global_source_vector; // Global source Vector
 
 	Eigen::VectorXi global_dirichlet_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
+	Eigen::VectorXi global_source_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
 
 
 	Eigen::SparseMatrix<std::complex<double>> K_ff;
@@ -149,6 +150,7 @@ private:
 
 	void get_trielement_source_vector(const spectral_trielement_store& tri_elm,
 		Eigen::VectorXi& dirichlet_BC_flag,
+		Eigen::VectorXi& source_BC_flag,
 		Eigen::VectorXd& dirichlet_vector,
 		Eigen::VectorXd& source_vector);
 
@@ -182,6 +184,8 @@ private:
 		const Eigen::VectorXi& element_BC_flag_vector, Eigen::VectorXi& global_BC_flag_vector);
 	
 
+	void set_renormalize_vector(Eigen::VectorXi& global_BC_vector, Eigen::VectorXd& global_vector);
+
 
 	void report_vandermondematrix_conditioning(const Eigen::MatrixXd& invVanderMondematrix);
 
@@ -213,6 +217,7 @@ private:
 
 	void get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
 		Eigen::VectorXi& dirichlet_BC_flag,
+		Eigen::VectorXi& source_BC_flag,
 		Eigen::VectorXd& dirichlet_vector,
 		Eigen::VectorXd& source_vector);
 

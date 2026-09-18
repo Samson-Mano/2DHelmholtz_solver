@@ -74,6 +74,8 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             #version 330 core
 
+            uniform float IsOscillation = 0.0f; // Flag to indicate if oscillation is active
+
             in vec3 v_Color;
             in float v_is_dynamic;
             in float v_deflscale;
@@ -84,7 +86,13 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             vec3 jetHeatmap(float value) 
             {
-                float t = (value + 1.0) * 0.5;
+                float t = value;
+                
+                if (IsOscillation == 1.0f)
+                {
+                    t = (value + 1.0) * 0.5; // Normalize to [0, 1] for oscillation
+                }
+
                 return clamp(vec3(1.5) - abs(4.0 * vec3(t) + vec3(-3, -2, -1)), vec3(0), vec3(1));
             }
 

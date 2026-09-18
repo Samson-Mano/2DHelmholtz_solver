@@ -896,6 +896,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void updateAnimation(float sinevalue)
         {
 
+            mesh_tris.tri_shader.SetFloat("IsOscillation", 1.0f);
+            mesh_boundaries.line_shader.SetFloat("IsOscillation", 1.0f);
+            mesh_points.point_shader.SetFloat("IsOscillation", 1.0f);
 
             mesh_tris.tri_shader.SetFloat("sinevalue", sinevalue);
             mesh_boundaries.line_shader.SetFloat("sinevalue", sinevalue);

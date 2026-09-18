@@ -136,8 +136,6 @@ private:
 
 
 	int numDOF = 0;
-	std::unordered_map<int, int> nodeid_map; // Node ID map
-
 
 	 Eigen::SparseMatrix<double> global_k_matrix; // Global ke Matrix [Ke]
 	 Eigen::SparseMatrix<double> global_m_matrix; // Global Me Matrix [Me]

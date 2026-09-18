@@ -33,11 +33,13 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 
 	int number_of_modes = -1;
 	int solver_type = -1;
+	int extendconstraints = 1;
 
-	if (solver_settings && solver_settings_count >= 2)
+	if (solver_settings && solver_settings_count >= 3)
 	{
 		number_of_modes = static_cast<int>(solver_settings[0]);
 		solver_type = static_cast<int>(solver_settings[1]);
+		extendconstraints = static_cast<int>(solver_settings[2]);
 
 		msg = "Solver settings received: Number of modes requested = " + std::to_string(number_of_modes);
 		if (callback) callback(msg.c_str());
@@ -101,6 +103,7 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	infile.read(reinterpret_cast<char*>(&spectral_order), 4);
 
 	helmholtz_2dsystem.spectral_order = spectral_order;
+	helmholtz_2dsystem.isExtendConstraints = extendconstraints == 1 ? true : false;
 
 	// ---------- Nodes ----------
 	int32_t nodeCount;
@@ -338,6 +341,18 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	if (callback) callback(msg.c_str());
 
 	
+	// Renumber the mesh
+	helmholtz_2dsystem.renumber_mesh();
+
+
+	stopwatch_elapsed_str.str("");       // clear the string content
+	stopwatch_elapsed_str.clear();       // clear any error flags
+	stopwatch_elapsed_str << std::fixed << std::setprecision(6) << stopwatch.elapsed();
+
+	std::cout << "Renumbering mesh completed at " + stopwatch_elapsed_str.str() + " secs" << std::endl;
+
+
+
 
 	//_________________________________________________________
 	// Helmholtz modal spectral solver

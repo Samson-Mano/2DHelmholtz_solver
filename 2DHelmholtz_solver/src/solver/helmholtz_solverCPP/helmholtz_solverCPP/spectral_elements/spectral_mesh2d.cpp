@@ -1204,6 +1204,14 @@ void spectral_mesh2d::create_local_id_structure(int order)
 	quad_element_id_structure.corner_nodes.push_back(idx++);
 
 
+	// Swap the corner nodes to match the order (0,1,2,3) for quad element
+	std::swap(quad_element_id_structure.corner_nodes[2], quad_element_id_structure.corner_nodes[3]);
+
+	// Rever the edge 3 and edge 4 node order to match the order (0,1,2,3) for quad element
+	std::reverse(quad_element_id_structure.edge_node_ids[2].begin(), quad_element_id_structure.edge_node_ids[2].end());
+	std::reverse(quad_element_id_structure.edge_node_ids[3].begin(), quad_element_id_structure.edge_node_ids[3].end());
+
+
 
 	//__________________________________________________________________________________________________
 	//__________________________________________________________________________________________________

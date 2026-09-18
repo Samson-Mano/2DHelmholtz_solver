@@ -58,11 +58,12 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 	std::vector<Eigen::Triplet<double>> m_triplets;
 
 
-	global_field_vector.setZero(numDOF); // Global field Vector
-	global_normalderivfield_vector.setZero(numDOF); // Global derivative normal field Vector
+	global_dirichlet_field_vector.setZero(numDOF); // Global field Vector
+	global_neumann_normalderivfield_vector.setZero(numDOF); // Global derivative normal field Vector
 	global_source_vector.setZero(numDOF); // Global source Vector
 
 	global_dirichlet_BC_flags_vector.setZero(numDOF); // Global boundary condition Vector (To track the nodes where prescribed field is applied)
+	global_source_BC_flags_vector.setZero(numDOF); // Global boundary condition Vector (To track the nodes where prescribed field is applied)
 
 
 	// get the quadrature points and the basis term
@@ -134,8 +135,8 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 			//________________________________________________________________________________________________
 			// Step 4: Create Element field vector
-			Eigen::VectorXi element_field_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element field vector BC flag
-			Eigen::VectorXd element_field_vector = Eigen::VectorXd::Zero(nen); // Element field vector
+			Eigen::VectorXi element_field_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element dirichlet field vector BC flag
+			Eigen::VectorXd element_field_vector = Eigen::VectorXd::Zero(nen); // Element dirichlet field vector
 
 
 			get_trielement_field_vector(tri_elm, element_field_BC_flag_vector, element_field_vector);
@@ -143,15 +144,17 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 			//________________________________________________________________________________________________
 			// Step 5: Create Element normal derivative field vector
-			Eigen::VectorXd element_normderivfield_vector = Eigen::VectorXd::Zero(nen); // Element normal derivative field vector
+			Eigen::VectorXd element_normderivfield_vector = Eigen::VectorXd::Zero(nen); // Element neumann normal derivative field vector
 
 			get_trielement_normderivfield_vector(tri_elm, elem_coords, nen, element_normderivfield_vector);
 
 			//________________________________________________________________________________________________
 			// Step 6: Create Element source vector
+			Eigen::VectorXi element_source_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element source vector BC flag
 			Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
 
-			get_trielement_source_vector(tri_elm, element_field_BC_flag_vector,
+
+			get_trielement_source_vector(tri_elm, element_field_BC_flag_vector, element_source_BC_flag_vector,
 				element_field_vector, element_source_vector);
 
 
@@ -171,10 +174,10 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 
 			set_global_vector(elem_nodes, nen,
-				element_field_vector, global_field_vector);
+				element_field_vector, global_dirichlet_field_vector);
 
 			set_global_vector(elem_nodes, nen,
-				element_normderivfield_vector, global_normalderivfield_vector);
+				element_normderivfield_vector, global_neumann_normalderivfield_vector);
 
 			set_global_vector(elem_nodes, nen,
 				element_source_vector, global_source_vector);
@@ -182,6 +185,9 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 			set_global_BC_flag_vector(elem_nodes, nen,
 				element_field_BC_flag_vector, global_dirichlet_BC_flags_vector);
+
+			set_global_BC_flag_vector(elem_nodes, nen,
+				element_source_BC_flag_vector, global_source_BC_flags_vector);
 
 		}
 
@@ -261,9 +267,11 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 			//________________________________________________________________________________________________
 			// Step 6: Create Element source vector (Nodal source vector)
+			Eigen::VectorXi element_source_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element source vector BC flag
 			Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
 
 			get_quadelement_source_vector(quad_elm, element_field_BC_flag_vector,
+				element_source_BC_flag_vector,
 				element_field_vector, element_source_vector);
 
 			//________________________________________________________________________________________________
@@ -283,10 +291,10 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 
 			set_global_vector(elem_nodes, nen,
-				element_field_vector, global_field_vector);
+				element_field_vector, global_dirichlet_field_vector);
 
 			set_global_vector(elem_nodes, nen,
-				element_normderivfield_vector, global_normalderivfield_vector);
+				element_normderivfield_vector, global_neumann_normalderivfield_vector);
 
 			set_global_vector(elem_nodes, nen,
 				element_source_vector, global_source_vector);
@@ -295,11 +303,18 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			set_global_BC_flag_vector(elem_nodes, nen,
 				element_field_BC_flag_vector, global_dirichlet_BC_flags_vector);
 
+			set_global_BC_flag_vector(elem_nodes, nen,
+				element_source_BC_flag_vector, global_source_BC_flags_vector);
+
 		}
 
 		report("Quadrilateral Spectral Elements Global Matrices Created");
 		//
 	}
+
+	// Renormalize the global source vector by the number of elements
+	set_renormalize_vector(global_dirichlet_BC_flags_vector, global_dirichlet_field_vector);
+	set_renormalize_vector(global_source_BC_flags_vector, global_source_vector);
 
 	// Set the global sparse matrix
 	global_system_matrix.setFromTriplets(triplets_system.begin(), triplets_system.end());
@@ -698,6 +713,7 @@ void helmholtz2d_spectral_solver::get_trielement_normderivfield_vector(const spe
 
 void helmholtz2d_spectral_solver::get_trielement_source_vector(const spectral_trielement_store& tri_elm,
 	Eigen::VectorXi& dirichlet_BC_flag,
+	Eigen::VectorXi& source_BC_flag,
 	Eigen::VectorXd& dirichlet_vector,
 	Eigen::VectorXd& source_vector)
 {
@@ -706,25 +722,76 @@ void helmholtz2d_spectral_solver::get_trielement_source_vector(const spectral_tr
 
 	for (int i = 0; i < 3; i++)
 	{
-		const spectral_node_store& nd = spec_mesh2d.spectral_node_list[corner_nodes[i]];
+		const spectral_node_store& nd1 = spec_mesh2d.spectral_node_list[corner_nodes[i]];
 
-		if (nd.isboundarynode == true)
+		// Corner 1
+		if (nd1.isboundarynode == true)
 		{
 			// int local_idx = (i * spec_mesh2d.spectral_order);
 			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
 
-			if (nd.isFieldBC == true)
+			if (nd1.isFieldBC == true)
 			{
 				// Apply field value at the node
-				dirichlet_vector(local_idx) = nd.fieldvalue;
+				dirichlet_vector(local_idx) = nd1.fieldvalue;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
 			else
 			{
 				// Apply source value at the node
-				source_vector(local_idx) = nd.sourcevalue;
+				source_vector(local_idx) = nd1.sourcevalue;
+				source_BC_flag(local_idx) = 1;
 			}
 		}
+
+		// edge nodes
+		const std::vector<int>& edge_node_local_ids = spec_mesh2d.tri_element_id_structure.edge_node_ids[i];
+		int j = 0;
+		for (const int& edge_nd_id : tri_elm.edge_node_ids[i])
+		{
+
+			const spectral_node_store& edge_nd = spec_mesh2d.spectral_node_list[edge_nd_id];
+
+			if (edge_nd.isboundarynode == true)
+			{
+				int local_idx = edge_node_local_ids[j];
+
+				if (edge_nd.isFieldBC == true)
+				{
+					// Apply field value at the node
+					dirichlet_vector(local_idx) = edge_nd.fieldvalue;
+					dirichlet_BC_flag(local_idx) = 1;
+				}
+				else
+				{
+					// Apply source value at the node
+					source_vector(local_idx) = edge_nd.sourcevalue;
+					source_BC_flag(local_idx) = 1;
+				}
+			}
+
+			j++;	
+		}
+
+		// Corner 2
+		const spectral_node_store& nd2 = spec_mesh2d.spectral_node_list[corner_nodes[(i + 1) % 3]];
+		if (nd2.isboundarynode == true)
+		{
+			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[(i + 1) % 3];
+			if (nd2.isFieldBC == true)
+			{
+				// Apply field value at the node
+				dirichlet_vector(local_idx) = nd2.fieldvalue;
+				dirichlet_BC_flag(local_idx) = 1;
+			}
+			else
+			{
+				// Apply source value at the node
+				source_vector(local_idx) = nd2.sourcevalue;
+				source_BC_flag(local_idx) = 1;
+			}
+		}
+
 
 	}
 	//
@@ -1063,6 +1130,7 @@ void helmholtz2d_spectral_solver::get_quadelement_normderivfield_vector(const sp
 
 void helmholtz2d_spectral_solver::get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
 	Eigen::VectorXi& dirichlet_BC_flag,
+	Eigen::VectorXi& source_BC_flag,
 	Eigen::VectorXd& dirichlet_vector,
 	Eigen::VectorXd& source_vector)
 {
@@ -1071,23 +1139,76 @@ void helmholtz2d_spectral_solver::get_quadelement_source_vector(const spectral_q
 
 	for (int i = 0; i < 4; i++)
 	{
-		const spectral_node_store& nd = spec_mesh2d.spectral_node_list[corner_nodes[i]];
+		// Corner 1
+		const spectral_node_store& nd1 = spec_mesh2d.spectral_node_list[corner_nodes[i]];
 
-		if (nd.isboundarynode == true)
+		if (nd1.isboundarynode == true)
 		{
 			// int local_idx = (i * spec_mesh2d.spectral_order);
 			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
 
-			if (nd.isFieldBC == true)
+			if (nd1.isFieldBC == true)
 			{
 				// Apply field value at the node
-				dirichlet_vector(local_idx) = nd.fieldvalue;
+				dirichlet_vector(local_idx) = nd1.fieldvalue;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
 			else
 			{
 				// Apply source value at the node
-				source_vector(local_idx) = nd.sourcevalue;
+				source_vector(local_idx) = nd1.sourcevalue;
+				source_BC_flag(local_idx) = 1;
+			}
+		}
+
+		// Edge nodes
+		const std::vector<int>& edge_node_local_ids = spec_mesh2d.quad_element_id_structure.edge_node_ids[i];
+		int j = 0;
+		for (const int& edge_nd_id : quad_elm.edge_node_ids[i])
+		{
+
+			const spectral_node_store& edge_nd = spec_mesh2d.spectral_node_list[edge_nd_id];
+
+			if (edge_nd.isboundarynode == true)
+			{
+				int local_idx = edge_node_local_ids[j];
+
+				if (edge_nd.isFieldBC == true)
+				{
+					// Apply field value at the node
+					dirichlet_vector(local_idx) = edge_nd.fieldvalue;
+					dirichlet_BC_flag(local_idx) = 1;
+				}
+				else
+				{
+					// Apply source value at the node
+					source_vector(local_idx) = edge_nd.sourcevalue;
+					source_BC_flag(local_idx) = 1;
+				}
+			}
+
+			j++;
+		}
+
+		// Corner 2
+		const spectral_node_store& nd2 = spec_mesh2d.spectral_node_list[corner_nodes[(i + 1) % 4]];
+
+		if (nd2.isboundarynode == true)
+		{
+			// int local_idx = (i * spec_mesh2d.spectral_order);
+			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[(i + 1) % 4];
+
+			if (nd2.isFieldBC == true)
+			{
+				// Apply field value at the node
+				dirichlet_vector(local_idx) = nd2.fieldvalue;
+				dirichlet_BC_flag(local_idx) = 1;
+			}
+			else
+			{
+				// Apply source value at the node
+				source_vector(local_idx) = nd2.sourcevalue;
+				source_BC_flag(local_idx) = 1;
 			}
 		}
 
@@ -1177,11 +1298,26 @@ void helmholtz2d_spectral_solver::set_global_BC_flag_vector(const std::vector<in
 		// get the global map id
 		int i_node = elem_nodes[i];
 
-		global_BC_flag_vector(i_node) = element_BC_flag_vector(i);
+		global_BC_flag_vector(i_node) += element_BC_flag_vector(i);
 	}
 	//
 }
 
+
+void helmholtz2d_spectral_solver::set_renormalize_vector(Eigen::VectorXi& global_BC_vector, 
+	Eigen::VectorXd& global_vector)
+{
+	for (int i = 0; i < this->numDOF; ++i)
+	{
+		if (global_BC_vector(i) > 0)
+		{
+			global_vector(i) /= static_cast<double>(global_BC_vector(i));
+
+			global_BC_vector(i) = 1; // Set to 1 to indicate that this DOF has a BC applied
+		}
+	}
+
+}
 
 
 void helmholtz2d_spectral_solver::solve_dirichlet_BCs_elimination_method(Eigen::VectorXcd& u)
@@ -1194,7 +1330,7 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_elimination_method(Eigen::
 
 	for (int i = 0; i < this->numDOF; ++i)
 	{
-		if (global_dirichlet_BC_flags_vector(i))
+		if (global_dirichlet_BC_flags_vector(i) == 1)
 			fixed_dofs.push_back(i);
 		else
 			free_dofs.push_back(i);
@@ -1241,12 +1377,12 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_elimination_method(Eigen::
 
 
 	Eigen::VectorXcd F = global_source_vector.cast<std::complex<double>>()
-		+ global_normalderivfield_vector.cast<std::complex<double>>();
+		+ global_neumann_normalderivfield_vector.cast<std::complex<double>>();
 
 
 	for (int i : fixed_dofs)
 	{
-		std::complex<double> ui = global_field_vector(i);
+		std::complex<double> ui = global_dirichlet_field_vector(i);
 
 		for (Eigen::SparseMatrix<std::complex<double>>::InnerIterator it(global_system_matrix, i); it; ++it)
 		{
@@ -1289,7 +1425,11 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_elimination_method(Eigen::
 	// Fixed DOF assign the prescribed field value
 	for (int i : fixed_dofs)
 	{
-		u(i) = global_field_vector(i);
+		u(i) = global_dirichlet_field_vector(i);
+
+		double test =  global_dirichlet_field_vector(i);
+		double a = 1.0;
+
 	}
 	//
 }
@@ -1306,7 +1446,7 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_lagrange_method(Eigen::Vec
 
 	for (int i = 0; i < this->numDOF; ++i)
 	{
-		if (global_dirichlet_BC_flags_vector(i))
+		if (global_dirichlet_BC_flags_vector(i) == 1)
 			fixed_dofs.push_back(i);
 		else
 			free_dofs.push_back(i);
@@ -1352,7 +1492,7 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_lagrange_method(Eigen::Vec
 	// Eigen::VectorXcd F_aug = Eigen::VectorXcd::Zero(N + m);
 
 	Eigen::VectorXcd F = global_source_vector.cast<std::complex<double>>()
-		+ global_normalderivfield_vector.cast<std::complex<double>>();
+		+ global_neumann_normalderivfield_vector.cast<std::complex<double>>();
 
 	F_aug.head(N) = F;
 
@@ -1360,7 +1500,7 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_lagrange_method(Eigen::Vec
 	for (int j = 0; j < m; ++j)
 	{
 		int dof = fixed_dofs[j];
-		F_aug(N + j) = global_field_vector(dof);
+		F_aug(N + j) = global_dirichlet_field_vector(dof);
 	}
 
 
@@ -1862,15 +2002,15 @@ void helmholtz2d_spectral_solver::store_matrices_text_debug()
 
 
 		// 4. Print global field vector
-		if (global_field_vector.size() > 0)
+		if (global_dirichlet_field_vector.size() > 0)
 		{
 			std::ofstream field_file(debug_dir + "/global_field_vector.txt");
 			if (field_file.is_open())
 			{
 				field_file << "Index,Value\n";
-				for (int i = 0; i < global_field_vector.size(); ++i)
+				for (int i = 0; i < global_dirichlet_field_vector.size(); ++i)
 				{
-					field_file << i << "," << global_field_vector(i) << "\n";
+					field_file << i << "," << global_dirichlet_field_vector(i) << "\n";
 				}
 				field_file.close();
 				// std::cout << "  Wrote: " << debug_dir << "/global_field_vector.txt\n";
@@ -1952,7 +2092,7 @@ void helmholtz2d_spectral_solver::store_matrices_text_debug()
 				<< global_system_matrix.rows() << "x"
 				<< global_system_matrix.cols()
 				<< ", non-zeros: " << global_system_matrix.nonZeros() << "\n";
-			summary_file << "Global field vector size: " << global_field_vector.size() << "\n";
+			summary_file << "Global field vector size: " << global_dirichlet_field_vector.size() << "\n";
 			summary_file << "Dirichlet BC flags size: " << global_dirichlet_BC_flags_vector.size() << "\n";
 			summary_file << "K_ff matrix: " << K_ff.rows() << "x" << K_ff.cols() << "\n";
 			summary_file << "F_f vector size: " << F_f.size() << "\n";
