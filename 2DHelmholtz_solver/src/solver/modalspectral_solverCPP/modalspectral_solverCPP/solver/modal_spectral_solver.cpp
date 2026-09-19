@@ -81,12 +81,12 @@ void modal_spectral_solver::create_global_matrices()
 		for (auto& tri_elm_m : spec_mesh2d.spectral_trielement_list)
 		{
 			// get the element
-			spectral_trielement_store tri_elm = tri_elm_m.second;
+			const spectral_trielement_store& tri_elm = tri_elm_m.second;
 
 			//________________________________________________________________________________________________
 			// Step 1: Create local node & node coordinate list
 			// Build local node list _______________________________________________
-			std::vector<int> elem_nodes = tri_elm.lexi_ordered_node_ids;
+			const std::vector<int>& elem_nodes = tri_elm.lexi_ordered_node_ids;
 
 
 			// Get node coordinates ________________________________________________
@@ -267,7 +267,7 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 
 	for (int i = 0; i < this->numDOF; ++i)
 	{
-		if (global_dirichlet_BC_flags_vector(i))
+		if (global_dirichlet_BC_flags_vector(i) == 1)
 			fixed_dofs.push_back(i);
 		else
 			free_dofs.push_back(i);
@@ -378,6 +378,23 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		return false;
 	}
 
+	// Sort eigenvalues and eigenvectors in ascending order of eigenvalues
+	// Spectra returns ascending order for SmallestAlge, but sort defensively.
+	std::vector<int> idx(eigenvalues.size());
+	std::iota(idx.begin(), idx.end(), 0);
+	std::sort(idx.begin(), idx.end(),
+		[&](int a, int b) { return eigenvalues(a) < eigenvalues(b); });
+
+	Eigen::VectorXd sorted_vals(eigenvalues.size());
+	Eigen::MatrixXd sorted_vecs(eigenvectors.rows(), eigenvectors.cols());
+	for (int i = 0; i < static_cast<int>(idx.size()); ++i) {
+		sorted_vals(i) = eigenvalues(idx[i]);
+		sorted_vecs.col(i) = eigenvectors.col(idx[i]);
+	}
+	eigenvalues = std::move(sorted_vals);
+	eigenvectors = std::move(sorted_vecs);
+
+
 	// 4) Convert eigenvalues to frequencies
 	this->natural_frequencies.clear();
 	// this->natural_frequencies.reserve(eigenvalues.size());
@@ -398,17 +415,22 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		}
 	}
 
-	//// 5) Normalize mode shapes (mass-normalized)
-	//for (int i = 0; i < eigenvectors.cols(); ++i)
-	//{
-	//	Eigen::VectorXd phi = eigenvectors.col(i);
-	//	double norm = std::sqrt(phi.transpose() * M_ff * phi);
+	// 5) Normalize mode shapes (mass-normalized)
+	for (int i = 0; i < eigenvectors.cols(); ++i)
+	{
+		Eigen::VectorXd phi = eigenvectors.col(i);
+		double norm = std::sqrt(phi.transpose() * M_ff * phi);
 
-	//	if (norm > 1e-12)
-	//	{
-	//		eigenvectors.col(i) /= norm;
-	//	}
-	//}
+		if (norm > 1e-12)
+		{
+			eigenvectors.col(i) /= norm;
+		}
+		else
+		{
+			// Rigid body mode (set to 1.0 for all free DOFs)
+			eigenvectors.col(i) = Eigen::VectorXd::Ones(eigenvectors.rows());
+		}
+	}
 
 	// 6) Reconstruct full mode shapes
 	int total_dofs = static_cast<int>(global_k_matrix.rows());
@@ -573,24 +595,70 @@ void modal_spectral_solver::get_trielement_source_vector(const spectral_trieleme
 
 	for (int i = 0; i < 3; i++)
 	{
-		const spectral_node_store& nd = spec_mesh2d.spectral_node_list[corner_nodes[i]];
+		const spectral_node_store& nd1 = spec_mesh2d.spectral_node_list[corner_nodes[i]];
 
-		if (nd.isboundarynode == true)
+		// Corner 1
+		if (nd1.isboundarynode == true)
 		{
+			// int local_idx = (i * spec_mesh2d.spectral_order);
 			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
 
-			if (nd.isFieldBC == true)
+			if (nd1.isFieldBC == true)
 			{
 				// Apply field value at the node
-				// dirichlet_vector(local_idx) = nd.fieldvalue;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
 			else
 			{
 				// Apply source value at the node
-				// source_vector(local_idx) = nd.sourcevalue;
+
 			}
 		}
+
+		// edge nodes
+		const std::vector<int>& edge_node_local_ids = spec_mesh2d.tri_element_id_structure.edge_node_ids[i];
+		int j = 0;
+		for (const int& edge_nd_id : tri_elm.edge_node_ids[i])
+		{
+
+			const spectral_node_store& edge_nd = spec_mesh2d.spectral_node_list[edge_nd_id];
+
+			if (edge_nd.isboundarynode == true)
+			{
+				int local_idx = edge_node_local_ids[j];
+
+				if (edge_nd.isFieldBC == true)
+				{
+					// Apply field value at the node
+					dirichlet_BC_flag(local_idx) = 1;
+				}
+				else
+				{
+					// Apply source value at the node
+
+				}
+			}
+
+			j++;
+		}
+
+		// Corner 2
+		const spectral_node_store& nd2 = spec_mesh2d.spectral_node_list[corner_nodes[(i + 1) % 3]];
+		if (nd2.isboundarynode == true)
+		{
+			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[(i + 1) % 3];
+			if (nd2.isFieldBC == true)
+			{
+				// Apply field value at the node
+				dirichlet_BC_flag(local_idx) = 1;
+			}
+			else
+			{
+				// Apply source value at the node
+
+			}
+		}
+
 
 	}
 	//
@@ -738,22 +806,70 @@ void modal_spectral_solver::get_quadelement_source_vector(const spectral_quadele
 
 	for (int i = 0; i < 4; i++)
 	{
-		const spectral_node_store& nd = spec_mesh2d.spectral_node_list[corner_nodes[i]];
+		// Corner 1
+		const spectral_node_store& nd1 = spec_mesh2d.spectral_node_list[corner_nodes[i]];
 
-		if (nd.isboundarynode == true)
+		if (nd1.isboundarynode == true)
 		{
+			// int local_idx = (i * spec_mesh2d.spectral_order);
 			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
 
-			if (nd.isFieldBC == true)
+			if (nd1.isFieldBC == true)
 			{
 				// Apply field value at the node
-				// dirichlet_vector(local_idx) = nd.fieldvalue;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
 			else
 			{
 				// Apply source value at the node
-				// source_vector(local_idx) = nd.sourcevalue;
+
+			}
+		}
+
+		// Edge nodes
+		const std::vector<int>& edge_node_local_ids = spec_mesh2d.quad_element_id_structure.edge_node_ids[i];
+		int j = 0;
+		for (const int& edge_nd_id : quad_elm.edge_node_ids[i])
+		{
+
+			const spectral_node_store& edge_nd = spec_mesh2d.spectral_node_list[edge_nd_id];
+
+			if (edge_nd.isboundarynode == true)
+			{
+				int local_idx = edge_node_local_ids[j];
+
+				if (edge_nd.isFieldBC == true)
+				{
+					// Apply field value at the node
+					dirichlet_BC_flag(local_idx) = 1;
+				}
+				else
+				{
+					// Apply source value at the node
+
+				}
+			}
+
+			j++;
+		}
+
+		// Corner 2
+		const spectral_node_store& nd2 = spec_mesh2d.spectral_node_list[corner_nodes[(i + 1) % 4]];
+
+		if (nd2.isboundarynode == true)
+		{
+			// int local_idx = (i * spec_mesh2d.spectral_order);
+			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[(i + 1) % 4];
+
+			if (nd2.isFieldBC == true)
+			{
+				// Apply field value at the node
+				dirichlet_BC_flag(local_idx) = 1;
+			}
+			else
+			{
+				// Apply source value at the node
+
 			}
 		}
 
@@ -780,19 +896,19 @@ void modal_spectral_solver::set_global_matrix(const std::vector<int>& elem_nodes
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = elem_nodes[i];
+		int i_node = elem_nodes[i];
 
 		for (int j = 0; j < nen; j++)
 		{
 			// get the global map id
-			int j_node_map = elem_nodes[j];
+			int j_node = elem_nodes[j];
 
 			double k_val = element_k_matrix(i, j);
 			double m_val = element_m_matrix(i, j);
 
 
-			k_triplets.emplace_back(i_node_map, j_node_map, k_val);
-			m_triplets.emplace_back(i_node_map, j_node_map, m_val);
+			k_triplets.emplace_back(i_node, j_node, k_val);
+			m_triplets.emplace_back(i_node, j_node, m_val);
 
 			// Note: Triplets don’t accumulate — Eigen accumulates when building the sparse matrix.
 		}
@@ -810,9 +926,9 @@ void modal_spectral_solver::set_global_BC_flag_vector(const std::vector<int>& el
 	for (int i = 0; i < nen; i++)
 	{
 		// get the global map id
-		int i_node_map = elem_nodes[i];
+		int i_node = elem_nodes[i];
 
-		global_BC_flag_vector(i_node_map) = element_BC_flag_vector(i);
+		global_BC_flag_vector(i_node) = element_BC_flag_vector(i);
 	}
 	//
 }
@@ -923,76 +1039,75 @@ bool modal_spectral_solver::solveWithSpectra(int num_modes,
 	Eigen::MatrixXd& eigenvectors)
 {
 
-	report("Solving with Spectra solver...");
+	report("Solving with Spectra generalized solver...");
 	auto start_time = std::chrono::high_resolution_clock::now();
 
-	int n = static_cast<int>(K_ff.rows());
-	int ncv = std::min(2 * num_modes + 1, n);  // Number of Lanczos vectors
+	const int n = static_cast<int>(K_ff.rows());
 
-	// Method 1: Using Cholesky to convert to standard eigenvalue problem
-	Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> chol(M_ff);
-
-
-	if (chol.info() != Eigen::Success)
-	{
-		auto end_time = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-
-		std::string msg = "Mass matrix is not positive definite, Solver failed in " + std::to_string(duration.count()) + " ms";
-		report(msg.c_str());
-
+	if (num_modes <= 0 || num_modes >= n) {
+		report("num_modes must satisfy 0 < num_modes < n");
 		return false;
-		// throw std::runtime_error("Mass matrix is not positive definite");
 	}
 
-	// Create the operator for (M^{-1} * K)
-	MinvKOp op(K_ff, chol);
+	int ncv = std::min(2 * num_modes + 1, n);
+	if (ncv <= num_modes) {
+		report("ncv must be greater than num_modes");
+		return false;
+	}
 
-	// Create the solver for standard eigenvalue problem
-	// Note: Spectra::SymEigsSolver expects only the operator type
-	Spectra::SymEigsSolver<MinvKOp> eigs(op, num_modes, ncv);
+	// Operator for K (symmetric)
+	Spectra::SparseSymMatProd<double> op(K_ff);
 
-	// Initialize and compute
+	// Operator for M^{-1} using Cholesky factorization
+	Spectra::SparseCholesky<double> Bop(M_ff);
+
+	// Generalized symmetric eigensolver
+	Spectra::SymGEigsSolver<
+		Spectra::SparseSymMatProd<double>,
+		Spectra::SparseCholesky<double>,
+		Spectra::GEigsMode::Cholesky
+	> eigs(op, Bop, num_modes, ncv);
+
 	eigs.init();
 
-	// Compute eigenvalues (smallest algebraic values for lowest frequencies)
 	int nconv = static_cast<int>(eigs.compute(Spectra::SortRule::SmallestAlge));
 
-	if (eigs.info() == Spectra::CompInfo::Successful)
-	{
-		eigenvalues = eigs.eigenvalues();
-		eigenvectors = eigs.eigenvectors();
-
-		// Convert eigenvalues from standard to generalized
-		// For standard problem: K*x = λ*M*x, we solved M^{-1}K*x = λ*x
-		// So λ are the same
-		//for (int i = 0; i < eigenvalues.size(); ++i) 
-		//{
-		//	if (eigenvalues(i) < 0) 
-		//	{
-		//		report("Warning: Negative eigenvalue detected");
-		//	}
-		//}
-	}
-	else
-	{
+	if (eigs.info() != Spectra::CompInfo::Successful) {
 		auto end_time = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-
-		std::string msg = "Spectra solver failed to converge in " + std::to_string(duration.count()) + " ms";
-		report(msg.c_str());
-
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+			end_time - start_time);
+		report(("Spectra solver failed to converge in " +
+			std::to_string(duration.count()) + " ms (converged " +
+			std::to_string(nconv) + " / " +
+			std::to_string(num_modes) + ")").c_str());
 		return false;
-
-		// throw std::runtime_error("Spectra solver failed to converge");
 	}
+
+	eigenvalues = eigs.eigenvalues();
+	eigenvectors = eigs.eigenvectors();
+
+	//for (int i = 0; i < eigenvectors.cols(); ++i)
+	//{
+	//	std::vector<double> mode_shape_test(eigenvectors.rows());
+
+	//	for (int j = 0; j < eigenvectors.rows(); ++j)
+	//	{
+	//		mode_shape_test[j] = eigenvectors(j, i);
+	//	}
+
+	//	int test_a = 0;
+	//}
+
+
 
 	auto end_time = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-	std::string msg = "Spectra solver completed in " + std::to_string(duration.count()) + " ms";
-	report(msg.c_str());
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+		end_time - start_time);
+	report(("Spectra solver completed in " +
+		std::to_string(duration.count()) + " ms").c_str());
 
 	return true;
+
 }
 
 
@@ -1051,7 +1166,7 @@ bool modal_spectral_solver::solveWithARPACK(int num_modes,
 
 
 	// Check if eigenvectors were computed
-	if (!solver.eigenvectors().size() == 0)
+	if (solver.eigenvectors().size() == 0)
 	{
 		solver_msg = "Eigenvectors not computed." + solver.info();
 		report(solver_msg.c_str());
@@ -1077,6 +1192,19 @@ bool modal_spectral_solver::solveWithARPACK(int num_modes,
 	//		report("Warning: Negative eigenvalue detected. Check matrix definiteness.");
 	//	}
 	//}
+
+	//for (int i = 0; i < eigenvectors.cols(); ++i)
+	//{
+	//	std::vector<double> mode_shape_test(eigenvectors.rows());
+
+	//	for (int j = 0; j < eigenvectors.rows(); ++j)
+	//	{
+	//		mode_shape_test[j] = eigenvectors(j, i);
+	//	}
+
+	//	int test_a = 0;
+	//}
+
 
 	auto end_time = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);

@@ -23,7 +23,7 @@ int main()
 	std::ifstream infile(input_file, std::ios::binary);
 	// std::ofstream outfile(output_file, std::ios::binary);
 
-	int number_of_modes = 10;
+	int number_of_modes = 15;
 	int solver_type = 1; // 1 = Spectra (Eigen based), 2 = ARPACK
 	int extendconstraints = 1;
 

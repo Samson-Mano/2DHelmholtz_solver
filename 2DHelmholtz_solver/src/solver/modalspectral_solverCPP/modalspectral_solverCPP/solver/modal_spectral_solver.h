@@ -41,6 +41,11 @@ typedef Eigen::SparseMatrix<double> SparseMatrix;
 #include <Spectra/MatOp/SparseGenMatProd.h>
 #include <Spectra/MatOp/SparseRegularInverse.h>
 
+#include <Spectra/SymGEigsSolver.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
+#include <Spectra/MatOp/SparseCholesky.h>
+#include <Spectra/Util/GEigsMode.h>
+
 using namespace Spectra;
 
 // ARPACK
@@ -137,8 +142,8 @@ private:
 
 	int numDOF = 0;
 
-	 Eigen::SparseMatrix<double> global_k_matrix; // Global ke Matrix [Ke]
-	 Eigen::SparseMatrix<double> global_m_matrix; // Global Me Matrix [Me]
+	Eigen::SparseMatrix<double> global_k_matrix; // Global ke Matrix [Ke]
+	Eigen::SparseMatrix<double> global_m_matrix; // Global Me Matrix [Me]
 
 	Eigen::VectorXi global_dirichlet_BC_flags_vector; // Global boundary condition Vector (To track the nodes where prescribed field is applied)
 

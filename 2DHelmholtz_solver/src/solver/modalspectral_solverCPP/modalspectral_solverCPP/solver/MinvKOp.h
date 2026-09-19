@@ -25,12 +25,13 @@ public:
     // Use consistent types - specify Scalar type explicitly
     typedef double Scalar;
 
+
     MinvKOp(const Eigen::SparseMatrix<Scalar>& K_,
-        Eigen::SimplicialLLT<Eigen::SparseMatrix<Scalar>>& chol_);
+            const Eigen::SparseMatrix<Scalar>& chol_);
 
     // Required for Eigen's matrix-free solvers
-    int rows() const { return m_K.rows(); }
-    int cols() const { return m_K.cols(); }
+    int rows() const { return static_cast<int>(m_K.rows()); }
+    int cols() const { return static_cast<int>(m_K.cols()); }
 
     // Operator application: y = M^{-1} * K * x
     void perform_op(const Scalar* x_in, Scalar* y_out) const;
@@ -44,7 +45,10 @@ public:
 
 private:
     const Eigen::SparseMatrix<Scalar>& m_K;
-    Eigen::SimplicialLLT<Eigen::SparseMatrix<Scalar>>& m_chol;
+    Eigen::SparseMatrix<Scalar> m_chol;
+    Eigen::SparseMatrix<Scalar> m_cholT;  
+    
+
 };
 
 
