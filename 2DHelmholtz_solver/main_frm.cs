@@ -383,6 +383,8 @@ namespace _2DHelmholtz_solver
 
                     fedata.importTXTFile(fileContent);
 
+                    set_ResultOption(0); // Reset result option to hide results
+
                     // Do something with the file content, e.g., parse the model
                     // MessageBox.Show("Model file loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -419,6 +421,8 @@ namespace _2DHelmholtz_solver
                 {
 
                     fedata.importBINFile(filePath);
+
+                    set_ResultOption(0); // Reset result option to hide results
 
                     // Do something with the file content, e.g., parse the model
                     // MessageBox.Show("Model file loaded successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);

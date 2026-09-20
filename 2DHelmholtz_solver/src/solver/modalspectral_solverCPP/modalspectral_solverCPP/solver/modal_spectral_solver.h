@@ -114,7 +114,7 @@ public:
 
 	void create_global_matrices();
 
-	bool solve_modal_analysis(int inpt_num_modes, int solver_type);
+	bool solve_modal_analysis(int inpt_num_modes, int solver_type, double geom_min_x, double geom_min_y, double scale_value);
 
 
 	enum SolverType 
@@ -184,10 +184,6 @@ private:
 		Eigen::VectorXi& dirichlet_BC_flag);
 
 
-	void get_trielement_source_vector(const spectral_trielement_store& tri_elm,
-		Eigen::VectorXi& dirichlet_BC_flag);
-
-
 	//________________________________________________________________________________________________
 
 	void set_global_matrix(const std::vector<int>& elem_nodes,
@@ -222,8 +218,6 @@ private:
 
 
 
-	void get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
-		Eigen::VectorXi& dirichlet_BC_flag);
 
 	//________________________________________________________________________________________________
 
@@ -243,7 +237,7 @@ private:
 		Eigen::MatrixXd& eigenvectors);
 
 
-	void store_results_with_index();
+	void store_results_with_index(double geom_min_x, double geom_min_y, double scale_value);
 
 
 

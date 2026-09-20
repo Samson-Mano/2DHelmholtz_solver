@@ -119,6 +119,25 @@ namespace _2DHelmholtz_solver.other_windows
         }
 
 
+        private int get_model_DOF()
+        {
+            int spectral_order = fe_data.spectral_order_N;
+            int node_count = fe_data.fe_nodes.node_count;
+            int tri_count = fe_data.fe_tris.elementtri_count;
+            int quad_count = fe_data.fe_quads.elementquad_count;
+            int edge_count = fe_data.meshdata.mesh_boundaries.line_count;
+
+
+            int tri_element_internal_nodecount = (int)(tri_count * (spectral_order - 2) * (spectral_order - 1) * 0.5);
+            int quad_element_internal_nodecount = quad_count * (spectral_order - 1) * (spectral_order - 1);
+            int edge_nodecount = edge_count * (spectral_order - 1);
+
+            int total_DOF = node_count + tri_element_internal_nodecount + quad_element_internal_nodecount + edge_nodecount;
+
+            return total_DOF;
+        }
+
+
         private async void button_performsolve_Click(object sender, EventArgs e)
         {
             // Check the inputs (Whether the boundary condition is applied or not)
@@ -146,6 +165,51 @@ namespace _2DHelmholtz_solver.other_windows
                 MessageBox.Show("Invalid frequency input!!!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+
+
+            // Get the model size and check if it's too large for the solver
+            int total_DOF = get_model_DOF();
+            AppendStatus($"Total Degrees of Freedom (DOF): {total_DOF}\n");
+
+            long maxThresholdBytes = 8L * 1024 * 1024 * 1024;
+            long matrixBytes = total_DOF * total_DOF * sizeof(double);
+
+
+            if (matrixBytes > maxThresholdBytes)
+            {
+                double gb = matrixBytes / (1024.0 * 1024.0 * 1024.0);
+                MessageBox.Show(
+                    $"Model size exceeds solver capacity.\n\n" +
+                    $"DOF: {total_DOF:N0}\n" +
+                    $"Estimated peak memory: {gb:F2} GB\n" +
+                    $"Maximum Threshold: {maxThresholdBytes / (1024.0 * 1024.0 * 1024.0):F2} GB",
+                    "Solver Capacity Warning",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+
+            }
+
+            long warningThresholdBytes = 1L * 1024 * 1024 * 1024;
+
+            if (matrixBytes > warningThresholdBytes)
+            {
+                double gb = matrixBytes / (1024.0 * 1024.0 * 1024.0);
+                DialogResult result = MessageBox.Show(
+                    $"Model size is large and may take significant time to solve.\n\n" +
+                    $"DOF: {total_DOF:N0}\n" +
+                    $"Estimated peak memory: {gb:F2} GB\n" +
+                    $"Proceed with the solve?",
+                    "Solver Capacity Warning",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+                if (result == DialogResult.No)
+                {
+                    return;
+                }
+            }
+
 
             double[] solver_settings = new double[3];
             solver_settings[0] = fe_data.wave_field_frequency_values;

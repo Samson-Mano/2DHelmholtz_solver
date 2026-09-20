@@ -54,8 +54,8 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 
 	// std::vector<Eigen::Triplet<double>> triplets_K;
 	std::vector<Eigen::Triplet<std::complex<double>>> triplets_system;
-	std::vector<Eigen::Triplet<double>> k_triplets;
-	std::vector<Eigen::Triplet<double>> m_triplets;
+	//std::vector<Eigen::Triplet<double>> k_triplets;
+	//std::vector<Eigen::Triplet<double>> m_triplets;
 
 
 	global_dirichlet_field_vector.setZero(numDOF); // Global field Vector
@@ -161,11 +161,11 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 7: Set the global matrix and global vector
 
-			set_global_matrix(elem_nodes, nen,
-				element_k_grad_matrix,
-				element_k_mass_matrix,
-				k_triplets,
-				m_triplets);
+			//set_global_matrix(elem_nodes, nen,
+			//	element_k_grad_matrix,
+			//	element_k_mass_matrix,
+			//	k_triplets,
+			//	m_triplets);
 
 			set_complex_global_matrix(elem_nodes, nen,
 				element_k_matrix,
@@ -277,11 +277,11 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 7: Set the global matrix and global vector
 
-			set_global_matrix(elem_nodes, nen,
-				element_k_grad_matrix,
-				element_k_mass_matrix,
-				k_triplets,
-				m_triplets);
+			//set_global_matrix(elem_nodes, nen,
+			//	element_k_grad_matrix,
+			//	element_k_mass_matrix,
+			//	k_triplets,
+			//	m_triplets);
 
 
 			set_complex_global_matrix(elem_nodes, nen,
@@ -319,15 +319,15 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 	// Set the global sparse matrix
 	global_system_matrix.setFromTriplets(triplets_system.begin(), triplets_system.end());
 
-	// Debuging the K and M matrix
-	global_k_matrix.resize(numDOF, numDOF);
-	global_k_matrix.setZero();
+	//// Debuging the K and M matrix
+	//global_k_matrix.resize(numDOF, numDOF);
+	//global_k_matrix.setZero();
 
-	global_m_matrix.resize(numDOF, numDOF);
-	global_m_matrix.setZero();
+	//global_m_matrix.resize(numDOF, numDOF);
+	//global_m_matrix.setZero();
 
-	global_k_matrix.setFromTriplets(k_triplets.begin(), k_triplets.end());
-	global_m_matrix.setFromTriplets(m_triplets.begin(), m_triplets.end());
+	//global_k_matrix.setFromTriplets(k_triplets.begin(), k_triplets.end());
+	//global_m_matrix.setFromTriplets(m_triplets.begin(), m_triplets.end());
 
 
 	// Create the message string and convert to const char*
@@ -1352,8 +1352,8 @@ void helmholtz2d_spectral_solver::solve_dirichlet_BCs_elimination_method(Eigen::
 	{
 		for (Eigen::SparseMatrix<std::complex<double>>::InnerIterator it(global_system_matrix, k); it; ++it)
 		{
-			int i = it.row();
-			int j = it.col();
+			int i = static_cast<int>(it.row());
+			int j = static_cast<int>(it.col());
 
 			// keep only free-free block
 			if (global_dirichlet_BC_flags_vector(i) == 0 &&

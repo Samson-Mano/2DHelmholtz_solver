@@ -18,7 +18,7 @@
 int main()
 {
 
-	const char* input_file = "single_square1_fieldval.bin";   // Adjust path here
+	const char* input_file = "rendertri_error.bin";   // Adjust path here
 	// const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder

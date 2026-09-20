@@ -117,20 +117,13 @@ void modal_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 3: Create Element field vector
 			Eigen::VectorXi element_field_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element field vector BC flag
-			// Eigen::VectorXd element_field_vector = Eigen::VectorXd::Zero(nen); // Element field vector
 
 
 			get_trielement_field_vector(tri_elm, element_field_BC_flag_vector);
 
-			//________________________________________________________________________________________________
-			// Step 4: Create Element source vector
-			// Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
-
-			get_trielement_source_vector(tri_elm, element_field_BC_flag_vector);
-
 
 			//________________________________________________________________________________________________
-			// Step 5: Set the global matrix and global vector
+			// Step 4: Set the global matrix and global vector
 
 			set_global_matrix(elem_nodes, nen,
 				element_k_matrix,
@@ -200,18 +193,14 @@ void modal_spectral_solver::create_global_matrices()
 			//________________________________________________________________________________________________
 			// Step 3: Create Element field vector
 			Eigen::VectorXi element_field_BC_flag_vector = Eigen::VectorXi::Zero(nen); // Element field vector BC flag
-			// Eigen::VectorXd element_field_vector = Eigen::VectorXd::Zero(nen); // Element field vector
+
 
 			get_quadelement_field_vector(quad_elm, element_field_BC_flag_vector);
 
-			//________________________________________________________________________________________________
-			// Step 4: Create Element source vector
-			// Eigen::VectorXd element_source_vector = Eigen::VectorXd::Zero(nen); // Element source vector
 
-			get_quadelement_source_vector(quad_elm, element_field_BC_flag_vector);
 
 			//________________________________________________________________________________________________
-			// Step 5: Set the global matrix and global vector
+			// Step 4: Set the global matrix and global vector
 
 			set_global_matrix(elem_nodes, nen,
 				element_k_matrix,
@@ -255,7 +244,7 @@ void modal_spectral_solver::create_global_matrices()
 
 
 
-bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_type)
+bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_type, double geom_min_x, double geom_min_y, double scale_value)
 {
 
 	auto start_time = std::chrono::high_resolution_clock::now();
@@ -421,7 +410,7 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		Eigen::VectorXd phi = eigenvectors.col(i);
 		double norm = std::sqrt(phi.transpose() * M_ff * phi);
 
-		if (norm > 1e-12)
+		if (norm > 1e-10 && this->natural_frequencies[i] != 0.0)
 		{
 			eigenvectors.col(i) /= norm;
 		}
@@ -451,7 +440,7 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	report(msg.c_str());
 
 	// Store results
-	store_results_with_index();
+	store_results_with_index(geom_min_x, geom_min_y, scale_value);
 
 	return true;
 }
@@ -548,7 +537,7 @@ void modal_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std::vecto
 void modal_spectral_solver::get_trielement_field_vector(const spectral_trielement_store& tri_elm,
 	Eigen::VectorXi& dirichlet_BC_flag)
 {
-
+	// Edge Boundary Condition 
 	for (int i = 0; i < 3; i++)
 	{
 		// Get the edge id
@@ -556,41 +545,30 @@ void modal_spectral_solver::get_trielement_field_vector(const spectral_trielemen
 
 		const spectral_edge_store& edge = spec_mesh2d.spectral_edge_list[edge_id];
 
-		if (edge.isboundaryedge == true && edge.isFieldBC == true)
+		if (edge.isboundaryedge == true && edge.isFieldBC == true && edge.fieldvalue == 0.0)
 		{
 			// --- Assembly ---
 			// Dirichlet (field) BC contribution
-			double q_edge = edge.fieldvalue;  // field value
 
 			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
 
-			// dirichlet_vector(local_idx) = q_edge;
 			dirichlet_BC_flag(local_idx) = 1;
 
 			for (const int& j : spec_mesh2d.tri_element_id_structure.edge_node_ids[i])
 			{
 				local_idx = j;
 
-				// dirichlet_vector(local_idx) = q_edge;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
 
 			local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[(i + 1) % 3];
 
-			// dirichlet_vector(local_idx) = q_edge;
 			dirichlet_BC_flag(local_idx) = 1;
-			//
 		}
-		//
 	}
-	//
-}
+	// ___________________________________________________
 
-
-void modal_spectral_solver::get_trielement_source_vector(const spectral_trielement_store& tri_elm,
-	Eigen::VectorXi& dirichlet_BC_flag)
-{
-	// Get the corner nodes
+	// Node Boundary Condition
 	const std::vector<int>& corner_nodes = tri_elm.corner_nodes;
 
 	for (int i = 0; i < 3; i++)
@@ -603,15 +581,10 @@ void modal_spectral_solver::get_trielement_source_vector(const spectral_trieleme
 			// int local_idx = (i * spec_mesh2d.spectral_order);
 			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[i];
 
-			if (nd1.isFieldBC == true)
+			if (nd1.isFieldBC == true && nd1.fieldvalue == 0.0)
 			{
 				// Apply field value at the node
 				dirichlet_BC_flag(local_idx) = 1;
-			}
-			else
-			{
-				// Apply source value at the node
-
 			}
 		}
 
@@ -627,15 +600,10 @@ void modal_spectral_solver::get_trielement_source_vector(const spectral_trieleme
 			{
 				int local_idx = edge_node_local_ids[j];
 
-				if (edge_nd.isFieldBC == true)
+				if (edge_nd.isFieldBC == true && edge_nd.fieldvalue == 0.0)
 				{
 					// Apply field value at the node
 					dirichlet_BC_flag(local_idx) = 1;
-				}
-				else
-				{
-					// Apply source value at the node
-
 				}
 			}
 
@@ -647,15 +615,10 @@ void modal_spectral_solver::get_trielement_source_vector(const spectral_trieleme
 		if (nd2.isboundarynode == true)
 		{
 			int local_idx = spec_mesh2d.tri_element_id_structure.corner_nodes[(i + 1) % 3];
-			if (nd2.isFieldBC == true)
+			if (nd2.isFieldBC == true && nd2.fieldvalue == 0.0)
 			{
 				// Apply field value at the node
 				dirichlet_BC_flag(local_idx) = 1;
-			}
-			else
-			{
-				// Apply source value at the node
-
 			}
 		}
 
@@ -758,7 +721,7 @@ void modal_spectral_solver::get_quadelement_k_grad_k_mass_matrix(const std::vect
 void modal_spectral_solver::get_quadelement_field_vector(const spectral_quadelement_store& quad_elm,
 	Eigen::VectorXi& dirichlet_BC_flag)
 {
-
+	// Edge Boundary Condition 
 	for (int i = 0; i < 4; i++)
 	{
 		// Get the edge id
@@ -766,42 +729,31 @@ void modal_spectral_solver::get_quadelement_field_vector(const spectral_quadelem
 
 		const spectral_edge_store& edge = spec_mesh2d.spectral_edge_list[edge_id];
 
-		if (edge.isboundaryedge == true && edge.isFieldBC == true)
+		if (edge.isboundaryedge == true && edge.isFieldBC == true && edge.fieldvalue == 0.0)
 		{
 			// --- Assembly ---
 			// Dirichlet (field) BC contribution
-			double q_edge = edge.fieldvalue;  // field value
 
 			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
 
-			// dirichlet_vector(local_idx) = q_edge;
 			dirichlet_BC_flag(local_idx) = 1;
 
 			for (const int& j : spec_mesh2d.quad_element_id_structure.edge_node_ids[i])
 			{
 				local_idx = j;
 
-				// dirichlet_vector(local_idx) = q_edge;
 				dirichlet_BC_flag(local_idx) = 1;
 			}
 
 			local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[(i + 1) % 4];
 
-			// dirichlet_vector(local_idx) = q_edge;
 			dirichlet_BC_flag(local_idx) = 1;
-			//
+
 		}
-		//
 	}
-	//
-}
+	// ___________________________________________________
 
-
-
-void modal_spectral_solver::get_quadelement_source_vector(const spectral_quadelement_store& quad_elm,
-	Eigen::VectorXi& dirichlet_BC_flag)
-{
-	// Get the corner nodes
+	// Node Boundary Condition
 	const std::vector<int>& corner_nodes = quad_elm.corner_nodes;
 
 	for (int i = 0; i < 4; i++)
@@ -814,15 +766,10 @@ void modal_spectral_solver::get_quadelement_source_vector(const spectral_quadele
 			// int local_idx = (i * spec_mesh2d.spectral_order);
 			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[i];
 
-			if (nd1.isFieldBC == true)
+			if (nd1.isFieldBC == true && nd1.fieldvalue == 0.0)
 			{
 				// Apply field value at the node
 				dirichlet_BC_flag(local_idx) = 1;
-			}
-			else
-			{
-				// Apply source value at the node
-
 			}
 		}
 
@@ -838,15 +785,10 @@ void modal_spectral_solver::get_quadelement_source_vector(const spectral_quadele
 			{
 				int local_idx = edge_node_local_ids[j];
 
-				if (edge_nd.isFieldBC == true)
+				if (edge_nd.isFieldBC == true && edge_nd.fieldvalue == 0.0)
 				{
 					// Apply field value at the node
 					dirichlet_BC_flag(local_idx) = 1;
-				}
-				else
-				{
-					// Apply source value at the node
-
 				}
 			}
 
@@ -861,23 +803,16 @@ void modal_spectral_solver::get_quadelement_source_vector(const spectral_quadele
 			// int local_idx = (i * spec_mesh2d.spectral_order);
 			int local_idx = spec_mesh2d.quad_element_id_structure.corner_nodes[(i + 1) % 4];
 
-			if (nd2.isFieldBC == true)
+			if (nd2.isFieldBC == true && nd2.fieldvalue == 0.0)
 			{
 				// Apply field value at the node
 				dirichlet_BC_flag(local_idx) = 1;
-			}
-			else
-			{
-				// Apply source value at the node
-
 			}
 		}
 
 	}
 	//
 }
-
-
 
 
 
@@ -1224,7 +1159,7 @@ bool modal_spectral_solver::solveWithARPACK(int num_modes,
 
 
 
-void modal_spectral_solver::store_results_with_index()
+void modal_spectral_solver::store_results_with_index(double geom_min_x, double geom_min_y, double scale_value)
 {
 	// Open file in binary mode
 	std::ofstream bin_file(output_file, std::ios::binary);
@@ -1282,9 +1217,13 @@ void modal_spectral_solver::store_results_with_index()
 	for (const auto& node : spec_mesh2d.renderer_node_points)
 	{
 		int32_t node_id = static_cast<int32_t>(node.n_id);
+
+		double scaled_x = (node.x / scale_value) + geom_min_x;
+		double scaled_y = (node.y / scale_value) + geom_min_y;
+
 		bin_file.write(reinterpret_cast<const char*>(&node_id), sizeof(int32_t));
-		bin_file.write(reinterpret_cast<const char*>(&node.x), sizeof(double));
-		bin_file.write(reinterpret_cast<const char*>(&node.y), sizeof(double));
+		bin_file.write(reinterpret_cast<const char*>(&scaled_x), sizeof(double));
+		bin_file.write(reinterpret_cast<const char*>(&scaled_y), sizeof(double));
 
 	}
 

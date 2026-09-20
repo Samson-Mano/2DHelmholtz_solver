@@ -36,7 +36,7 @@
             this.label_source = new System.Windows.Forms.Label();
             this.textBox_dirichlet = new System.Windows.Forms.TextBox();
             this.label_dirichlet = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
+            this.label_selectedNodeCount = new System.Windows.Forms.Label();
             this.textBox_selectednodes = new System.Windows.Forms.TextBox();
             this.button_applyconstraint = new System.Windows.Forms.Button();
             this.button_deleteconstraint = new System.Windows.Forms.Button();
@@ -73,7 +73,7 @@
             this.radioButton_source.AutoSize = true;
             this.radioButton_source.Location = new System.Drawing.Point(11, 119);
             this.radioButton_source.Name = "radioButton_source";
-            this.radioButton_source.Size = new System.Drawing.Size(180, 19);
+            this.radioButton_source.Size = new System.Drawing.Size(238, 24);
             this.radioButton_source.TabIndex = 7;
             this.radioButton_source.TabStop = true;
             this.radioButton_source.Text = "Source/ External Excitation: ";
@@ -86,7 +86,7 @@
             this.radioButton_dirichlet.Checked = true;
             this.radioButton_dirichlet.Location = new System.Drawing.Point(11, 39);
             this.radioButton_dirichlet.Name = "radioButton_dirichlet";
-            this.radioButton_dirichlet.Size = new System.Drawing.Size(262, 19);
+            this.radioButton_dirichlet.Size = new System.Drawing.Size(340, 24);
             this.radioButton_dirichlet.TabIndex = 6;
             this.radioButton_dirichlet.TabStop = true;
             this.radioButton_dirichlet.Text = "Essential or Dirichlet Boundary Condition: ";
@@ -97,7 +97,7 @@
             // 
             this.textBox_source.Location = new System.Drawing.Point(93, 144);
             this.textBox_source.Name = "textBox_source";
-            this.textBox_source.Size = new System.Drawing.Size(100, 23);
+            this.textBox_source.Size = new System.Drawing.Size(100, 27);
             this.textBox_source.TabIndex = 5;
             this.textBox_source.Text = "0";
             // 
@@ -106,7 +106,7 @@
             this.label_source.AutoSize = true;
             this.label_source.Location = new System.Drawing.Point(40, 147);
             this.label_source.Name = "label_source";
-            this.label_source.Size = new System.Drawing.Size(47, 15);
+            this.label_source.Size = new System.Drawing.Size(59, 20);
             this.label_source.TabIndex = 4;
             this.label_source.Text = "f(x,y) =";
             // 
@@ -114,7 +114,7 @@
             // 
             this.textBox_dirichlet.Location = new System.Drawing.Point(93, 64);
             this.textBox_dirichlet.Name = "textBox_dirichlet";
-            this.textBox_dirichlet.Size = new System.Drawing.Size(100, 23);
+            this.textBox_dirichlet.Size = new System.Drawing.Size(100, 27);
             this.textBox_dirichlet.TabIndex = 2;
             this.textBox_dirichlet.Text = "0";
             // 
@@ -123,18 +123,18 @@
             this.label_dirichlet.AutoSize = true;
             this.label_dirichlet.Location = new System.Drawing.Point(61, 67);
             this.label_dirichlet.Name = "label_dirichlet";
-            this.label_dirichlet.Size = new System.Drawing.Size(26, 15);
+            this.label_dirichlet.Size = new System.Drawing.Size(34, 20);
             this.label_dirichlet.TabIndex = 1;
             this.label_dirichlet.Text = "ϕ =";
             // 
-            // label3
+            // label_selectedNodeCount
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(9, 238);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(96, 15);
-            this.label3.TabIndex = 1;
-            this.label3.Text = "Selected Nodes: ";
+            this.label_selectedNodeCount.AutoSize = true;
+            this.label_selectedNodeCount.Location = new System.Drawing.Point(9, 238);
+            this.label_selectedNodeCount.Name = "label_selectedNodeCount";
+            this.label_selectedNodeCount.Size = new System.Drawing.Size(126, 20);
+            this.label_selectedNodeCount.TabIndex = 1;
+            this.label_selectedNodeCount.Text = "Selected Nodes: ";
             // 
             // textBox_selectednodes
             // 
@@ -167,12 +167,13 @@
             // 
             // menuStrip1
             // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.rectangleSelectionToolStripMenuItem,
             this.circleSelectionToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(754, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(754, 28);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -181,14 +182,14 @@
             this.rectangleSelectionToolStripMenuItem.Checked = true;
             this.rectangleSelectionToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.rectangleSelectionToolStripMenuItem.Name = "rectangleSelectionToolStripMenuItem";
-            this.rectangleSelectionToolStripMenuItem.Size = new System.Drawing.Size(122, 20);
+            this.rectangleSelectionToolStripMenuItem.Size = new System.Drawing.Size(154, 24);
             this.rectangleSelectionToolStripMenuItem.Text = "Rectangle Selection";
             this.rectangleSelectionToolStripMenuItem.Click += new System.EventHandler(this.rectangleSelectionToolStripMenuItem_Click);
             // 
             // circleSelectionToolStripMenuItem
             // 
             this.circleSelectionToolStripMenuItem.Name = "circleSelectionToolStripMenuItem";
-            this.circleSelectionToolStripMenuItem.Size = new System.Drawing.Size(100, 20);
+            this.circleSelectionToolStripMenuItem.Size = new System.Drawing.Size(125, 24);
             this.circleSelectionToolStripMenuItem.Text = "Circle Selection";
             this.circleSelectionToolStripMenuItem.Click += new System.EventHandler(this.circleSelectionToolStripMenuItem_Click);
             // 
@@ -229,6 +230,7 @@
             this.Column2_nodeids.MinimumWidth = 8;
             this.Column2_nodeids.Name = "Column2_nodeids";
             this.Column2_nodeids.ReadOnly = true;
+            this.Column2_nodeids.Width = 125;
             // 
             // Column3_fieldvalue
             // 
@@ -250,7 +252,7 @@
             // 
             // nodalconstraint_frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 371);
             this.Controls.Add(this.dataGridView_ConstraintList);
@@ -258,7 +260,7 @@
             this.Controls.Add(this.button_deleteconstraint);
             this.Controls.Add(this.button_applyconstraint);
             this.Controls.Add(this.textBox_selectednodes);
-            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label_selectedNodeCount);
             this.Controls.Add(this.groupBox1);
             this.Font = new System.Drawing.Font("Cambria", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -287,7 +289,7 @@
         private System.Windows.Forms.TextBox textBox_source;
         private System.Windows.Forms.Label label_source;
         private System.Windows.Forms.TextBox textBox_dirichlet;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label_selectedNodeCount;
         private System.Windows.Forms.TextBox textBox_selectednodes;
         private System.Windows.Forms.Button button_applyconstraint;
         private System.Windows.Forms.Button button_deleteconstraint;

@@ -285,6 +285,9 @@ namespace _2DHelmholtz_solver.other_windows
             // Clear the text box
             textBox_selectedelements.Clear();
 
+            label_selectedElementCount.Text = $"Selected Elements: " +
+                $"{(fe_data.meshdata.selected_quad_ids.Count + fe_data.meshdata.selected_tri_ids.Count)}";
+
             List<int> all_selected_ids = new List<int>();
 
             all_selected_ids.AddRange(fe_data.meshdata.selected_tri_ids);

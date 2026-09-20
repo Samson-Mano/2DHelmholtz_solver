@@ -95,8 +95,8 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
             }
 
-            // Create the mesh boundaries
-            modal_rsltmeshdata.set_mesh_wireframe();
+            // // Create the mesh boundaries
+            // modal_rsltmeshdata.set_mesh_wireframe();
 
 
             // Set the openTK buffer
@@ -191,7 +191,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
                 modal_rsltmeshdata.paint_static_mesh();
 
-                modal_rsltmeshdata.paint_static_mesh_boundaries();
+                // modal_rsltmeshdata.paint_static_mesh_boundaries();
 
             }
         }

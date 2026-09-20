@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 
 namespace _2DHelmholtz_solver.src.events_handler
 {
@@ -509,6 +510,19 @@ namespace _2DHelmholtz_solver.src.events_handler
                     line_list_store mesh_edges,
                     Dictionary<int, material_data> fe_materials)
         {
+
+
+            //using (var writer = new StreamWriter("mesh_edges.txt"))
+            //{
+            //    writer.WriteLine($"# edge count: {mesh_edges.line_count}");
+            //    writer.WriteLine("# line_id start_pt_id end_pt_id");
+
+            //    foreach (var edge in mesh_edges.lineMap.Values)
+            //    {
+            //        writer.WriteLine($"{edge.line_id} {edge.start_pt_id} {edge.end_pt_id}");
+            //    }
+            //}
+
 
             using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
             {

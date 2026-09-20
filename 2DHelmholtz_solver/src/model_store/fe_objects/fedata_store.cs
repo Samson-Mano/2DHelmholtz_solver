@@ -145,6 +145,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Create the mesh for drawing
             meshdata = new meshdata_store(false);
             resultmeshdata = new rsltdata_store();
+            modalresultmeshdata = new modal_rsltdata_store();
 
             // Add the mesh points
             foreach (var nd_m in fe_nodes.nodeMap)
@@ -249,6 +250,8 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             // Create the mesh for drawing
             meshdata = new meshdata_store(false);
             resultmeshdata = new rsltdata_store();
+            modalresultmeshdata = new modal_rsltdata_store();
+
 
             // Add the mesh points
             foreach (var nd_m in fe_nodes.nodeMap)

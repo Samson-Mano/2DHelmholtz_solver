@@ -127,8 +127,8 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
             contour_bar_data.InitializeContourLevelBarData(100, 100);
 
-            // Create the mesh boundaries
-            rsltmeshdata.set_mesh_wireframe();
+            // // Create the mesh boundaries
+            // rsltmeshdata.set_mesh_wireframe();
 
 
             // Set the openTK buffer
@@ -266,7 +266,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
          
                 rsltmeshdata.paint_static_mesh();
 
-                rsltmeshdata.paint_static_mesh_boundaries();
+                // rsltmeshdata.paint_static_mesh_boundaries();
 
                 contour_bar_data.draw_contour_bar();
 

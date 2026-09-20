@@ -41,6 +41,32 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public List<int> selected_point_ids { get; } = new List<int>();
         public List<int> selected_edge_ids { get; } = new List<int>();
 
+        private sealed class EdgeKeySet
+        {
+            private readonly HashSet<ulong> _edges;
+
+            public EdgeKeySet(int capacity = 0)
+            {
+                _edges = new HashSet<ulong>(capacity);
+            }
+
+            private static ulong EncodeEdge(int node1, int node2)
+            {
+                ulong n1 = (ulong)Math.Min(node1, node2);
+                ulong n2 = (ulong)Math.Max(node1, node2);
+                return (n1 << 32) | n2;  // Shift by 32 bits for 64-bit (limit ~4.29 billion)
+            }
+
+            /// <summary>
+            /// Returns true if the edge already existed; otherwise adds it and returns false.
+            /// </summary>
+            public bool CheckEdgeAlreadyExist(int startNodeId, int endNodeId)
+            {
+                ulong encoded = EncodeEdge(startNodeId, endNodeId);
+                return !_edges.Add(encoded);
+            }
+        }
+
 
         public meshdata_store(bool is_DynamicDraw)
         {
@@ -550,40 +576,38 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void set_mesh_wireframe()
         {
-            HashSet<int> unique_edge_ids = new HashSet<int>();
+            // Rough upper bound: 3 edges per tri, 4 per quad.
+            int capacity = mesh_tris.triMap.Count * 3 + mesh_quads.quadMap.Count * 4;
+            var seen = new HashSet<int>(capacity);
+            var edgeChecker = new EdgeKeySet(capacity);
 
-            // Get the unique edge Ids of Triangle Mesh
-            foreach (var tri_m in mesh_tris.triMap)
+            int bndry_line_id = 0;
+
+            void AddEdge(int edgeId)
             {
-                // get the value of tri mesh
-                tri_store tri = tri_m.Value;
+                if (!seen.Add(edgeId))
+                    return; // already processed this edge id
 
-                unique_edge_ids.Add(tri.edge1_id);
-                unique_edge_ids.Add(tri.edge2_id);
-                unique_edge_ids.Add(tri.edge3_id);
+                var edge = mesh_half_edges.lineMap[edgeId];
+                if (edgeChecker.CheckEdgeAlreadyExist(edge.start_pt_id, edge.end_pt_id))
+                    return; // same node pair already added via another edge id
 
+                mesh_boundaries.add_line(bndry_line_id++, edge.start_pt_id, edge.end_pt_id, -1);
             }
 
-            // Get the unique edge Ids of Quadrilateral Mesh
-            foreach (var quad_m in mesh_quads.quadMap)
+            foreach (var tri in mesh_tris.triMap.Values)
             {
-                // get the value of quad mesh
-                quad_store quad = quad_m.Value;
-
-                unique_edge_ids.Add(quad.tri123.edge1_id);
-                unique_edge_ids.Add(quad.tri123.edge2_id);
-                unique_edge_ids.Add(quad.tri341.edge1_id);
-                unique_edge_ids.Add(quad.tri341.edge2_id);
-
+                AddEdge(tri.edge1_id);
+                AddEdge(tri.edge2_id);
+                AddEdge(tri.edge3_id);
             }
 
-            // Create the mesh wire frame
-            foreach (int edge_id in unique_edge_ids)
+            foreach (var quad in mesh_quads.quadMap.Values)
             {
-                // Add to wireframe rendering or storage
-                mesh_boundaries.add_line(edge_id, mesh_half_edges.lineMap[edge_id].start_pt_id,
-                     mesh_half_edges.lineMap[edge_id].end_pt_id, -1);
-
+                AddEdge(quad.tri123.edge1_id);
+                AddEdge(quad.tri123.edge2_id);
+                AddEdge(quad.tri341.edge1_id);
+                AddEdge(quad.tri341.edge2_id);
             }
 
         }
@@ -882,10 +906,10 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             selected_mesh_quads.quad_shader.SetFloat("vertexTransparency", geom_transparency);
             selected_mesh_tris.tri_shader.SetFloat("vertexTransparency", geom_transparency);
 
-            mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.1f * geom_transparency);
+            mesh_boundaries.line_shader.SetFloat("vertexTransparency", 0.2f * geom_transparency);
             mesh_lines.line_shader.SetFloat("vertexTransparency", geom_transparency);
 
-            selected_mesh_edges.line_shader.SetFloat("vertexTransparency", 0.2f * geom_transparency);
+            selected_mesh_edges.line_shader.SetFloat("vertexTransparency", 0.6f * geom_transparency);
 
             selected_mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);
             mesh_points.point_shader.SetFloat("vertexTransparency", geom_transparency);

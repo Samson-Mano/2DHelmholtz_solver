@@ -49,13 +49,15 @@ namespace _2DHelmholtz_solver.other_windows
     {
         private fedata_store fe_data;
         private int number_of_modes = 20;
-        private int solver_type = 0;
+        private int solver_type = 2;
 
         public modalsolver_frm(ref fedata_store fe_data)
         {
             InitializeComponent();
 
             this.fe_data = fe_data;
+
+            comboBox_solvertype.Enabled = false;
 
         }
 
@@ -68,12 +70,12 @@ namespace _2DHelmholtz_solver.other_windows
         public void updateTextBox()
         {
 
-            comboBox_solvertype.SelectedIndex = solver_type;
+            comboBox_solvertype.SelectedIndex = solver_type - 1;
 
             textBox_numofmodes.Text = number_of_modes.ToString();
 
             double x_extent = fe_data.geom_bounds.X;
-            double y_extent = fe_data.geom_bounds.X;
+            double y_extent = fe_data.geom_bounds.Y;
 
             // Use general format: no decimals for large values, scientific for small (<1)
             string formatValue(double v)
@@ -90,6 +92,27 @@ namespace _2DHelmholtz_solver.other_windows
             comboBox_spectralorderN.SelectedIndex = (fe_data.spectral_order_N - 3);
 
         }
+
+
+
+        private int get_model_DOF()
+        {
+            int spectral_order = fe_data.spectral_order_N;
+            int node_count = fe_data.fe_nodes.node_count;
+            int tri_count = fe_data.fe_tris.elementtri_count;
+            int quad_count = fe_data.fe_quads.elementquad_count;
+            int edge_count = fe_data.meshdata.mesh_boundaries.line_count;
+
+
+            int tri_element_internal_nodecount = (int)(tri_count * (spectral_order - 2) * (spectral_order - 1) * 0.5);
+            int quad_element_internal_nodecount = quad_count * (spectral_order - 1) * (spectral_order - 1);
+            int edge_nodecount = edge_count * (spectral_order - 1);
+
+            int total_DOF = node_count + tri_element_internal_nodecount + quad_element_internal_nodecount + edge_nodecount;
+
+            return total_DOF;
+        }
+
 
 
         private async void button_performsolve_Click(object sender, EventArgs e)
@@ -139,6 +162,97 @@ namespace _2DHelmholtz_solver.other_windows
                 }
 
                 AppendStatus("✓ DLL loaded successfully!\n");
+
+
+
+                // Step 3: Validate input files
+                string inputPath = Path.Combine(Application.StartupPath, "modal_analysis_input.bin");
+                string outputPath = Path.Combine(Application.StartupPath, "modal_analysis_output.bin");
+
+                // Delete existing input file if it exists
+                if (File.Exists(inputPath))
+                {
+                    try
+                    {
+                        File.Delete(inputPath);
+                        richTextBox_AnalysisUpdate.AppendText("Deleted existing input file.\n");
+                    }
+                    catch (IOException ex)
+                    {
+                        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing input file: {ex.Message}\n");
+                        // Try to force garbage collection to release any locks
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        File.Delete(inputPath);
+                    }
+                }
+
+                // Delete existing output file if it exists
+                if (File.Exists(outputPath))
+                {
+                    try
+                    {
+                        fe_data.modalresultmeshdata.CloseResultFile();
+
+                        File.Delete(outputPath);
+                        richTextBox_AnalysisUpdate.AppendText("Deleted existing output file.\n");
+                    }
+                    catch (IOException ex)
+                    {
+                        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing output file: {ex.Message}\n");
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        File.Delete(outputPath);
+                    }
+                }
+
+
+
+                // Get the model size and check if it's too large for the solver
+                int total_DOF = get_model_DOF();
+                AppendStatus($"Total Degrees of Freedom (DOF): {total_DOF}\n");
+
+                long maxThresholdBytes = 8L * 1024 * 1024 * 1024;
+                long matrixBytes = total_DOF * total_DOF * sizeof(double);
+
+
+                if (matrixBytes > maxThresholdBytes)
+                {
+                    double gb = matrixBytes / (1024.0 * 1024.0 * 1024.0);
+                    MessageBox.Show(
+                        $"Model size exceeds solver capacity.\n\n" +
+                        $"DOF: {total_DOF:N0}\n" +
+                        $"Estimated peak memory: {gb:F2} GB\n" +
+                        $"Maximum Threshold: {maxThresholdBytes / (1024.0 * 1024.0 * 1024.0):F2} GB",
+                        "Solver Capacity Warning",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    return;
+
+                }
+
+                long warningThresholdBytes = 1L * 1024 * 1024 * 1024;
+
+                if (matrixBytes > warningThresholdBytes)
+                {
+                    double gb = matrixBytes / (1024.0 * 1024.0 * 1024.0);
+                    DialogResult result = MessageBox.Show(
+                        $"Model size is large and may take significant time to solve.\n\n" +
+                        $"DOF: {total_DOF:N0}\n" +
+                        $"Estimated peak memory: {gb:F2} GB\n" +
+                        $"Proceed with the solve?",
+                        "Solver Capacity Warning",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning);
+                    if (result == DialogResult.No)
+                    {
+                        return;
+                    }
+                }
+
+
+
 
                 // Step 3: Run the solver
                 AppendStatus("\nStarting modal analysis...\n");
@@ -257,42 +371,42 @@ namespace _2DHelmholtz_solver.other_windows
                 string inputPath = Path.Combine(Application.StartupPath, "modal_analysis_input.bin");
                 string outputPath = Path.Combine(Application.StartupPath, "modal_analysis_output.bin");
 
-                // Delete existing input file if it exists
-                if (File.Exists(inputPath))
-                {
-                    try
-                    {
-                        File.Delete(inputPath);
-                        richTextBox_AnalysisUpdate.AppendText("Deleted existing input file.\n");
-                    }
-                    catch (IOException ex)
-                    {
-                        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing input file: {ex.Message}\n");
-                        // Try to force garbage collection to release any locks
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
-                        File.Delete(inputPath);
-                    }
-                }
+                //// Delete existing input file if it exists
+                //if (File.Exists(inputPath))
+                //{
+                //    try
+                //    {
+                //        File.Delete(inputPath);
+                //        richTextBox_AnalysisUpdate.AppendText("Deleted existing input file.\n");
+                //    }
+                //    catch (IOException ex)
+                //    {
+                //        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing input file: {ex.Message}\n");
+                //        // Try to force garbage collection to release any locks
+                //        GC.Collect();
+                //        GC.WaitForPendingFinalizers();
+                //        File.Delete(inputPath);
+                //    }
+                //}
 
-                // Delete existing output file if it exists
-                if (File.Exists(outputPath))
-                {
-                    try
-                    {
-                        fe_data.modalresultmeshdata.CloseResultFile();
+                //// Delete existing output file if it exists
+                //if (File.Exists(outputPath))
+                //{
+                //    try
+                //    {
+                //        fe_data.modalresultmeshdata.CloseResultFile();
 
-                        File.Delete(outputPath);
-                        richTextBox_AnalysisUpdate.AppendText("Deleted existing output file.\n");
-                    }
-                    catch (IOException ex)
-                    {
-                        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing output file: {ex.Message}\n");
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
-                        File.Delete(outputPath);
-                    }
-                }
+                //        File.Delete(outputPath);
+                //        richTextBox_AnalysisUpdate.AppendText("Deleted existing output file.\n");
+                //    }
+                //    catch (IOException ex)
+                //    {
+                //        richTextBox_AnalysisUpdate.AppendText($"Warning: Could not delete existing output file: {ex.Message}\n");
+                //        GC.Collect();
+                //        GC.WaitForPendingFinalizers();
+                //        File.Delete(outputPath);
+                //    }
+                //}
 
 
 

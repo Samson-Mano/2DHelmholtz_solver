@@ -105,6 +105,15 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	helmholtz_2dsystem.spectral_order = spectral_order;
 	helmholtz_2dsystem.isExtendConstraints = extendconstraints == 1 ? true : false;
 
+
+	// Find the geometry extents (min and max coordinates) for scaling
+	double geom_min_x = std::numeric_limits<double>::max();
+	double geom_max_x = std::numeric_limits<double>::lowest();
+	double geom_min_y = std::numeric_limits<double>::max();
+	double geom_max_y = std::numeric_limits<double>::lowest();
+
+
+
 	// ---------- Nodes ----------
 	int32_t nodeCount;
 	infile.read(reinterpret_cast<char*>(&nodeCount), 4);
@@ -118,10 +127,33 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 		infile.read(reinterpret_cast<char*>(&y_coord), 8);
 		infile.read(reinterpret_cast<char*>(&z_coord), 8);
 
+		// Find the geometry extents
+		geom_min_x = std::min(geom_min_x, x_coord);
+		geom_max_x = std::max(geom_max_x, x_coord);
+		geom_min_y = std::min(geom_min_y, y_coord);
+		geom_max_y = std::max(geom_max_y, y_coord);
+
 		// Add node to the helmholtz system store
 		helmholtz_2dsystem.add_node(node_id, x_coord, y_coord);
 
 	}
+
+	// Calculate the scaling factor based on the geometry extents
+	double geom_width = geom_max_x - geom_min_x;
+	double geom_height = geom_max_y - geom_min_y;
+
+	// Determine the scaling factor to fit the geometry within a 10 x 10 box
+	double scale_value = 10.0 / std::max(geom_width, geom_height);
+
+	// Scale the model coordinates to fit within the 10.0 x 10.0 box
+	for (auto& node_pair : helmholtz_2dsystem.node_list)
+	{
+		node_store& node = node_pair.second;
+		node.x_coord = (node.x_coord - geom_min_x) * scale_value;
+		node.y_coord = (node.y_coord - geom_min_y) * scale_value;
+	}
+
+
 
 	stopwatch_elapsed_str.str("");       // clear the string content
 	stopwatch_elapsed_str.clear();       // clear any error flags
@@ -366,7 +398,7 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 
 	// Perform modal analysis solve
 
-	(*isAnalysisSuccess) = modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type);
+	(*isAnalysisSuccess) = modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type, geom_min_x, geom_min_y, scale_value);
 
 
 

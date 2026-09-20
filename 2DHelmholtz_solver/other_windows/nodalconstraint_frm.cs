@@ -167,6 +167,8 @@ namespace _2DHelmholtz_solver.other_windows
             // Clear the text box
             textBox_selectednodes.Clear();
 
+            label_selectedNodeCount.Text = $"Selected Nodes: {fe_data.meshdata.selected_point_ids.Count}";
+
             List<int> all_selected_nodes = new List<int>();
 
             all_selected_nodes.AddRange(fe_data.meshdata.selected_point_ids);

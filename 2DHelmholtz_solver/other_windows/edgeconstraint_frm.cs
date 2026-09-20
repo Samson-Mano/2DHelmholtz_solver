@@ -37,7 +37,7 @@ namespace _2DHelmholtz_solver.other_windows
 
 
 
-            if(radioButton_boundaryconditions.Checked == true)
+            if (radioButton_boundaryconditions.Checked == true)
             {
                 // Test the data
                 if (!double.TryParse(textBox_dirichlet.Text, out double field_value) ||
@@ -97,7 +97,7 @@ namespace _2DHelmholtz_solver.other_windows
                 fe_data.fe_edgeconstraints.add_edgeconstraint(fe_data.meshdata.selected_edge_ids,
                     constraint_edge_startpt_ids, constraint_edge_endpt_ids,
                     constraint_edge_startpts, constraint_edge_endpts,
-                    field_value, normalderiv_value, checkBox_dirichlet.Checked, checkBox_neumann.Checked,false);
+                    field_value, normalderiv_value, checkBox_dirichlet.Checked, checkBox_neumann.Checked, false);
 
             }
             else
@@ -253,6 +253,8 @@ namespace _2DHelmholtz_solver.other_windows
             // Clear the text box
             textBox_selectededges.Clear();
 
+            label_selectedEdgeCount.Text = $"Selected Edges: {fe_data.meshdata.selected_edge_ids.Count}";
+
             List<int> all_selected_edges = new List<int>();
 
             all_selected_edges.AddRange(fe_data.meshdata.selected_edge_ids);
@@ -341,18 +343,18 @@ namespace _2DHelmholtz_solver.other_windows
             label_dirichlet.Enabled = isBoundartConditionSelected;
 
             checkBox_neumann.Enabled = isBoundartConditionSelected;
-            textBox_neumann.Enabled= isBoundartConditionSelected;
+            textBox_neumann.Enabled = isBoundartConditionSelected;
             label_neumann.Enabled = isBoundartConditionSelected;
 
 
             // ABC Sommerfield
             label_sommerfield.Enabled = !isBoundartConditionSelected;
 
-            if(isBoundartConditionSelected == true)
+            if (isBoundartConditionSelected == true)
             {
                 UpdateEnabledStateUI2();
             }
-   
+
         }
 
         private void checkBox_dirichlet_CheckedChanged(object sender, EventArgs e)
