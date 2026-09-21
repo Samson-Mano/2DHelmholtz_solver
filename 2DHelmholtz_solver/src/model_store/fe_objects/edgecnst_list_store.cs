@@ -1,6 +1,7 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
 using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -60,7 +61,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             edgecnstMap = new Dictionary<int, edgecnst_store>();
             edgecnst_count = 0;
 
-            edgecnst_meshdata = new meshdata_store(false);
+            edgecnst_meshdata = new meshdata_store();
             edgecnst_label = new label_list_store();
 
         }
@@ -272,7 +273,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public void set_shader()
         {
             // Set the shader 
-            edgecnst_meshdata.set_shader();
+            edgecnst_meshdata.set_shader(ShaderLibrary.ShaderType.MeshShader);
             edgecnst_label.set_shader();
 
         }

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(modalresultoption_frm));
             this.label_status = new System.Windows.Forms.Label();
             this.button_stop = new System.Windows.Forms.Button();
             this.button_play_pause = new System.Windows.Forms.Button();
@@ -38,6 +39,7 @@
             this.label_realtimeanim_speed = new System.Windows.Forms.Label();
             this.button_animation_speed = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -156,11 +158,20 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Animation Speed: ";
             // 
+            // label2
+            // 
+            this.label2.Location = new System.Drawing.Point(189, 83);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(347, 80);
+            this.label2.TabIndex = 35;
+            this.label2.Text = resources.GetString("label2.Text");
+            // 
             // modalresultoption_frm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(554, 441);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.label_status);
             this.Controls.Add(this.button_stop);
             this.Controls.Add(this.button_play_pause);
@@ -191,5 +202,6 @@
         private System.Windows.Forms.Label label_realtimeanim_speed;
         private System.Windows.Forms.Button button_animation_speed;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Label label2;
     }
 }

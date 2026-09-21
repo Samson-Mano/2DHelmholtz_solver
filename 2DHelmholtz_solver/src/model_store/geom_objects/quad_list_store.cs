@@ -31,7 +31,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
     {
         public Dictionary<int, quad_store> quadMap { get; } = new Dictionary<int, quad_store>();
         public int quad_count = 0;
-        private bool is_DynamicDraw = false;
+
         public bool is_ShrinkTriangle = false;
 
         private graphicBuffers quad_buffer;
@@ -41,7 +41,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private readonly line_list_store _allLines;
 
 
-        public quad_list_store(point_list_store allPts, line_list_store allLines, bool is_DynamicDraw)
+        public quad_list_store(point_list_store allPts, line_list_store allLines)
         {
             // (Re)Initialize the data
             quadMap = new Dictionary<int, quad_store>();
@@ -50,7 +50,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // store the all points data
             _allPts = allPts;
             _allLines = allLines;
-            this.is_DynamicDraw = is_DynamicDraw;
 
         }
 
@@ -94,16 +93,16 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void set_shader()
+        public void set_shader(ShaderLibrary.ShaderType type)
         {
 
             // Create Shader
-            quad_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
-                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
+            quad_shader = new Shader(ShaderLibrary.get_vertex_shader(type),
+                ShaderLibrary.get_fragment_shader(type));
 
         }
 
-        public void set_buffer()
+        public void set_buffer(bool IsResultMesh)
         {
 
             // Set the buffer for index
@@ -118,47 +117,91 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 get_quad_index_buffer(ref quad_vertex_indices, ref quad_i_index);
             }
 
-            // Define the vertex layout
-            VertexBufferLayout quadLayout = new VertexBufferLayout();
-            quadLayout.AddFloat(2);  // point center
-            quadLayout.AddFloat(3);  // point color
-            quadLayout.AddFloat(1);  // Is Dynamic data
-            quadLayout.AddFloat(1);  // Normalized deflection scale
 
-            // Define the vertex buffer size for a point 6 * ( 2 position, 3 color, 2 dynamic data)
-            int quad_vertex_count = 6 * 7 * quad_count;
-            int quad_vertex_size = quad_vertex_count * sizeof(float);
 
-            // Create the quadrilateral dynamic buffers
-            quad_buffer = new graphicBuffers(null, quad_vertex_size, quad_vertex_indices,
-                quad_indices_count, quadLayout, true);
-
-            // Update the buffer
-            update_buffer();
-
-        }
-
-        public void update_buffer()
-        {
-            // Define the vertex buffer size for a point 6 * ( 2 position, 3 color, 2 dynamic data)
-            int quad_vertex_count = 6 * 7 * quad_count;
-            float[] quad_vertices = new float[quad_vertex_count];
-
-            int quad_v_index = 0;
-
-            // Set the quad vertex buffers
-            foreach (var quad in quadMap)
+            if (IsResultMesh == false)
             {
-                // Add vertex buffers
-                get_quad_vertex_buffer(quad.Value, ref quad_vertices, ref quad_v_index);
+                // Define the vertex layout
+                VertexBufferLayout quadLayout = new VertexBufferLayout();
+                quadLayout.AddFloat(2);  // point center
+                quadLayout.AddFloat(3);  // point color
+
+
+                // Define the vertex buffer size for a point 6 * ( 2 position, 3 color)
+                int quad_vertex_count = 6 * 5 * quad_count;
+                int quad_vertex_size = quad_vertex_count * sizeof(float);
+
+                // Create the quadrilateral dynamic buffers
+                quad_buffer = new graphicBuffers(null, quad_vertex_size, quad_vertex_indices,
+                    quad_indices_count, quadLayout, true);
+            }
+            else
+            {
+                // Define the vertex layout
+                VertexBufferLayout quadLayout = new VertexBufferLayout();
+                quadLayout.AddFloat(2);  // point center
+                quadLayout.AddFloat(1);  // normalized deflection scale
+
+
+                // Define the vertex buffer size for a point 6 * ( 2 position, 1 normalized deflection scale)
+                int quad_vertex_count = 6 * 3 * quad_count;
+                int quad_vertex_size = quad_vertex_count * sizeof(float);
+
+                // Create the quadrilateral dynamic buffers
+                quad_buffer = new graphicBuffers(null, quad_vertex_size, quad_vertex_indices,
+                    quad_indices_count, quadLayout, true);
             }
 
-            int quad_vertex_size = quad_vertex_count * sizeof(float); // Size of the quadrilateral vertex buffer
 
             // Update the buffer
-            quad_buffer.UpdateDynamicVertexBuffer(quad_vertices, quad_vertex_size);
+            update_buffer(IsResultMesh);
 
         }
+
+        public void update_buffer(bool IsResultMesh)
+        {
+            if (IsResultMesh == false)
+            {
+                // Define the vertex buffer size for a point 6 * ( 2 position, 3 color)
+                int quad_vertex_count = 6 * 5 * quad_count;
+                float[] quad_vertices = new float[quad_vertex_count];
+
+                int quad_v_index = 0;
+
+                // Set the quad vertex buffers
+                foreach (var quad in quadMap)
+                {
+                    // Add vertex buffers
+                    get_quad_vertex_buffer(quad.Value, ref quad_vertices, ref quad_v_index);
+                }
+
+                int quad_vertex_size = quad_vertex_count * sizeof(float); // Size of the quadrilateral vertex buffer
+
+                // Update the buffer
+                quad_buffer.UpdateDynamicVertexBuffer(quad_vertices, quad_vertex_size);
+            }
+            else
+            {
+                // Define the vertex buffer size for a point 6 * ( 2 position, 1 normalized deflection scale)
+                int quad_vertex_count = 6 * 3 * quad_count;
+                float[] quad_vertices = new float[quad_vertex_count];
+
+                int quad_v_index = 0;
+
+                // Set the quad vertex buffers
+                foreach (var quad in quadMap)
+                {
+                    // Add vertex buffers
+                    get_result_quad_vertex_buffer(quad.Value, ref quad_vertices, ref quad_v_index);
+                }
+
+                int quad_vertex_size = quad_vertex_count * sizeof(float); // Size of the quadrilateral vertex buffer
+
+                // Update the buffer
+                quad_buffer.UpdateDynamicVertexBuffer(quad_vertices, quad_vertex_size);
+            }
+        }
+
 
         public void clear_quadrilaterals()
         {
@@ -168,29 +211,11 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void paint_static_quadrilaterals()
+        public void paint_quadrilaterals()
         {
-            // Paint all the static quadrilaterals
+            // Paint all the quadrilaterals
             quad_shader.Bind();
             quad_buffer.Bind();
-            // is_DynamicDraw = false;
-
-            GL.DrawElements(PrimitiveType.Triangles, 6 * quad_count, DrawElementsType.UnsignedInt, 0);
-            quad_buffer.UnBind();
-            quad_shader.UnBind();
-
-        }
-
-
-        public void paint_dynamic_quadrilaterals()
-        {
-            // Paint all the dynamic quadrilaterals
-            quad_shader.Bind();
-            quad_buffer.Bind();
-
-            // Update the point buffer data for dynamic drawing
-            // is_DynamicDraw = true;
-            update_buffer();
 
             GL.DrawElements(PrimitiveType.Triangles, 6 * quad_count, DrawElementsType.UnsignedInt, 0);
             quad_buffer.UnBind();
@@ -304,12 +329,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
             quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
-
-            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].normalized_defl_scale;
-
             // Iterate
-            quad_v_index = quad_v_index + 7;
+            quad_v_index = quad_v_index + 5;
 
 
             // Point 2
@@ -322,12 +343,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
             quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
-
-            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].normalized_defl_scale;
-
             // Iterate
-            quad_v_index = quad_v_index + 7;
+            quad_v_index = quad_v_index + 5;
 
 
             // Point 3
@@ -340,12 +357,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
             quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
-
-            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].normalized_defl_scale;
-
             // Iterate
-            quad_v_index = quad_v_index + 7;
+            quad_v_index = quad_v_index + 5;
 
 
             // Point 4
@@ -358,15 +371,90 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             quad_vertices[quad_v_index + 3] = quad.quad_color.Y;
             quad_vertices[quad_v_index + 4] = quad.quad_color.Z;
 
-            quad_vertices[quad_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
-
-            quad_vertices[quad_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].normalized_defl_scale;
-
             // Iterate
-            quad_v_index = quad_v_index + 7;
+            quad_v_index = quad_v_index + 5;
 
 
         }
+
+
+
+        private void get_result_quad_vertex_buffer(quad_store quad, ref float[] quad_vertices, ref int quad_v_index)
+        {
+            // Get the quad points
+            Vector3 pt1 = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].pt_coord;
+            Vector3 pt2 = _allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].pt_coord;
+            Vector3 pt3 = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].pt_coord;
+            Vector3 pt4 = _allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].pt_coord;
+
+            if (is_ShrinkTriangle == true)
+            {
+                // Shrink the triangle
+                Vector3 midPt = new Vector3((pt1.X + pt2.X + pt3.X + pt4.X) * 0.25f,
+                    (pt1.Y + pt2.Y + pt3.Y + pt4.Y) * 0.25f,
+                    (pt1.Z + pt2.Z + pt3.Z + pt4.Z) * 0.25f);
+
+                float shrink_factor = (float)gvariables_static.mesh_shrink_factor;
+
+                pt1 = gvariables_static.linear_interpolation3d(midPt, pt1, shrink_factor);
+                pt2 = gvariables_static.linear_interpolation3d(midPt, pt2, shrink_factor);
+                pt3 = gvariables_static.linear_interpolation3d(midPt, pt3, shrink_factor);
+                pt4 = gvariables_static.linear_interpolation3d(midPt, pt4, shrink_factor);
+
+            }
+
+
+            // Get the node buffer for the shader
+            // Point 1
+            // Point location
+            quad_vertices[quad_v_index + 0] = pt1.X;
+            quad_vertices[quad_v_index + 1] = pt1.Y;
+
+            // Normalized deflection scale
+            quad_vertices[quad_v_index + 2] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge1_id].start_pt_id].normalized_defl_scale;
+
+            // Iterate
+            quad_v_index = quad_v_index + 3;
+
+
+            // Point 2
+            // Point location
+            quad_vertices[quad_v_index + 0] = pt2.X;
+            quad_vertices[quad_v_index + 1] = pt2.Y;
+
+            // Normalized deflection scale
+            quad_vertices[quad_v_index + 2] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri123.edge2_id].start_pt_id].normalized_defl_scale;
+
+            // Iterate
+            quad_v_index = quad_v_index + 3;
+
+
+            // Point 3
+            // Point location
+            quad_vertices[quad_v_index + 0] = pt3.X;
+            quad_vertices[quad_v_index + 1] = pt3.Y;
+
+            // Normalized deflection scale
+            quad_vertices[quad_v_index + 2] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge1_id].start_pt_id].normalized_defl_scale;
+     
+            // Iterate
+            quad_v_index = quad_v_index + 3;
+
+
+            // Point 4
+            // Point location
+            quad_vertices[quad_v_index + 0] = pt4.X;
+            quad_vertices[quad_v_index + 1] = pt4.Y;
+
+            // Normalized deflection scale
+            quad_vertices[quad_v_index + 2] = (float)_allPts.pointMap[_allLines.lineMap[quad.tri341.edge2_id].start_pt_id].normalized_defl_scale;
+
+            // Iterate
+            quad_v_index = quad_v_index + 3;
+
+        }
+
+
 
 
         private void get_quad_index_buffer(ref int[] quad_vertex_indices, ref int quad_i_index)

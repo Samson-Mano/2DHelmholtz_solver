@@ -1,6 +1,7 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
 using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using OpenTK;
 using OpenTK.Input;
 using System;
@@ -48,7 +49,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             ndcnstMap = new Dictionary<int, nodecnst_data>();
             ndcnst_count = 0;
 
-            ndcnst_meshdata = new meshdata_store(false);
+            ndcnst_meshdata = new meshdata_store();
             ndcnst_label = new label_list_store();
 
         }
@@ -211,7 +212,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         public void set_shader()
         {
             // Set the shader 
-            ndcnst_meshdata.set_shader();
+            ndcnst_meshdata.set_shader(ShaderLibrary.ShaderType.MeshShader);
             ndcnst_label.set_shader();
 
         }

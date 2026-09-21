@@ -95,20 +95,20 @@ namespace _2DHelmholtz_solver.other_windows
 
 
 
-        private int get_model_DOF()
+        private long get_model_DOF()
         {
-            int spectral_order = fe_data.spectral_order_N;
-            int node_count = fe_data.fe_nodes.node_count;
-            int tri_count = fe_data.fe_tris.elementtri_count;
-            int quad_count = fe_data.fe_quads.elementquad_count;
-            int edge_count = fe_data.meshdata.mesh_boundaries.line_count;
+            long spectral_order = fe_data.spectral_order_N;
+            long node_count = fe_data.fe_nodes.node_count;
+            long tri_count = fe_data.fe_tris.elementtri_count;
+            long quad_count = fe_data.fe_quads.elementquad_count;
+            long edge_count = fe_data.meshdata.mesh_boundaries.line_count;
 
 
-            int tri_element_internal_nodecount = (int)(tri_count * (spectral_order - 2) * (spectral_order - 1) * 0.5);
-            int quad_element_internal_nodecount = quad_count * (spectral_order - 1) * (spectral_order - 1);
-            int edge_nodecount = edge_count * (spectral_order - 1);
+            long tri_element_internal_nodecount = (long)(tri_count * (spectral_order - 2) * (spectral_order - 1) * 0.5);
+            long quad_element_internal_nodecount = quad_count * (spectral_order - 1) * (spectral_order - 1);
+            long edge_nodecount = edge_count * (spectral_order - 1);
 
-            int total_DOF = node_count + tri_element_internal_nodecount + quad_element_internal_nodecount + edge_nodecount;
+            long total_DOF = node_count + tri_element_internal_nodecount + quad_element_internal_nodecount + edge_nodecount;
 
             return total_DOF;
         }
@@ -208,12 +208,26 @@ namespace _2DHelmholtz_solver.other_windows
 
 
 
+
                 // Get the model size and check if it's too large for the solver
-                int total_DOF = get_model_DOF();
+                long total_DOF = get_model_DOF();
+                double matrixDensity = 0.2; // Assuming 20% density for the matrix
+                long nnzPerMatrix = (long)((double)total_DOF * total_DOF * matrixDensity); // number of non-zero entries in the matrix
+                double bytesKM = 2.0 * nnzPerMatrix * (sizeof(double) + sizeof(int));  // 8 (value) + 4 (index) // 2 System Matrices (K and M)
+
+
                 AppendStatus($"Total Degrees of Freedom (DOF): {total_DOF}\n");
 
-                long maxThresholdBytes = 8L * 1024 * 1024 * 1024;
-                long matrixBytes = total_DOF * total_DOF * sizeof(double);
+                if (total_DOF > 1000000)
+                {
+                    AppendStatus($"Error: The model exceeds the maximum allowed DOF of 1 million (1,000,000).\n");
+                    return;
+                }
+
+                double factorDensity = 0.02; // Factor density for estimating peak memory usage (2% of the total matrix size)
+                long matrixBytes = (long)(bytesKM * factorDensity);
+
+                long maxThresholdBytes = 32L * 1024 * 1024 * 1024;
 
 
                 if (matrixBytes > maxThresholdBytes)
@@ -232,7 +246,7 @@ namespace _2DHelmholtz_solver.other_windows
 
                 }
 
-                long warningThresholdBytes = 1L * 1024 * 1024 * 1024;
+                long warningThresholdBytes = 8L * 1024 * 1024 * 1024;
 
                 if (matrixBytes > warningThresholdBytes)
                 {
@@ -250,7 +264,6 @@ namespace _2DHelmholtz_solver.other_windows
                         return;
                     }
                 }
-
 
 
 

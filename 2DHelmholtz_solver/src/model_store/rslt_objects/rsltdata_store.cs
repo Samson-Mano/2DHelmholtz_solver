@@ -2,6 +2,7 @@
 using _2DHelmholtz_solver.src.model_store.fe_objects;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
 using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -100,7 +101,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public void setResultMesh()
         {
             // Create the Result mesh for drawing the results
-            rsltmeshdata = new meshdata_store(true);
+            rsltmeshdata = new meshdata_store();
 
             // Add the mesh points
             foreach (var r_nd_m in rslt_nodes)
@@ -132,7 +133,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
 
             // Set the openTK buffer
-            rsltmeshdata.set_shader();
+            rsltmeshdata.set_shader(ShaderLibrary.ShaderType.RsltMeshShader);
             rsltmeshdata.set_buffer();
 
         }

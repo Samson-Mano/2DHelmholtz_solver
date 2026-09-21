@@ -273,7 +273,7 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 
 	// 2) Extract reduced matrices Kff, Mff
 	int n_free = static_cast<int>(free_dofs.size());
-	int num_modes = std::min(inpt_num_modes, n_free);
+	int num_modes = std::min(inpt_num_modes, n_free - 1);
 
 	std::string msg = "Number of free DOFs: " + std::to_string(n_free);
 	report(msg.c_str());
@@ -339,6 +339,13 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	Eigen::SparseMatrix<double> M_ff(n_free, n_free);
 	K_ff.setFromTriplets(Kt.begin(), Kt.end());
 	M_ff.setFromTriplets(Mt.begin(), Mt.end());
+
+	//// For debugging, to store the reduced matrices to text files
+	//this->global_reduced_k_matrix.resize(n_free, n_free);
+	//this->global_reduced_k_matrix.setFromTriplets(Kt.begin(), Kt.end());
+
+	//this->global_reduced_m_matrix.resize(n_free, n_free);
+	//this->global_reduced_m_matrix.setFromTriplets(Mt.begin(), Mt.end());
 
 	// Compress matrices for better performance
 	K_ff.makeCompressed();
@@ -426,7 +433,7 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 	this->natural_modes.resize(total_dofs, eigenvectors.cols());
 	this->natural_modes.setZero();
 
-	for (int i = 0; i < n_free; ++i) 
+	for (int i = 0; i < n_free; ++i)
 	{
 		this->natural_modes.row(free_dofs[i]) = eigenvectors.row(i);
 	}
@@ -1308,6 +1315,9 @@ void modal_spectral_solver::store_results_with_index(double geom_min_x, double g
 }
 
 
+
+
+
 void modal_spectral_solver::store_matrices_text_debug()
 {
 	std::string text_file_name = "debug_matrices.txt";
@@ -1398,6 +1408,126 @@ void modal_spectral_solver::store_matrices_text_debug()
 		}
 	}
 	text_file << "\n";
+
+	//__________________________________________________________________________________________________________________________
+	matrix_rows = global_dirichlet_BC_flags_vector.size();
+
+	text_file << "=== Global dirichlet BC vector ===\n";
+	text_file << "Size: " << matrix_rows << "\n";
+
+	if (matrix_rows > max_print_size)
+	{
+		text_file << "WARNING: Vector size exceeds " << max_print_size
+			<< ". Printing only the first " << max_print_size << " elements.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+
+			text_file << std::setw(15) << std::setprecision(6) << global_dirichlet_BC_flags_vector[i] << " ";
+
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full vector
+		for (int i = 0; i < matrix_rows; i++)
+		{
+
+			text_file << std::setw(15) << std::setprecision(6) << global_dirichlet_BC_flags_vector[i] << " ";
+
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+
+
+	/*
+
+	//__________________________________________________________________________________________________________________________
+	// Write Ke reduced Matrix
+	text_file << "=== Ke reduced Matrix ===\n";
+
+	matrix_rows = global_reduced_k_matrix.rows();
+	matrix_cols = global_reduced_k_matrix.cols();
+
+	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
+	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
+	{
+		text_file << "WARNING: Matrix size exceeds " << max_print_size
+			<< " x " << max_print_size << ". Printing only the first "
+			<< max_print_size << " x " << max_print_size << " block.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+			for (int j = 0; j < std::min(max_print_size, matrix_cols); j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_k_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full matrix
+		for (int i = 0; i < matrix_rows; i++)
+		{
+			for (int j = 0; j < matrix_cols; j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_reduced_k_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+	// Write Me reduced Matrix
+	text_file << "=== Me reduced Matrix ===\n";
+	text_file << "Size: " << matrix_rows << " x " << matrix_cols << "\n";
+
+	if (matrix_rows > max_print_size || matrix_cols > max_print_size)
+	{
+		text_file << "WARNING: Matrix size exceeds " << max_print_size
+			<< " x " << max_print_size << ". Printing only the first "
+			<< max_print_size << " x " << max_print_size << " block.\n\n";
+
+		// Print only the top-left corner
+		for (int i = 0; i < std::min(max_print_size, matrix_rows); i++)
+		{
+			for (int j = 0; j < std::min(max_print_size, matrix_cols); j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_reduced_m_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	else
+	{
+		// Print full matrix
+		for (int i = 0; i < matrix_rows; i++)
+		{
+			for (int j = 0; j < matrix_cols; j++)
+			{
+				text_file << std::setw(15) << std::setprecision(6) << global_m_matrix.coeff(i, j) << " ";
+			}
+			text_file << "\n";
+		}
+	}
+	text_file << "\n";
+
+	*/
+
+
+
+
+
+
+
+
 
 	// Optional: Print matrix statistics
 	text_file << "=== Matrix Statistics ===\n";

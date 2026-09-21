@@ -12,6 +12,9 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
         public enum ShaderType
         {
             MeshShader,
+            RsltMeshShader,
+            ModalRsltMeshShader,
+
             TextShader,
             SelectionShader,
 
@@ -31,29 +34,18 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
             #version 330 core
 
             uniform mat4 uMVP; 
-
             uniform float vertexTransparency; // Transparency of the mesh
-            uniform float sinevalue = 1.0f;
 
             layout(location = 0) in vec2 node_position;
             layout(location = 1) in vec3 vertexColor;
-            layout(location = 2) in float is_dynamic;
-            layout(location = 3) in float deflscale; 
 
-            out vec3 v_Color;
-            out float v_is_dynamic;
-            out float v_deflscale;
-            out float v_Transparency;
+            out vec4 v_Color;
 
             void main()
             {
                 
-                v_is_dynamic = is_dynamic;
-                v_deflscale = deflscale * sinevalue;
-
                 // Set the point color and transparency
-                v_Color = vertexColor;
-                v_Transparency = vertexTransparency;
+                v_Color = vec4(vertexColor, vertexTransparency);
 
                 // Final position with projection matrix
                 gl_Position = uMVP * vec4(node_position, 0.0, 1.0);
@@ -74,12 +66,69 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             #version 330 core
 
-            uniform float IsOscillation = 0.0f; // Flag to indicate if oscillation is active
+            in vec4 v_Color;
 
-            in vec3 v_Color;
-            in float v_is_dynamic;
+            out vec4 f_Color; // fragment's final color (out to the fragment shader)
+
+
+            void main() 
+            {
+
+                f_Color = v_Color; // Set the final color
+            }
+
+
+                    ";
+
+        }
+
+        #endregion
+
+
+
+
+        #region "Result Mesh Shaders"
+
+        private static string rsltmesh_vert_shader()
+        {
+            return @"
+
+            #version 330 core
+
+            uniform mat4 uMVP; 
+
+            layout(location = 0) in vec2 node_position;
+            layout(location = 1) in float deflscale;
+
+            out float v_deflscale;
+
+            void main()
+            {
+                
+                v_deflscale = deflscale;
+
+                // Final position with projection matrix
+                gl_Position = uMVP * vec4(node_position, 0.0, 1.0);
+            }
+
+
+                    ";
+
+        }
+
+
+
+
+        private static string rsltmesh_frag_shader()
+        {
+
+            return @"
+
+            #version 330 core
+
+            uniform float vertexTransparency; // Transparency of the mesh
+
             in float v_deflscale;
-            in float v_Transparency;
 
             out vec4 f_Color; // fragment's final color (out to the fragment shader)
 
@@ -87,11 +136,6 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
             vec3 jetHeatmap(float value) 
             {
                 float t = value;
-                
-                if (IsOscillation == 1.0f)
-                {
-                    t = (value + 1.0) * 0.5; // Normalize to [0, 1] for oscillation
-                }
 
                 return clamp(vec3(1.5) - abs(4.0 * vec3(t) + vec3(-3, -2, -1)), vec3(0), vec3(1));
             }
@@ -100,12 +144,83 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
             void main() 
             {
 
-                vec3 vertexColor = v_Color;
-    
-                if (v_is_dynamic == 1.0f)
-                {
-                    vertexColor = jetHeatmap(v_deflscale);
-                }
+                vec3 vertexColor = jetHeatmap(v_deflscale);
+
+                f_Color = vec4(vertexColor, vertexTransparency); // Set the final color
+            }
+
+
+                    ";
+
+        }
+
+        #endregion
+
+
+
+        #region "Modal Result Mesh Shaders"
+
+        private static string modalrsltmesh_vert_shader()
+        {
+            return @"
+
+            #version 330 core
+
+            uniform mat4 uMVP; 
+
+            uniform float vertexTransparency; // Transparency of the mesh
+            uniform float sinevalue = 1.0f;
+
+            layout(location = 0) in vec2 node_position;
+            layout(location = 1) in float deflscale;
+
+            out float v_deflscale;
+            out float v_Transparency;
+
+            void main()
+            {
+                
+                v_deflscale = deflscale * sinevalue;
+                v_Transparency = vertexTransparency;
+
+                // Final position with projection matrix
+                gl_Position = uMVP * vec4(node_position, 0.0, 1.0);
+            }
+
+                    ";
+
+        }
+
+
+
+
+        private static string modalrsltmesh_frag_shader()
+        {
+
+            return @"
+
+
+            #version 330 core
+
+            in float v_deflscale;
+            in float v_Transparency;
+
+            out vec4 f_Color; // fragment's final color (out to the fragment shader)
+
+
+
+            vec3 jetHeatmap(float value) 
+            {
+                float t  = (value + 1.0) * 0.5; // Normalize to [0, 1] for oscillation
+      
+                return clamp(vec3(1.5) - abs(4.0 * vec3(t) + vec3(-3, -2, -1)), vec3(0), vec3(1));
+            }
+
+
+            void main() 
+            {
+
+                vec3 vertexColor = jetHeatmap(v_deflscale);
 
                 f_Color = vec4(vertexColor, v_Transparency); // Set the final color
             }
@@ -116,7 +231,6 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
         }
 
         #endregion
-
 
 
         #region "Text shaders"
@@ -453,6 +567,10 @@ void main()
             {
                 case ShaderType.MeshShader:
                     return mesh_vert_shader();
+                case ShaderType.RsltMeshShader:
+                    return rsltmesh_vert_shader();
+                case ShaderType.ModalRsltMeshShader:
+                    return modalrsltmesh_vert_shader();
                 case ShaderType.SelectionShader:
                     return selrect_vert_shader();
                 case ShaderType.TextShader:
@@ -476,6 +594,10 @@ void main()
             {
                 case ShaderType.MeshShader:
                     return mesh_frag_shader();
+                case ShaderType.RsltMeshShader:
+                    return rsltmesh_frag_shader();
+                case ShaderType.ModalRsltMeshShader:
+                    return modalrsltmesh_frag_shader();
                 case ShaderType.SelectionShader:
                     return selrect_frag_shader();
                 case ShaderType.TextShader:

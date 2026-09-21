@@ -2,6 +2,7 @@
 using _2DHelmholtz_solver.src.events_handler;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
 using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using OpenTK.Graphics.ES11;
 using System;
 using System.Collections.Generic;
@@ -94,7 +95,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             fe_materials = new Dictionary<int, material_data>();
             materialids = new List<int>();
 
-            meshdata = new meshdata_store(false);
+            meshdata = new meshdata_store();
 
             // Result data
             resultmeshdata = new rsltdata_store();
@@ -143,7 +144,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
             // Create the mesh for drawing
-            meshdata = new meshdata_store(false);
+            meshdata = new meshdata_store();
             resultmeshdata = new rsltdata_store();
             modalresultmeshdata = new modal_rsltdata_store();
 
@@ -186,7 +187,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             materiallabels.update_openTK_uniforms(true, true, true, graphic_events_control);
 
             // Set the openTK buffer
-            meshdata.set_shader();
+            meshdata.set_shader(ShaderLibrary.ShaderType.MeshShader);
             meshdata.set_buffer();
 
             fe_nodeconstraints.set_shader();
@@ -248,7 +249,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
 
             // Create the mesh for drawing
-            meshdata = new meshdata_store(false);
+            meshdata = new meshdata_store();
             resultmeshdata = new rsltdata_store();
             modalresultmeshdata = new modal_rsltdata_store();
 
@@ -292,7 +293,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
             materiallabels.update_openTK_uniforms(true, true, true, graphic_events_control);
 
             // Set the openTK buffer
-            meshdata.set_shader();
+            meshdata.set_shader(ShaderLibrary.ShaderType.MeshShader);
             meshdata.set_buffer();
 
             //fe_nodeconstraints.set_shader();

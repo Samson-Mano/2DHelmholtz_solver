@@ -42,19 +42,18 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
     {
         public Dictionary<int, point_store> pointMap { get; }  = new Dictionary<int, point_store>();
         public int point_count = 0;
-        private bool is_DynamicDraw = false;    
 
         private graphicBuffers point_buffer;
         public Shader point_shader;
 
-        public point_list_store(bool is_DynamicDraw)
+        public point_list_store()
         {
             // (Re)Initialize the data
             pointMap = new Dictionary<int, point_store>();
             point_count = 0;
-            this.is_DynamicDraw = is_DynamicDraw;
 
         }
+
 
         public void add_point(int point_id, double x_coord, double y_coord, double z_coord, int color_id)
         {
@@ -97,17 +96,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void set_shader()
+        public void set_shader(ShaderLibrary.ShaderType type)
         {
 
             // Create Shader
-            point_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
-                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
+            point_shader = new Shader(ShaderLibrary.get_vertex_shader(type),
+                ShaderLibrary.get_fragment_shader(type));
 
         }
 
 
-        public void set_buffer()
+        public void set_buffer(bool IsResultMesh)
         {
 
             // Set the buffer for index
@@ -122,45 +121,91 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 get_point_index_buffer(ref point_vertex_indices, ref point_i_index);
             }
 
-            // Define the vertex layout
-            VertexBufferLayout pointLayout = new VertexBufferLayout();
-            pointLayout.AddFloat(2);  // Point center
-            pointLayout.AddFloat(3);  // Point color
-            pointLayout.AddFloat(1);  // Is Dynamic data
-            pointLayout.AddFloat(1);  // Normalized deflection scale
 
-            // Define the vertex buffer size for a point ( 2 position, 3 color, 2 dynamic data)
-            int point_vertex_count = 7 * point_count;
-            int point_vertex_size = point_vertex_count * sizeof(float);
 
-            // Create the point dynamic buffers
-            point_buffer = new graphicBuffers(null, point_vertex_size, point_vertex_indices,
-                point_indices_count, pointLayout, true);
+            if(IsResultMesh == false)
+            {
+                // Define the vertex layout
+                VertexBufferLayout pointLayout = new VertexBufferLayout();
+                pointLayout.AddFloat(2);  // Point center
+                pointLayout.AddFloat(3);  // Point color
+
+
+                // Define the vertex buffer size for a point ( 2 position, 3 color)
+                int point_vertex_count = 5 * point_count;
+                int point_vertex_size = point_vertex_count * sizeof(float);
+
+                // Create the point dynamic buffers
+                point_buffer = new graphicBuffers(null, point_vertex_size, point_vertex_indices,
+                    point_indices_count, pointLayout, true);
+
+            }
+            else
+            {
+                // Define the vertex layout
+                VertexBufferLayout pointLayout = new VertexBufferLayout();
+                pointLayout.AddFloat(2);  // Point center
+                pointLayout.AddFloat(1);  // Normalized deflection scale
+
+
+                // Define the vertex buffer size for a point ( 2 position, 1 normalized deflection scale)
+                int point_vertex_count = 3 * point_count;
+                int point_vertex_size = point_vertex_count * sizeof(float);
+
+                // Create the point dynamic buffers
+                point_buffer = new graphicBuffers(null, point_vertex_size, point_vertex_indices,
+                    point_indices_count, pointLayout, true);
+
+            }
 
             // Update the buffer
-            update_buffer();
+            update_buffer(IsResultMesh);
 
         }
 
-        public void update_buffer()
+        public void update_buffer(bool IsResultMesh)
         {
-            // Define the vertex buffer size for a point ( 2 position, 3 color, 2 dynamic data)
-            int point_vertex_count = 7 * point_count;
-            float[] point_vertices = new float[point_vertex_count];
-
-            int point_v_index = 0;
-
-            // Set the point vertex buffers
-            foreach (var pt in pointMap)
+            if (IsResultMesh == false)
             {
-                // Add vertex buffers
-                get_point_vertex_buffer(pt.Value, ref point_vertices, ref point_v_index);
+                // Define the vertex buffer size for a point ( 2 position, 3 color)
+                int point_vertex_count = 5 * point_count;
+                float[] point_vertices = new float[point_vertex_count];
+
+                int point_v_index = 0;
+
+                // Set the point vertex buffers
+                foreach (var pt in pointMap)
+                {
+                    // Add vertex buffers
+                    get_point_vertex_buffer(pt.Value, ref point_vertices, ref point_v_index);
+                }
+
+                int point_vertex_size = point_vertex_count * sizeof(float); // Size of the point vertex buffer
+
+                // Update the buffer
+                point_buffer.UpdateDynamicVertexBuffer(point_vertices, point_vertex_size);
             }
+            else
+            {
+                // Define the vertex buffer size for a point ( 2 position, 1 normalized deflection scale)
+                int point_vertex_count = 3 * point_count;
+                float[] point_vertices = new float[point_vertex_count];
 
-            int point_vertex_size = point_vertex_count * sizeof(float); // Size of the point vertex buffer
+                int point_v_index = 0;
 
-            // Update the buffer
-            point_buffer.UpdateDynamicVertexBuffer(point_vertices, point_vertex_size);
+                // Set the point vertex buffers
+                foreach (var pt in pointMap)
+                {
+                    // Add vertex buffers
+                    get_result_point_vertex_buffer(pt.Value, ref point_vertices, ref point_v_index);
+                }
+
+                int point_vertex_size = point_vertex_count * sizeof(float); // Size of the point vertex buffer
+
+                // Update the buffer
+                point_buffer.UpdateDynamicVertexBuffer(point_vertices, point_vertex_size);
+
+            }
 
         }
 
@@ -173,31 +218,14 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public void paint_static_points()
+        public void paint_points()
         {
-            // Paint all the static points
-            point_shader.Bind();
-            point_buffer.Bind();
-            // is_DynamicDraw = false;
-
-            GL.DrawElements(PrimitiveType.Points, point_count, DrawElementsType.UnsignedInt, 0);
-            point_buffer.UnBind();
-            point_shader.UnBind();
-
-        }
-
-
-        public void paint_dynamic_points()
-        {
-            // Paint all the dynamic points
+            // Paint all the points
             point_shader.Bind();
             point_buffer.Bind();
 
-            // Update the point buffer data for dynamic drawing
-            // is_DynamicDraw = true;
-            update_buffer();
-
             GL.DrawElements(PrimitiveType.Points, point_count, DrawElementsType.UnsignedInt, 0);
+
             point_buffer.UnBind();
             point_shader.UnBind();
 
@@ -246,12 +274,24 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             point_vertices[point_v_index + 3] = pt.point_color.Y;
             point_vertices[point_v_index + 4] = pt.point_color.Y;
 
-            point_vertices[point_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Iterate
+            point_v_index = point_v_index + 5;
 
-            point_vertices[point_v_index + 6] = (float)pt.normalized_defl_scale;
+        }
+
+
+        private void get_result_point_vertex_buffer(point_store pt, ref float[] point_vertices, ref int point_v_index)
+        {
+            // Get the node buffer for the shader
+            // Point location
+            point_vertices[point_v_index + 0] = pt.pt_coord.X;
+            point_vertices[point_v_index + 1] = pt.pt_coord.Y;
+
+            // Normalized deflection scale
+            point_vertices[point_v_index + 2] = (float)pt.normalized_defl_scale;
 
             // Iterate
-            point_v_index = point_v_index + 7;
+            point_v_index = point_v_index + 3;
 
         }
 

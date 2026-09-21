@@ -32,7 +32,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
     {
         public Dictionary<int, tri_store> triMap { get; } = new Dictionary<int, tri_store>();
         public int tri_count = 0;
-        private bool is_DynamicDraw = false;
+
         public bool is_ShrinkTriangle = false;
 
         private graphicBuffers tri_buffer;
@@ -42,7 +42,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         private readonly line_list_store _allLines;
 
 
-        public tri_list_store(point_list_store allPts, line_list_store allLines, bool is_DynamicDraw)
+        public tri_list_store(point_list_store allPts, line_list_store allLines)
         {
             // (Re)Initialize the data
             triMap = new Dictionary<int, tri_store>();
@@ -51,7 +51,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // store the all points data
             _allPts = allPts;
             _allLines = allLines;
-            this.is_DynamicDraw = is_DynamicDraw;
 
         }
 
@@ -75,17 +74,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void set_shader()
+        public void set_shader(ShaderLibrary.ShaderType type)
         {
 
             // Create Shader
-            tri_shader = new Shader(ShaderLibrary.get_vertex_shader(ShaderLibrary.ShaderType.MeshShader),
-                ShaderLibrary.get_fragment_shader(ShaderLibrary.ShaderType.MeshShader));
+            tri_shader = new Shader(ShaderLibrary.get_vertex_shader(type),
+                ShaderLibrary.get_fragment_shader(type));
 
         }
 
 
-        public void set_buffer()
+        public void set_buffer(bool IsResultMesh)
         {
 
             // Set the buffer for index
@@ -100,47 +99,91 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 get_tri_index_buffer(ref tri_vertex_indices, ref tri_i_index);
             }
 
-            // Define the vertex layout
-            VertexBufferLayout triLayout = new VertexBufferLayout();
-            triLayout.AddFloat(2);  // point center
-            triLayout.AddFloat(3);  // point color
-            triLayout.AddFloat(1);  // Is Dynamic data
-            triLayout.AddFloat(1);  // Normalized deflection scale
 
-            // Define the vertex buffer size for a point 3 * ( 2 position, 3 color, 2 dynamic data)
-            int tri_vertex_count = 3 * 7 * tri_count;
-            int tri_vertex_size = tri_vertex_count * sizeof(float);
-
-            // Create the triangle dynamic buffers
-            tri_buffer = new graphicBuffers(null, tri_vertex_size, tri_vertex_indices,
-                tri_indices_count, triLayout, true);
-
-            // Update the buffer
-            update_buffer();
-
-        }
-
-        public void update_buffer()
-        {
-            // Define the vertex buffer size for a point 3 * ( 2 position, 3 color, 2 dynamic data)
-            int tri_vertex_count = 3 * 7 * tri_count;
-            float[] tri_vertices = new float[tri_vertex_count];
-
-            int tri_v_index = 0;
-
-            // Set the tri vertex buffers
-            foreach (var tri in triMap)
+            if (IsResultMesh == false)
             {
-                // Add vertex buffers
-                get_tri_vertex_buffer(tri.Value, ref tri_vertices, ref tri_v_index);
+                // Define the vertex layout
+                VertexBufferLayout triLayout = new VertexBufferLayout();
+                triLayout.AddFloat(2);  // point center
+                triLayout.AddFloat(3);  // point color
+
+                // Define the vertex buffer size for a point 3 * ( 2 position, 3 color)
+                int tri_vertex_count = 3 * 5 * tri_count;
+                int tri_vertex_size = tri_vertex_count * sizeof(float);
+
+                // Create the triangle dynamic buffers
+                tri_buffer = new graphicBuffers(null, tri_vertex_size, tri_vertex_indices,
+                    tri_indices_count, triLayout, true);
+
+            }
+            else
+            {
+                // Define the vertex layout
+                VertexBufferLayout triLayout = new VertexBufferLayout();
+                triLayout.AddFloat(2);  // point center
+                triLayout.AddFloat(1);  // normalized deflection scale
+
+                // Define the vertex buffer size for a point 3 * ( 2 position, 1 normalized deflection scale)
+                int tri_vertex_count = 3 * 3 * tri_count;
+                int tri_vertex_size = tri_vertex_count * sizeof(float);
+
+                // Create the triangle dynamic buffers
+                tri_buffer = new graphicBuffers(null, tri_vertex_size, tri_vertex_indices,
+                    tri_indices_count, triLayout, true);
+
             }
 
-            int tri_vertex_size = tri_vertex_count * sizeof(float); // Size of the triangle vertex buffer
 
             // Update the buffer
-            tri_buffer.UpdateDynamicVertexBuffer(tri_vertices, tri_vertex_size);
+            update_buffer(IsResultMesh);
 
+            //
         }
+
+        public void update_buffer(bool IsResultMesh)
+        {
+            if (IsResultMesh == false)
+            {
+                // Define the vertex buffer size for a point 3 * ( 2 position, 3 color)
+                int tri_vertex_count = 3 * 5 * tri_count;
+                float[] tri_vertices = new float[tri_vertex_count];
+
+                int tri_v_index = 0;
+
+                // Set the tri vertex buffers
+                foreach (var tri in triMap)
+                {
+                    // Add vertex buffers
+                    get_tri_vertex_buffer(tri.Value, ref tri_vertices, ref tri_v_index);
+                }
+
+                int tri_vertex_size = tri_vertex_count * sizeof(float); // Size of the triangle vertex buffer
+
+                // Update the buffer
+                tri_buffer.UpdateDynamicVertexBuffer(tri_vertices, tri_vertex_size);
+            }
+            else
+            {
+                // Define the vertex buffer size for a point 3 * ( 2 position, 1 normalized deflection scale)
+                int tri_vertex_count = 3 * 3 * tri_count;
+                float[] tri_vertices = new float[tri_vertex_count];
+
+                int tri_v_index = 0;
+
+                // Set the tri vertex buffers
+                foreach (var tri in triMap)
+                {
+                    // Add vertex buffers
+                    get_result_tri_vertex_buffer(tri.Value, ref tri_vertices, ref tri_v_index);
+                }
+
+                int tri_vertex_size = tri_vertex_count * sizeof(float); // Size of the triangle vertex buffer
+
+                // Update the buffer
+                tri_buffer.UpdateDynamicVertexBuffer(tri_vertices, tri_vertex_size);
+            }
+        }
+
 
         public void clear_triangles()
         {
@@ -150,29 +193,11 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         }
 
-        public void paint_static_triangles()
+        public void paint_triangles()
         {
-            // Paint all the static triangles
+            // Paint all the triangles
             tri_shader.Bind();
             tri_buffer.Bind();
-            // is_DynamicDraw = false;
-
-            GL.DrawElements(PrimitiveType.Triangles, 3 * tri_count, DrawElementsType.UnsignedInt, 0);
-            tri_buffer.UnBind();
-            tri_shader.UnBind();
-
-        }
-
-
-        public void paint_dynamic_triangles()
-        {
-            // Paint all the dynamic triangles
-            tri_shader.Bind();
-            tri_buffer.Bind();
-
-            // Update the point buffer data for dynamic drawing
-            // is_DynamicDraw = true;
-            update_buffer();
 
             GL.DrawElements(PrimitiveType.Triangles, 3 * tri_count, DrawElementsType.UnsignedInt, 0);
             tri_buffer.UnBind();
@@ -276,12 +301,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             tri_vertices[tri_v_index + 3] = tri.tri_color.Y;
             tri_vertices[tri_v_index + 4] = tri.tri_color.Z;
 
-            tri_vertices[tri_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
-
-            tri_vertices[tri_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].normalized_defl_scale;
-
             // Iterate
-            tri_v_index = tri_v_index + 7;
+            tri_v_index = tri_v_index + 5;
 
 
             // Point 2
@@ -294,12 +315,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             tri_vertices[tri_v_index + 3] = tri.tri_color.Y;
             tri_vertices[tri_v_index + 4] = tri.tri_color.Z;
 
-            tri_vertices[tri_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
-
-            tri_vertices[tri_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].normalized_defl_scale;
-
             // Iterate
-            tri_v_index = tri_v_index + 7;
+            tri_v_index = tri_v_index + 5;
 
 
             // Point 3
@@ -312,12 +329,71 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             tri_vertices[tri_v_index + 3] = tri.tri_color.Y;
             tri_vertices[tri_v_index + 4] = tri.tri_color.Z;
 
-            tri_vertices[tri_v_index + 5] = is_DynamicDraw ? 1.0f : 0.0f;
+            // Iterate
+            tri_v_index = tri_v_index + 5;
 
-            tri_vertices[tri_v_index + 6] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].normalized_defl_scale;
+        }
+
+
+
+        private void get_result_tri_vertex_buffer(tri_store tri, ref float[] tri_vertices, ref int tri_v_index)
+        {
+            // Get the quad points
+            Vector3 pt1 = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord;
+            Vector3 pt2 = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord;
+            Vector3 pt3 = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord;
+
+            if (is_ShrinkTriangle == true)
+            {
+                // Shrink the triangle
+                // Compute centroid
+                Vector3 centroid = (pt1 + pt2 + pt3) / 3.0f;
+
+                float shrink_factor = (float)gvariables_static.mesh_shrink_factor;
+
+                // Shrink toward centroid
+                pt1 = centroid + shrink_factor * (pt1 - centroid);
+                pt2 = centroid + shrink_factor * (pt2 - centroid);
+                pt3 = centroid + shrink_factor * (pt3 - centroid);
+
+            }
+
+
+            // Get the node buffer for the shader
+            // Point 1
+            // Point location
+            tri_vertices[tri_v_index + 0] = pt1.X;
+            tri_vertices[tri_v_index + 1] = pt1.Y;
+
+            // Normalized deflection scale
+            tri_vertices[tri_v_index + 2] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].normalized_defl_scale;
 
             // Iterate
-            tri_v_index = tri_v_index + 7;
+            tri_v_index = tri_v_index + 3;
+
+
+            // Point 2
+            // Point location
+            tri_vertices[tri_v_index + 0] = pt2.X;
+            tri_vertices[tri_v_index + 1] = pt2.Y;
+
+            // Normalized deflection scale
+            tri_vertices[tri_v_index + 2] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].normalized_defl_scale;
+
+            // Iterate
+            tri_v_index = tri_v_index + 3;
+
+
+            // Point 3
+            // Point location
+            tri_vertices[tri_v_index + 0] = pt3.X;
+            tri_vertices[tri_v_index + 1] = pt3.Y;
+
+            // Normalized deflection scale
+            tri_vertices[tri_v_index + 2] = (float)_allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].normalized_defl_scale;
+
+            // Iterate
+            tri_v_index = tri_v_index + 3;
 
         }
 

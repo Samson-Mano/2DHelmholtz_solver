@@ -16,7 +16,7 @@
 int main()
 {
 
-	const char* input_file = "single_square1.bin";   // Adjust path here
+	const char* input_file = "constraint_error_simple_square.bin";   // Adjust path here
 	// const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder
@@ -103,12 +103,15 @@ int main()
 	// Determine the scaling factor to fit the geometry within a 10 x 10 box
 	double scale_value = 10.0 / std::max(geom_width, geom_height);
 
+	double x_offset = (geom_max_x + geom_min_x) * 0.5;
+	double y_offset = (geom_max_y + geom_min_y) * 0.5;
+
 	// Scale the model coordinates to fit within the 10.0 x 10.0 box
 	for (auto& node_pair : helmholtz_2dsystem.node_list)
 	{
 		node_store& node = node_pair.second;
-		node.x_coord = (node.x_coord - geom_min_x) * scale_value;
-		node.y_coord = (node.y_coord - geom_min_y) * scale_value;
+		node.x_coord = (node.x_coord - x_offset) * scale_value;
+		node.y_coord = (node.y_coord - y_offset) * scale_value;
 	}
 
 
@@ -351,8 +354,6 @@ int main()
 	// Create spectral mesh and global matrices
 	modal_spec_solver.create_global_matrices();
 	
-	modal_spec_solver.store_matrices_text_debug();
-
 	std::cout << "Spectral mesh and global matrices complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
 	// Perform modal analysis solve
@@ -361,6 +362,7 @@ int main()
 	std::cout << "Solve complete " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
 	// Debugg text results
+	modal_spec_solver.store_matrices_text_debug();
 	modal_spec_solver.store_results_text_debug();
 
 	//_________________________________________________________

@@ -1,17 +1,17 @@
 ﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.opentk_control.shader_compiler;
+using _2DHelmholtz_solver.src.model_store.fe_objects;
 using _2DHelmholtz_solver.src.opentk_control.opentk_bgdraw;
+// OpenTK library
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-
-// OpenTK library
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
-using _2DHelmholtz_solver.src.model_store.fe_objects;
 using System.Windows.Forms;
 
 
@@ -41,6 +41,9 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public List<int> selected_point_ids { get; } = new List<int>();
         public List<int> selected_edge_ids { get; } = new List<int>();
 
+
+        private ShaderLibrary.ShaderType shader_type;
+
         private sealed class EdgeKeySet
         {
             private readonly HashSet<ulong> _edges;
@@ -68,20 +71,20 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         }
 
 
-        public meshdata_store(bool is_DynamicDraw)
+        public meshdata_store()
         {
 
             // Initialize the mesh points, lines, triangles and quadrilateral
-            mesh_points = new point_list_store(is_DynamicDraw);
-            selected_mesh_points = new point_list_store(false);
-            mesh_half_edges = new line_list_store(mesh_points, is_DynamicDraw);
-            mesh_boundaries = new line_list_store(mesh_points, is_DynamicDraw);
-            mesh_lines = new line_list_store(mesh_points, is_DynamicDraw);
-            selected_mesh_edges = new line_list_store(mesh_points, is_DynamicDraw);
-            mesh_tris = new tri_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
-            selected_mesh_tris = new tri_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
-            mesh_quads = new quad_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
-            selected_mesh_quads = new quad_list_store(mesh_points, mesh_half_edges, is_DynamicDraw);
+            mesh_points = new point_list_store();
+            selected_mesh_points = new point_list_store();
+            mesh_half_edges = new line_list_store(mesh_points);
+            mesh_boundaries = new line_list_store(mesh_points);
+            mesh_lines = new line_list_store(mesh_points);
+            selected_mesh_edges = new line_list_store(mesh_points);
+            mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
+            selected_mesh_tris = new tri_list_store(mesh_points, mesh_half_edges);
+            mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
+            selected_mesh_quads = new quad_list_store(mesh_points, mesh_half_edges);
 
 
             // Selected mesh is drawn as shrunk triangle
@@ -201,7 +204,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
                 }
 
-                selected_mesh_points.set_buffer();
+                selected_mesh_points.set_buffer(false);
             }
 
         }
@@ -257,7 +260,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
                 }
 
-                selected_mesh_edges.set_buffer();
+                selected_mesh_edges.set_buffer(false);
             }
 
         }
@@ -313,7 +316,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
                 }
 
-                selected_mesh_tris.set_buffer();
+                selected_mesh_tris.set_buffer(false);
             }
 
         }
@@ -370,7 +373,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                         tri341.edge1_id, tri341.edge2_id, tri341.edge3_id, -2);
 
                 }
-                selected_mesh_quads.set_buffer();
+                selected_mesh_quads.set_buffer(false);
 
             }
 
@@ -382,12 +385,12 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Clear the selected triangles
             selected_tri_ids.Clear();
             selected_mesh_tris.clear_triangles();
-            selected_mesh_tris.set_buffer();
+            selected_mesh_tris.set_buffer(false);
 
             // Clear the selected quadrilaterals
             selected_quad_ids.Clear();
             selected_mesh_quads.clear_quadrilaterals();
-            selected_mesh_quads.set_buffer();
+            selected_mesh_quads.set_buffer(false);
 
         }
 
@@ -397,7 +400,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Clear the selected edges
             selected_edge_ids.Clear();
             selected_mesh_edges.clear_edges();
-            selected_mesh_edges.set_buffer();
+            selected_mesh_edges.set_buffer(false);
 
         }
 
@@ -407,7 +410,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Clear the selected mesh points
             selected_point_ids.Clear();
             selected_mesh_points.clear_points();
-            selected_mesh_points.set_buffer();
+            selected_mesh_points.set_buffer(false);
 
         }
 
@@ -633,80 +636,127 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void update_mesh_color_buffer()
         {
             // Update the buffer
-            mesh_tris.update_buffer();
-            mesh_quads.update_buffer();
+            mesh_tris.update_buffer(false);
+            mesh_quads.update_buffer(false);
 
         }
 
 
-        public void set_shader()
+        public void set_shader(ShaderLibrary.ShaderType type)
         {
+
+            this.shader_type = type;
 
             // Set the shader
             // mesh points
-            mesh_points.set_shader();
-            selected_mesh_points.set_shader();
+            mesh_points.set_shader(type);
+            selected_mesh_points.set_shader(type);
 
             // mesh boundaries
-            mesh_boundaries.set_shader();
-            selected_mesh_edges.set_shader();
+            mesh_boundaries.set_shader(type);
+            selected_mesh_edges.set_shader(type);
 
             // mesh lines
-            mesh_lines.set_shader();
+            mesh_lines.set_shader(type);
 
             // mesh tris and quads
-            mesh_tris.set_shader();
-            mesh_quads.set_shader();
-            selected_mesh_tris.set_shader();
-            selected_mesh_quads.set_shader();
+            mesh_tris.set_shader(type);
+            mesh_quads.set_shader(type);
+            selected_mesh_tris.set_shader(type);
+            selected_mesh_quads.set_shader(type);
 
         }
 
 
         public void set_buffer()
         {
+            if (this.shader_type == ShaderLibrary.ShaderType.MeshShader)
+            {
+                // Set the buffer
+                // mesh points
+                mesh_points.set_buffer(false);
+                selected_mesh_points.set_buffer(false);
 
-            // Set the buffer
-            // mesh points
-            mesh_points.set_buffer();
-            selected_mesh_points.set_buffer();
+                // mesh boundaries
+                mesh_boundaries.set_buffer(false);
+                selected_mesh_edges.set_buffer(false);
 
-            // mesh boundaries
-            mesh_boundaries.set_buffer();
-            selected_mesh_edges.set_buffer();
+                // mesh lines
+                mesh_lines.set_buffer(false);
 
-            // mesh lines
-            mesh_lines.set_buffer();
+                // mesh tris and quads
+                mesh_tris.set_buffer(false);
+                mesh_quads.set_buffer(false);
+                selected_mesh_tris.set_buffer(false);
+                selected_mesh_quads.set_buffer(false);
 
-            // mesh tris and quads
-            mesh_tris.set_buffer();
-            mesh_quads.set_buffer();
-            selected_mesh_tris.set_buffer();
-            selected_mesh_quads.set_buffer();
+            }
+            else
+            {
+                // Set the buffer
+                // mesh points
+                mesh_points.set_buffer(true);
+                selected_mesh_points.set_buffer(true);
+
+                // mesh boundaries
+                mesh_boundaries.set_buffer(true);
+                selected_mesh_edges.set_buffer(true);
+
+                // mesh lines
+                mesh_lines.set_buffer(true);
+
+                // mesh tris and quads
+                mesh_tris.set_buffer(true);
+                mesh_quads.set_buffer(true);
+                selected_mesh_tris.set_buffer(true);
+                selected_mesh_quads.set_buffer(true);
+
+            }
 
         }
 
         public void update_buffer()
         {
+            if (this.shader_type == ShaderLibrary.ShaderType.MeshShader)
+            {
+                // Set the buffer
+                // mesh points
+                mesh_points.update_buffer(false);
+                selected_mesh_points.update_buffer(false);
 
-            // Set the buffer
-            // mesh points
-            mesh_points.update_buffer();
-            selected_mesh_points.update_buffer();
+                // mesh boundaries
+                mesh_boundaries.update_buffer(false);
+                selected_mesh_edges.update_buffer(false);
 
-            // mesh boundaries
-            mesh_boundaries.update_buffer();
-            selected_mesh_edges.update_buffer();
+                // mesh lines
+                mesh_lines.update_buffer(false);
 
-            // mesh lines
-            mesh_lines.update_buffer();
+                // mesh tris and quads
+                mesh_tris.update_buffer(false);
+                mesh_quads.update_buffer(false);
+                selected_mesh_tris.update_buffer(false);
+                selected_mesh_quads.update_buffer(false);
+            }
+            else
+            {
+                // Set the buffer
+                // mesh points
+                mesh_points.update_buffer(true);
+                selected_mesh_points.update_buffer(true);
 
-            // mesh tris and quads
-            mesh_tris.update_buffer();
-            mesh_quads.update_buffer();
-            selected_mesh_tris.update_buffer();
-            selected_mesh_quads.update_buffer();
+                // mesh boundaries
+                mesh_boundaries.update_buffer(true);
+                selected_mesh_edges.update_buffer(true);
 
+                // mesh lines
+                mesh_lines.update_buffer(true);
+
+                // mesh tris and quads
+                mesh_tris.update_buffer(true);
+                mesh_quads.update_buffer(true);
+                selected_mesh_tris.update_buffer(true);
+                selected_mesh_quads.update_buffer(true);
+            }
         }
 
 
@@ -722,8 +772,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             // Paint the static mesh (mesh which are fixed)
             // Paint the mesh triangles
-            mesh_tris.paint_static_triangles();
-            mesh_quads.paint_static_quadrilaterals();
+            mesh_tris.paint_triangles();
+            mesh_quads.paint_quadrilaterals();
 
         }
 
@@ -732,7 +782,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             // Paint the static mesh (lines)
             GL.LineWidth(gvariables_static.LineWidth);
-            mesh_lines.paint_static_lines();
+            mesh_lines.paint_lines();
             GL.LineWidth(1.0f);
 
         }
@@ -740,7 +790,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         public void paint_static_mesh_boundaries()
         {
             // Paint the mesh boundaries
-            mesh_boundaries.paint_static_lines();
+            mesh_boundaries.paint_lines();
 
         }
 
@@ -749,52 +799,18 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
             // Paint the mesh points
             GL.PointSize(gvariables_static.PointSize);
-            mesh_points.paint_static_points();
+            mesh_points.paint_points();
             GL.PointSize(1.0f);
 
         }
 
-
-        public void paint_dynamic_mesh()
-        {
-            // Paint the dynamic mesh (mesh which are not-fixed but variable)
-            // Paint the mesh triangles
-            mesh_tris.paint_dynamic_triangles();
-            mesh_quads.paint_dynamic_quadrilaterals();
-
-        }
-
-
-        public void paint_dynamic_mesh_lines()
-        {
-            // Paint the static mesh (lines)
-            GL.LineWidth(gvariables_static.LineWidth);
-            mesh_lines.paint_dynamic_lines();
-            GL.LineWidth(1.0f);
-
-        }
-
-
-        public void paint_dynamic_mesh_boundaries()
-        {
-            // Paint the mesh lines
-            mesh_boundaries.paint_dynamic_lines();
-
-        }
-
-        public void paint_dynamic_mesh_points()
-        {
-            // Paint the mesh points
-            mesh_points.paint_dynamic_points();
-
-        }
 
         public void paint_selected_points()
         {
 
             // Paint the selected points
             GL.PointSize(4.0f);
-            selected_mesh_points.paint_static_points();
+            selected_mesh_points.paint_points();
             GL.PointSize(1.0f);
 
         }
@@ -804,7 +820,7 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
             // Paint the selected edges
             GL.LineWidth(4.0f);
-            selected_mesh_edges.paint_static_lines();
+            selected_mesh_edges.paint_lines();
             GL.LineWidth(1.0f);
 
         }
@@ -813,8 +829,8 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
         {
 
             // Paint the selected tris and quds
-            selected_mesh_tris.paint_static_triangles();
-            selected_mesh_quads.paint_static_quadrilaterals();
+            selected_mesh_tris.paint_triangles();
+            selected_mesh_quads.paint_quadrilaterals();
 
         }
 
@@ -860,12 +876,22 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void update_mesh_shrinkage()
         {
-            // Perform the shrinkage of mesh
-            mesh_tris.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
-            mesh_tris.update_buffer();
-
-            mesh_quads.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
-            mesh_quads.update_buffer();
+            if(this.shader_type == ShaderLibrary.ShaderType.MeshShader)
+            {
+                // Perform the shrinkage of mesh
+                mesh_tris.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
+                mesh_tris.update_buffer(false);
+                mesh_quads.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
+                mesh_quads.update_buffer(false);
+            }
+            else
+            {
+                // Perform the shrinkage of mesh
+                mesh_tris.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
+                mesh_tris.update_buffer(true);
+                mesh_quads.is_ShrinkTriangle = gvariables_static.is_paint_shrunk_triangle;
+                mesh_quads.update_buffer(true);
+            }
 
         }
 
@@ -919,10 +945,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void updateAnimation(float sinevalue)
         {
-
-            mesh_tris.tri_shader.SetFloat("IsOscillation", 1.0f);
-            mesh_boundaries.line_shader.SetFloat("IsOscillation", 1.0f);
-            mesh_points.point_shader.SetFloat("IsOscillation", 1.0f);
 
             mesh_tris.tri_shader.SetFloat("sinevalue", sinevalue);
             mesh_boundaries.line_shader.SetFloat("sinevalue", sinevalue);

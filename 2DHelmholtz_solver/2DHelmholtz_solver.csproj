@@ -266,6 +266,7 @@
     <Content Include="Example_model\grid_200x200_tri.txt" />
     <Content Include="Example_model\grid_50x50_quad.txt" />
     <Content Include="Example_model\grid_50x50_tri.txt" />
+    <Content Include="Example_model\helmholtz_resonator_model.txt" />
     <Content Include="innx_icon.ico" />
     <Content Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP.sln" />
     <Content Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP\helmholtz_solverCPP.cpp" />

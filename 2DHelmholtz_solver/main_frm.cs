@@ -332,31 +332,6 @@ namespace _2DHelmholtz_solver
         }
 
 
-        // Utility function for status updates
-        private void SetRefreshStatus(bool isRefreshing)
-        {
-
-            if (isRefreshing)
-            {
-               //  toolStripStatusLabel_FPS.Text = "REFRESH";
-                // toolStripStatusLabel_FPS.ForeColor = Color.Green;
-                // toolStripStatusLabel_FPS.Invalidate();
-
-                // Start timer to reset status
-                refreshStatusResetTimer.Stop(); // restart if already running
-                refreshStatusResetTimer.Start();
-
-            }
-            else
-            {
-                // toolStripStatusLabel_FPS.Text = "";
-                // toolStripStatusLabel_FPS.ForeColor = SystemColors.Control;
-                // toolStripStatusLabel_FPS.Invalidate();
-
-            }
-
-        }
-
         #endregion
 
 
@@ -963,41 +938,44 @@ namespace _2DHelmholtz_solver
             gvariables_static.geom_transparency = 1.0f;
             gvariables_static.rslt_transparency = 0.0f;
 
+            float rslt_geom_transparency = 0.2f;
+            float rslt_rslt_transparency = 0.98f;    
+
             // Apply selection
             switch (option)
             {
                 case 1:
                     // Field Real values
                     gvariables_static.is_paint_ureal = true;
-                    gvariables_static.geom_transparency = 0.2f;
-                    gvariables_static.rslt_transparency = 1.0f;
+                    gvariables_static.geom_transparency = rslt_geom_transparency;
+                    gvariables_static.rslt_transparency = rslt_rslt_transparency;
                     break;
 
                 case 2:
                     // Field Imaginary values
                     gvariables_static.is_paint_uimag = true;
-                    gvariables_static.geom_transparency = 0.2f;
-                    gvariables_static.rslt_transparency = 1.0f;
+                    gvariables_static.geom_transparency = rslt_geom_transparency;
+                    gvariables_static.rslt_transparency = rslt_rslt_transparency;
                     break;
 
                 case 3:
                     // Field Magnitude values
                     gvariables_static.is_paint_umagnitude = true;
-                    gvariables_static.geom_transparency = 0.2f;
-                    gvariables_static.rslt_transparency = 1.0f;
+                    gvariables_static.geom_transparency = rslt_geom_transparency;
+                    gvariables_static.rslt_transparency = rslt_rslt_transparency;
                     break;
 
                 case 4:
                     // Field Phase values
                     gvariables_static.is_paint_uphase = true;
-                    gvariables_static.geom_transparency = 0.2f;
-                    gvariables_static.rslt_transparency = 1.0f;
+                    gvariables_static.geom_transparency = rslt_geom_transparency;
+                    gvariables_static.rslt_transparency = rslt_rslt_transparency;
                     break;
                 case 5:
                     // Paint modal results
                     gvariables_static.is_paint_modalresults = true;
-                    gvariables_static.geom_transparency = 0.2f;
-                    gvariables_static.rslt_transparency = 1.0f;
+                    gvariables_static.geom_transparency = rslt_geom_transparency;
+                    gvariables_static.rslt_transparency = rslt_rslt_transparency;
                     break;
                 case 0:
                 default:

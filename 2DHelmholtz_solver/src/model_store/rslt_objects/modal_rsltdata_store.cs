@@ -1,5 +1,6 @@
 ﻿using _2DHelmholtz_solver.global_variables;
 using _2DHelmholtz_solver.src.model_store.geom_objects;
+using _2DHelmholtz_solver.opentk_control.shader_compiler;
 using OpenTK;
 using SharpFont.Cache;
 using System;
@@ -70,7 +71,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         public void setResultMesh()
         {
             // Create the Result mesh for drawing the results
-            modal_rsltmeshdata = new meshdata_store(true);
+            modal_rsltmeshdata = new meshdata_store();
 
             // Add the mesh points
             foreach (var r_nd_m in modal_rslt_nodes)
@@ -100,7 +101,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
 
             // Set the openTK buffer
-            modal_rsltmeshdata.set_shader();
+            modal_rsltmeshdata.set_shader(ShaderLibrary.ShaderType.ModalRsltMeshShader);
             modal_rsltmeshdata.set_buffer();
 
 
@@ -164,7 +165,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                 // double normalized = Math.Abs(mode_max - mode_min) > 1e-12 ? ((md_rslt.Value - mode_min) / (mode_max - mode_min) : 0.0;
 
                 // Normalize to -1..1
-                double normalized = maxAbs > 1e-12 ? ((md_rslt.Value / maxAbs) + 1.0) * 0.5 : 0.0;
+                double normalized = maxAbs > 1e-12 ? (md_rslt.Value / maxAbs): 0.0;
 
 
 
