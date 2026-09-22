@@ -75,6 +75,30 @@ void helmholtz2d_spectral_solver::create_global_matrices()
 		this->triangle_quadrature_points = spectral_tri_element::get_triangle_quadrature(spectral_order);
 		this->triangle_basis_terms = spectral_tri_element::proriol_modes(spectral_order);
 
+		//_______________________________________________________________________________________
+		//std::ofstream out("triangle_quadrature_points.txt");
+		//if (!out.is_open()) {
+		//	// handle error
+		//	return;
+		//}
+
+		//out << std::setprecision(17);   // full round-trip precision for doubles
+
+		//for (const auto& qp : this->triangle_quadrature_points)
+		//{
+		//	std::stringstream ss;
+		//	ss << "Quadrature Point: (" << qp.xi << ", " << qp.eta
+		//		<< "), Weight: " << qp.weight;
+
+		//	out << ss.str() << '\n';
+		//}
+
+		//out.close();
+
+		//_______________________________________________________________________________________
+
+
+
 		report("Triangle Element Quadrature Points Created");
 
 		this->inv_vandermonde_matrix = spectral_tri_element::get_inverse_vandermonde_matrix(spectral_order, this->triangle_basis_terms);
@@ -398,6 +422,7 @@ void helmholtz2d_spectral_solver::get_trielement_k_grad_k_mass_matrix(const std:
 	// --- 1. Loop over quadrature points ---
 	for (int q = 0; q < static_cast<int>(quadrature_points.size()); q++)
 	{
+
 		double quadraturept_xi = quadrature_points[q].xi;
 		double quadraturept_eta = quadrature_points[q].eta;
 		double wt = quadrature_points[q].weight; // weights are normalized to 1.0
@@ -1722,6 +1747,9 @@ void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
 		throw std::runtime_error(error_msg);
 	}
 
+
+	/*
+
 	// Print the global K and M matrices
 	// Only print 200 x 200, inform if the matrix size exceed 200 x 200
 
@@ -1868,6 +1896,12 @@ void helmholtz2d_spectral_solver::store_k_m_matrices_text_debug()
 	text_file << "=== Matrix Properties ===\n";
 	text_file << "Ke is symmetric: " << (k_symmetric ? "YES" : "NO") << "\n";
 	text_file << "Me is symmetric: " << (m_symmetric ? "YES" : "NO") << "\n";
+
+	*/
+
+int max_print_size = 200;
+int matrix_rows = global_system_matrix.rows();
+int matrix_cols = global_system_matrix.cols();
 
 
 

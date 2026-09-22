@@ -384,29 +384,40 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	std::cout << "Renumbering mesh completed at " + stopwatch_elapsed_str.str() + " secs" << std::endl;
 
 
+	try 
+	{
+		//_________________________________________________________
+		// Helmholtz modal spectral solver
 
+		modal_spectral_solver modal_spec_solver;
 
-	//_________________________________________________________
-	// Helmholtz modal spectral solver
+		modal_spec_solver.init(&helmholtz_2dsystem, output_file, &stopwatch, callback);
 
-	modal_spectral_solver modal_spec_solver;
+		// Create spectral mesh and global matrices
+		modal_spec_solver.create_global_matrices();
 
-	modal_spec_solver.init(&helmholtz_2dsystem, output_file, &stopwatch, callback);
+		// Perform modal analysis solve
 
-	// Create spectral mesh and global matrices
-	modal_spec_solver.create_global_matrices();
+		(*isAnalysisSuccess) = modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type, geom_min_x, geom_min_y, scale_value);
+	}
+	catch (const std::exception& e) 
+	{
+		msg = "Error during modal analysis: " + std::string(e.what());
+		if (callback) callback(msg.c_str());
+		(*isAnalysisSuccess) = false;
+	}
+	catch (...) 
+	{
+		msg = "Unknown error during modal analysis.";
+		if (callback) callback(msg.c_str());
+		(*isAnalysisSuccess) = false;
+	}
 
-	// Perform modal analysis solve
-
-	(*isAnalysisSuccess) = modal_spec_solver.solve_modal_analysis(number_of_modes, solver_type, geom_min_x, geom_min_y, scale_value);
-
-
-
-	// (*isAnalysisSuccess) = true;
 
 	//_________________________________________________________
 	// Close the files
 	infile.close();
+	outfile.flush();
 	outfile.close();
 
 

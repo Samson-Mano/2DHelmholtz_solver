@@ -64,12 +64,6 @@ void spectral_mesh2d::generate_spectral_mesh(const helmholtz_system_store& linea
 
 	for (const auto& quad : linear_mesh.quadelement_list)
 	{
-		// Debugging
-		if (quad.second.quad_id == 160 || quad.second.quad_id == 253)
-		{
-			int stop = 10;
-		}
-
 
 		const quadelement_store& quad_elm = quad.second;
 		// Get the corner node IDs of the quadrilateral element

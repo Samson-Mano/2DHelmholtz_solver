@@ -7,8 +7,27 @@ std::vector<spectral_point> spectral_tri_element::get_triangle_quadrature(int sp
 {
 	std::vector<spectral_point> quadrature_points;
 
+	// !! Important Note:
+	// Dunavant rules for orders 11, 15, 16, 18, and 20 are specifically documented as having nodes that lie outside the domain
+	// So Spectral order 8 and above may not be suitable for certain applications. Therefore the order is shifted to 17 and 19
+	// for spectral orders 8, 9, and 10 respectively to avoid issues with nodes outside the domain.
+
+	// Spectral order 8, Original Rule = 16
+	// Spectral order 9, Original Rule = 18
+	// Spectral order 10, Original Rule = 20
+
 	// Map spectral order to Dunavant rule number
 	int rule = get_dunavant_rule_for_order(spectral_order);
+
+	// Adjust the rule if its 16, 18, or 20 to avoid issues with nodes outside the domain
+	if (rule == 16 || rule == 18)
+	{
+		rule++;
+	}
+	else if (rule == 20)
+	{
+		rule = 19; // Use rule 19 instead of 20
+	}
 
 	// Get the number of quadrature points for this rule
 	int order_num = dunavant_order_num(rule);

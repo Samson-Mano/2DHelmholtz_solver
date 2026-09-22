@@ -15,6 +15,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
             RsltMeshShader,
             ModalRsltMeshShader,
 
+            ChladniRsltMeshShader,
             TextShader,
             SelectionShader,
 
@@ -169,7 +170,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
             uniform mat4 uMVP; 
 
             uniform float vertexTransparency; // Transparency of the mesh
-            uniform float sinevalue = 1.0f;
+            uniform float sinevalue = 1.0;
 
             layout(location = 0) in vec2 node_position;
             layout(location = 1) in float deflscale;
@@ -231,6 +232,155 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
         }
 
         #endregion
+
+
+
+
+        #region "Chladni Result Mesh Shaders"
+
+        private static string chladnirsltmesh_vert_shader()
+        {
+            return @"
+
+                #version 330 core
+
+                uniform mat4 uMVP;
+                uniform float vertexTransparency;
+
+                layout(location = 0) in vec2 node_position;
+                layout(location = 1) in float deflscale;
+
+                out float v_deflscale;
+                out float v_Transparency;
+
+                void main()
+                {
+                    v_deflscale   = deflscale;
+                    v_Transparency = vertexTransparency;
+                    gl_Position   = uMVP * vec4(node_position, 0.0, 1.0);
+                }
+
+
+                    ";
+
+        }
+
+
+
+
+        private static string chladnirsltmesh_frag_shader()
+        {
+
+            return @"
+
+
+            #version 330 core
+
+            in float v_deflscale;
+            in float v_Transparency;
+
+            out vec4 f_Color;
+
+            uniform float uNodeWidth = 0.08;    // how thick the node lines are (try 0.02 – 0.08)
+            uniform float uColormapMode = 1.0; // 0 = plasma, 1 = inferno, 2 = magma, 3 = greys
+            uniform float uDisplacementScale = 1.0; // max |deflscale| for normalization
+
+            // ---------------------------------------------------------------
+            // Colormaps (approximated, good enough for visualization)
+            // Each takes t in [0,1] and returns an RGB color.
+            // ---------------------------------------------------------------
+
+            vec3 plasma(float t)
+            {
+                // P. Bourke's polynomial fit of the plasma colormap
+                const vec3 c0 = vec3(0.050383, 0.029803, 0.527975);
+                const vec3 c1 = vec3(0.063536, 0.028426, 0.533124);
+                const vec3 c2 = vec3(0.075353, 0.027206, 0.538007);
+                const vec3 c3 = vec3(0.086222, 0.026125, 0.542658);
+                const vec3 c4 = vec3(0.096379, 0.025165, 0.547103);
+                const vec3 c5 = vec3(0.105980, 0.024309, 0.551368);
+                const vec3 c6 = vec3(0.115124, 0.023556, 0.555468);
+                // Simpler 3-stop approximation:
+                vec3 a = vec3(0.050, 0.030, 0.528);
+                vec3 b = vec3(0.798, 0.280, 0.470);
+                vec3 c = vec3(0.940, 0.975, 0.131);
+                if (t < 0.5) return mix(a, b, t * 2.0);
+                return mix(b, c, (t - 0.5) * 2.0);
+            }
+
+            vec3 inferno(float t)
+            {
+                vec3 a = vec3(0.001, 0.000, 0.014);
+                vec3 b = vec3(0.735, 0.215, 0.330);
+                vec3 c = vec3(0.988, 0.998, 0.645);
+                if (t < 0.5) return mix(a, b, t * 2.0);
+                return mix(b, c, (t - 0.5) * 2.0);
+            }
+
+            vec3 magma(float t)
+            {
+                vec3 a = vec3(0.001, 0.000, 0.014);
+                vec3 b = vec3(0.716, 0.215, 0.475);
+                vec3 c = vec3(0.987, 0.991, 0.750);
+                if (t < 0.5) return mix(a, b, t * 2.0);
+                return mix(b, c, (t - 0.5) * 2.0);
+            }
+
+            vec3 greys(float t)
+            {
+                return vec3(t);
+            }
+
+            vec3 applyColormap(float t)
+            {
+                if (uColormapMode < 0.5)      return plasma(t);
+                else if (uColormapMode < 1.5) return inferno(t);
+                else if (uColormapMode < 2.5) return magma(t);
+                else                          return greys(t);
+            }
+
+            void main()
+            {
+                // 1) Normalize the signed deflection to [0, 1]
+                float scaled = v_deflscale / max(uDisplacementScale, 1e-6);
+
+                // 2) Distance from the node line (|d| = 0 means on a node)
+                float nodeDist = abs(scaled);
+
+                // 3) Base color from colormap of |deflection|
+                //    Node regions (small |d|) map to low t, antinodes to high t.
+                vec3 base = applyColormap(nodeDist);
+
+                // 4) Chladni node-line highlight:
+                //    Use a sharp falloff so only the very-near-zero region lights up.
+                //    smoothstep(edge0, edge1, x) — we invert it so nodeDist=0 -> 1.
+                float nodeLine = 1.0 - smoothstep(0.0, uNodeWidth, nodeDist);
+
+                // Boost the node line to white; keep antinodes at base color.
+                vec3 nodeColor = vec3(1.0); // pure white node lines
+
+                // Blend: where nodeLine = 1, we get white; where 0, we get base.
+                vec3 color = mix(base, nodeColor, nodeLine);
+
+                // 5) Optional: darken the antinodes slightly so nodes pop more.
+                //    Comment out if you want the colormap to dominate.
+                color *= mix(0.35, 1.0, nodeDist);
+
+                f_Color = vec4(color, v_Transparency);
+            }
+
+
+                    ";
+
+        }
+
+        #endregion
+
+
+
+
+
+
 
 
         #region "Text shaders"
@@ -571,6 +721,8 @@ void main()
                     return rsltmesh_vert_shader();
                 case ShaderType.ModalRsltMeshShader:
                     return modalrsltmesh_vert_shader();
+                case ShaderType.ChladniRsltMeshShader:
+                    return chladnirsltmesh_vert_shader();
                 case ShaderType.SelectionShader:
                     return selrect_vert_shader();
                 case ShaderType.TextShader:
@@ -598,6 +750,8 @@ void main()
                     return rsltmesh_frag_shader();
                 case ShaderType.ModalRsltMeshShader:
                     return modalrsltmesh_frag_shader();
+                case ShaderType.ChladniRsltMeshShader:
+                    return chladnirsltmesh_frag_shader();
                 case ShaderType.SelectionShader:
                     return selrect_frag_shader();
                 case ShaderType.TextShader:

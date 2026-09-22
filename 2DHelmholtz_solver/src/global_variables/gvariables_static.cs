@@ -124,6 +124,9 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static bool is_paint_shrunk_triangle = false;
 
+        public static bool is_paint_chladni_pattern = true;
+
+
         public static float mesh_shrink_factor = 0.8f;
         public static float selectedmesh_shrink_factor = 0.8f;
         public static bool is_RectangleSelection = true; // true = Rectangle selection, false = Circle Selection
@@ -379,6 +382,7 @@ namespace _2DHelmholtz_solver.global_variables
                              (float)(pt1.Z * (1.0 - param_t) + (pt2.Z * param_t)));
 
         }
+
 
 
         public static bool isPointSelected(Vector2 rectCpt1, Vector2 rectCpt2, Vector2 pt)

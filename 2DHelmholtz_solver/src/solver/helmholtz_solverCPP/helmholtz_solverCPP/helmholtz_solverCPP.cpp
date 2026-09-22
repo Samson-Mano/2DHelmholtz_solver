@@ -406,28 +406,43 @@ extern "C" __declspec(dllexport) void solve_helmholtzsolverCPP(
 	*/
 
 
-	//_________________________________________________________
-	// Helmholtz spectral solver
+	try
+	{
+		//_________________________________________________________
+		// Helmholtz spectral solver
 
-	helmholtz2d_spectral_solver helmholtz_spec_solver;
+		helmholtz2d_spectral_solver helmholtz_spec_solver;
 
-	helmholtz_spec_solver.init(&helmholtz_2dsystem, output_file, &stopwatch, callback);
+		helmholtz_spec_solver.init(&helmholtz_2dsystem, output_file, &stopwatch, callback);
 
-	// Create spectral mesh and global matrices
-	helmholtz_spec_solver.create_global_matrices();
+		// Create spectral mesh and global matrices
+		helmholtz_spec_solver.create_global_matrices();
 
-	// Perform solve
-	helmholtz_spec_solver.solve_helmholtz_matrices(solver_type);
+		// Perform solve
+		helmholtz_spec_solver.solve_helmholtz_matrices(solver_type);
+
+		(*isAnalysisSuccess) = true;
+	}
+	catch (const std::exception& e)
+	{
+		msg = "Error during helmholtz analysis: " + std::string(e.what());
+		if (callback) callback(msg.c_str());
+		(*isAnalysisSuccess) = false;
+	}
+	catch (...)
+	{
+		msg = "Unknown error during helmholtz analysis.";
+		if (callback) callback(msg.c_str());
+		(*isAnalysisSuccess) = false;
+	}
 
 
-
-	(*isAnalysisSuccess) = true;
 
 	//_________________________________________________________
 	// Close the files
 	infile.close();
+	outfile.flush();
 	outfile.close();
-
 
 }
 

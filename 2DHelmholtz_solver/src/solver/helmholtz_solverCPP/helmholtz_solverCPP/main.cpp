@@ -18,7 +18,7 @@
 int main()
 {
 
-	const char* input_file = "rendertri_error.bin";   // Adjust path here
+	const char* input_file = "triangle_spectralN8_error.bin";   // Adjust path here
 	// const char* output_file = "model_output.bin"; // Optional
 
 	// Example placeholder
@@ -56,7 +56,7 @@ int main()
 	int32_t spectral_order;
 	infile.read(reinterpret_cast<char*>(&spectral_order), 4);
 
-	spectral_order = 3; // For testing, override the spectral order to 3
+	spectral_order = 10; // For testing, override the spectral order to 8
 
 	helmholtz_2dsystem.spectral_order = spectral_order;
 	helmholtz_2dsystem.isExtendConstraints = extendconstraints == 1 ? true : false;

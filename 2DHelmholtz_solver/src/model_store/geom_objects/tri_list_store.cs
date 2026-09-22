@@ -211,6 +211,20 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Selected triangle list index;
             List<int> selected_tri_index = new List<int>();
 
+            OpenTK.Matrix4 mvp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                                        * graphic_events_control.modelMatrix;
+
+            // Rectangle bounds (normalized)
+            float rectMinX = Math.Min(corner_pt1.X, corner_pt2.X);
+            float rectMaxX = Math.Max(corner_pt1.X, corner_pt2.X);
+            float rectMinY = Math.Min(corner_pt1.Y, corner_pt2.Y);
+            float rectMaxY = Math.Max(corner_pt1.Y, corner_pt2.Y);
+
+            // Local helpers
+            bool InRect(Vector2 p) => p.X >= rectMinX && p.X <= rectMaxX
+                                   && p.Y >= rectMinY && p.Y <= rectMaxY;
+
+
             // Loop through all triangle in map
             foreach (var tri_m in triMap)
             {
@@ -220,6 +234,31 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 Vector3 node_pt1 = _allPts.pointMap[_allLines.lineMap[tri.edge1_id].start_pt_id].pt_coord;
                 Vector3 node_pt2 = _allPts.pointMap[_allLines.lineMap[tri.edge2_id].start_pt_id].pt_coord;
                 Vector3 node_pt3 = _allPts.pointMap[_allLines.lineMap[tri.edge3_id].start_pt_id].pt_coord;
+
+                // Project to screen
+                Vector4 node_pt1_fp = mvp * new Vector4(node_pt1, 1.0f);
+                Vector4 node_pt2_fp = mvp * new Vector4(node_pt2, 1.0f);
+                Vector4 node_pt3_fp = mvp * new Vector4(node_pt3, 1.0f);
+
+                // Cheap bounding-box reject
+                float minX = Math.Min(node_pt1_fp.X, Math.Min(node_pt2_fp.X, node_pt3_fp.X));
+                float maxX = Math.Max(node_pt1_fp.X, Math.Max(node_pt2_fp.X, node_pt3_fp.X));
+                float minY = Math.Min(node_pt1_fp.Y, Math.Min(node_pt2_fp.Y, node_pt3_fp.Y));
+                float maxY = Math.Max(node_pt1_fp.Y, Math.Max(node_pt2_fp.Y, node_pt3_fp.Y));
+
+                if (maxX < rectMinX || minX > rectMaxX || maxY < rectMinY || minY > rectMaxY)
+                    continue;
+
+
+                // Vertex test
+                if (InRect(new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) ||
+                    InRect(new Vector2(node_pt2_fp.X, node_pt2_fp.Y)) ||
+                    InRect(new Vector2(node_pt3_fp.X, node_pt3_fp.Y)))
+                {
+                    selected_tri_index.Add(tri_m.Key);
+                    continue;
+                }
+
 
                 // Mid points
                 Vector3 md_pt_12 = gvariables_static.linear_interpolation3d(node_pt1, node_pt2, 0.50);
@@ -231,33 +270,17 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
 
                 //______________________________
-                Vector4 node_pt1_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(node_pt1.X, node_pt1.Y, node_pt1.Z, 1.0f);
-                Vector4 node_pt2_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(node_pt2.X, node_pt2.Y, node_pt2.Z, 1.0f);
-                Vector4 node_pt3_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(node_pt3.X, node_pt3.Y, node_pt3.Z, 1.0f);
-                Vector4 md_pt_12_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(md_pt_12.X, md_pt_12.Y, md_pt_12.Z, 1.0f);
-                Vector4 md_pt_23_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(md_pt_23.X, md_pt_23.Y, md_pt_23.Z, 1.0f);
-                Vector4 md_pt_31_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(md_pt_31.X, md_pt_31.Y, md_pt_31.Z, 1.0f);
-                Vector4 tri_midpt_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(tri_midpt.X, tri_midpt.Y, tri_midpt.Z, 1.0f);
+                Vector4 md_pt_12_fp = mvp * new Vector4(md_pt_12, 1.0f);
+                Vector4 md_pt_23_fp = mvp * new Vector4(md_pt_23, 1.0f);
+                Vector4 md_pt_31_fp = mvp * new Vector4(md_pt_31, 1.0f);
+                Vector4 tri_midpt_fp = mvp * new Vector4(tri_midpt, 1.0f);
 
-
-                // Check whether the point inside a rectangle
-                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_31_fp.X, md_pt_31_fp.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(tri_midpt_fp.X, tri_midpt_fp.Y)) == true)
+                if (InRect(new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) ||
+                        InRect(new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) ||
+                        InRect(new Vector2(md_pt_31_fp.X, md_pt_31_fp.Y)) ||
+                        InRect(new Vector2(tri_midpt_fp.X, tri_midpt_fp.Y)))
                 {
                     selected_tri_index.Add(tri_m.Key);
-
                 }
 
             }

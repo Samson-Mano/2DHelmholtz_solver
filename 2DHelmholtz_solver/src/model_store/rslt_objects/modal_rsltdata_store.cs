@@ -46,6 +46,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
         public meshdata_store modal_rsltmeshdata;
 
+        public meshdata_store chladni_rsltmeshdata;
+
+
+
         public bool isModalResultSet = false;
 
 
@@ -72,6 +76,7 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         {
             // Create the Result mesh for drawing the results
             modal_rsltmeshdata = new meshdata_store();
+            chladni_rsltmeshdata = new meshdata_store();
 
             // Add the mesh points
             foreach (var r_nd_m in modal_rslt_nodes)
@@ -82,7 +87,9 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                     r_nd.node_pt_x_coord,
                     r_nd.node_pt_y_coord, 0.0, -1);
 
-
+                chladni_rsltmeshdata.add_mesh_point(r_nd.node_id,
+                    r_nd.node_pt_x_coord,
+                    r_nd.node_pt_y_coord, 0.0, -1);
             }
 
             // Add the mesh tris
@@ -92,6 +99,10 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
                 modal_rsltmeshdata.add_mesh_tris(tri_id,
                     r_tri.tri_node1, r_tri.tri_node2, r_tri.tri_node3, 0);
+
+                chladni_rsltmeshdata.add_mesh_tris(tri_id,
+                    r_tri.tri_node1, r_tri.tri_node2, r_tri.tri_node3, 0);
+
                 tri_id++;
 
             }
@@ -104,6 +115,9 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             modal_rsltmeshdata.set_shader(ShaderLibrary.ShaderType.ModalRsltMeshShader);
             modal_rsltmeshdata.set_buffer();
 
+
+            chladni_rsltmeshdata.set_shader(ShaderLibrary.ShaderType.ChladniRsltMeshShader);
+            chladni_rsltmeshdata.set_buffer();
 
         }
 
@@ -175,10 +189,15 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                          rslt_nd.node_pt_x_coord,
                          rslt_nd.node_pt_y_coord, 0.0, normalized);
 
+                chladni_rsltmeshdata.update_mesh_point(md_rslt.Key,
+                         rslt_nd.node_pt_x_coord,
+                         rslt_nd.node_pt_y_coord, 0.0, normalized);
+
             }
 
             // Update the buffers once at the end
             modal_rsltmeshdata.update_buffer();
+            chladni_rsltmeshdata.update_buffer();
 
         }
 
@@ -189,8 +208,15 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
         {
             if (isModalResultSet == true)
             {
-
-                modal_rsltmeshdata.paint_static_mesh();
+                if (gvariables_static.is_paint_chladni_pattern)
+                {
+                    chladni_rsltmeshdata.paint_static_mesh();
+                }
+                else
+                {
+                    modal_rsltmeshdata.paint_static_mesh();
+                }
+                    
 
                 // modal_rsltmeshdata.paint_static_mesh_boundaries();
 
@@ -221,13 +247,15 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
             stopwatch.Reset();
             stopwatch.Stop();
 
+            modal_rsltmeshdata.updateAnimation(1.0f);
+
         }
 
 
 
         public void update_modal_animation()
         {
-            if (!isModalResultSet || !gvariables_static.is_paint_modalresults)
+            if (!isModalResultSet || !gvariables_static.is_paint_modalresults || gvariables_static.is_paint_chladni_pattern == true)
                 return;
 
 
@@ -258,6 +286,11 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
                     viewMatrix,
                     gvariables_static.rslt_transparency);
 
+
+                chladni_rsltmeshdata.update_openTK_uniforms(projectionMatrix,
+                    modelMatrix,
+                    viewMatrix,
+                    gvariables_static.rslt_transparency);
 
             }
 
