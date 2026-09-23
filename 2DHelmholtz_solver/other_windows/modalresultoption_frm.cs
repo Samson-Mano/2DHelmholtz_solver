@@ -33,6 +33,7 @@ namespace _2DHelmholtz_solver.other_windows
 
             this.fe_data = fe_data;
 
+            comboBox_chladnipattern.SelectedIndex = gvariables_static.chladni_pattern_type;
 
             // === Popup Panel ===
             panelPopup = new Panel();
@@ -94,17 +95,20 @@ namespace _2DHelmholtz_solver.other_windows
             }
 
 
-            // Set the selected index to the first mode
-            int selected_index = Properties.Settings.Default.Sett_modal_selected_index;
+            //// Set the selected index to the first mode
+            //int selected_index = Properties.Settings.Default.Sett_modal_selected_index;
 
-            if (selected_index >= 0 && selected_index < comboBox_modedata.Items.Count)
-            {
-                comboBox_modedata.SelectedIndex = selected_index;
-            }
-            else
-            {
-                comboBox_modedata.SelectedIndex = 0;
-            }
+            //if (selected_index >= 0 && selected_index < comboBox_modedata.Items.Count)
+            //{
+            //    comboBox_modedata.SelectedIndex = selected_index;
+            //}
+            //else
+            //{
+            //    comboBox_modedata.SelectedIndex = 0;
+            //}
+            comboBox_modedata.SelectedIndex = 0;
+            double NatFreq_selected = this.fe_data.modalresultmeshdata.natural_Frequencies[comboBox_modedata.SelectedIndex] / 1e6;
+            label_NatFreq.Text = $"Natural Frequency = {NatFreq_selected:F4} MHz";
 
 
             if (gvariables_static.animate_play)
@@ -127,6 +131,7 @@ namespace _2DHelmholtz_solver.other_windows
             }
 
             gvariables_static.modal_animation_speed = Properties.Settings.Default.Sett_modal_animation_speed;
+            gvariables_static.chladni_pattern_type = Properties.Settings.Default.Sett_chladni_pattern;
 
             // Set the global variable
             double value = gvariables_static.modal_animation_speed;
@@ -170,8 +175,9 @@ namespace _2DHelmholtz_solver.other_windows
         private void modalresultoption_frm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Update the settings
-            Properties.Settings.Default.Sett_modal_selected_index = comboBox_modedata.SelectedIndex;
+            // Properties.Settings.Default.Sett_modal_selected_index = comboBox_modedata.SelectedIndex;
             Properties.Settings.Default.Sett_modal_animation_speed = gvariables_static.modal_animation_speed;
+            Properties.Settings.Default.Sett_chladni_pattern = gvariables_static.chladni_pattern_type;
 
             Properties.Settings.Default.Save();
 
@@ -297,6 +303,17 @@ namespace _2DHelmholtz_solver.other_windows
 
             // Update the mode shape
             this.fe_data.modalresultmeshdata.updateSelectedMode(comboBox_modedata.SelectedIndex);
+
+            double NatFreq_selected = this.fe_data.modalresultmeshdata.natural_Frequencies[comboBox_modedata.SelectedIndex] / 1e6;
+            label_NatFreq.Text = $"Natural Frequency = {NatFreq_selected:F4} MHz";
+
+
+        }
+
+        private void comboBox_chladnipattern_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            gvariables_static.chladni_pattern_type = comboBox_chladnipattern.SelectedIndex;
+            this.fe_data.modalresultmeshdata.setChladniPattern(comboBox_chladnipattern.SelectedIndex);
 
         }
 

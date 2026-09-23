@@ -131,6 +131,7 @@ public:
 private:
 	const double M_PI = 3.14159265;
 
+	double freq_scale_factor = 1.0; // Scale factor for frequency (to convert to model units (scaled geometry) to physical units (unscaled geometry))
 
 	helmholtz_system_store* helmholtz_2dsystem_ptr;
 	spectral_mesh2d spec_mesh2d;

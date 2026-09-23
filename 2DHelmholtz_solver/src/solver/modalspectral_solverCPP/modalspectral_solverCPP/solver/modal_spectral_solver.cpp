@@ -33,6 +33,9 @@ void modal_spectral_solver::create_global_matrices()
 	// Create the spectral mesh
 	helmholtz_system_store helmholtz_2dsystem = (*this->helmholtz_2dsystem_ptr);
 
+	// Set the frequency scale factor based on the maximum wave speed and maximum boundary value
+	this->freq_scale_factor = helmholtz_2dsystem.max_wave_speed * (10.0 / helmholtz_2dsystem.max_bound);
+
 	// Create the spectral mesh
 	this->spec_mesh2d.generate_spectral_mesh(helmholtz_2dsystem);
 
@@ -111,8 +114,9 @@ void modal_spectral_solver::create_global_matrices()
 				element_k_matrix, element_m_matrix);
 
 
-			// double wave_speed = spec_mesh2d.material_list[tri_elm.materialid].wave_speed; // get the material wave speed
-			// element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
+			double norm_wave_speed = spec_mesh2d.material_list[tri_elm.materialid].norm_wave_speed; // get the normalized material wave speed
+			element_k_matrix = (norm_wave_speed * norm_wave_speed) * element_k_matrix;
+
 
 			//________________________________________________________________________________________________
 			// Step 3: Create Element field vector
@@ -186,8 +190,8 @@ void modal_spectral_solver::create_global_matrices()
 				element_k_matrix, element_m_matrix);
 
 
-			// double wave_speed = spec_mesh2d.material_list[quad_elm.materialid].wave_speed; // get the material wave speed
-			// element_k_matrix = (wave_speed * wave_speed) * element_k_matrix;
+			 double norm_wave_speed = spec_mesh2d.material_list[quad_elm.materialid].norm_wave_speed; // get the normalized material wave speed
+			 element_k_matrix = (norm_wave_speed * norm_wave_speed) * element_k_matrix;
 
 
 			//________________________________________________________________________________________________
@@ -402,7 +406,10 @@ bool modal_spectral_solver::solve_modal_analysis(int inpt_num_modes, int solver_
 		{  // Positive definite check
 			double omega = std::sqrt(lambda);
 			double freq = omega / (2.0 * M_PI);
-			this->natural_frequencies.push_back(freq);
+
+			double scaled_freq = this->freq_scale_factor * freq; // Scale the frequency based on the maximum wave speed and maximum boundary value	
+
+			this->natural_frequencies.push_back(scaled_freq);
 		}
 		else
 		{

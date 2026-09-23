@@ -428,6 +428,45 @@ namespace _2DHelmholtz_solver.src.events_handler
             }
 
 
+
+            //____________________________________________________________________________________________________________
+            // Clear the dummy nodes (Nodes not associated with any element)
+            HashSet<int> nodes_connected_to_elements = new HashSet<int>();
+
+            foreach (elementtri_store tri in fe_tris.elementtriMap.Values)
+            {
+                nodes_connected_to_elements.Add(tri.nodeid1);
+                nodes_connected_to_elements.Add(tri.nodeid2);
+                nodes_connected_to_elements.Add(tri.nodeid3);
+            }
+
+            foreach (elementquad_store quad in fe_quads.elementquadMap.Values)
+            {
+                nodes_connected_to_elements.Add(quad.nodeid1);
+                nodes_connected_to_elements.Add(quad.nodeid2);
+                nodes_connected_to_elements.Add(quad.nodeid3);
+                nodes_connected_to_elements.Add(quad.nodeid4);
+            }
+
+            List<int> dummynode_ids = new List<int>();
+
+            foreach (node_store nd in fe_nodes.nodeMap.Values)
+            {
+                if (!nodes_connected_to_elements.Contains(nd.node_id))
+                {
+                    dummynode_ids.Add(nd.node_id);
+                }
+            }
+
+            // Remove dummy nodes
+            foreach (var nodeId in dummynode_ids)
+            {
+                fe_nodes.nodeMap.Remove(nodeId);
+            }
+
+
+
+
             // Check the model
             if (fe_nodes.node_count < 2 || (fe_tris.elementtri_count + fe_quads.elementquad_count) < 1)
             {

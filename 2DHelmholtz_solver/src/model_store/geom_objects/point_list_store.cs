@@ -238,17 +238,19 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Selected point list index;
             List<int> selected_point_index = new List<int>();
 
+            OpenTK.Matrix4 mvp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                            * graphic_events_control.modelMatrix;
+
+
             // Loop through all point in map
             foreach (var pt_m in pointMap)
             {
                 point_store pt = pt_m.Value;
 
                 //______________________________
-                Vector4 node_pt = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(pt.pt_coord.X, pt.pt_coord.Y, pt.pt_coord.Z, 1.0f);
+                Vector4 node_pt = mvp * new Vector4(pt.pt_coord, 1.0f);
 
-
-                // Check whether the point inside a rectangle
+                // Check whether the point is inside the selection rectangle or selection circle
                 if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt.X, node_pt.Y)) == true)
                 {
                     selected_point_index.Add(pt_m.Key);

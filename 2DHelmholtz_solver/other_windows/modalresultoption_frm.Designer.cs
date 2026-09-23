@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(modalresultoption_frm));
             this.label_status = new System.Windows.Forms.Label();
             this.button_stop = new System.Windows.Forms.Button();
             this.button_play_pause = new System.Windows.Forms.Button();
@@ -39,14 +38,16 @@
             this.label_realtimeanim_speed = new System.Windows.Forms.Label();
             this.button_animation_speed = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label_NatFreq = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.comboBox_chladnipattern = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // label_status
             // 
             this.label_status.AutoSize = true;
-            this.label_status.Location = new System.Drawing.Point(10, 183);
+            this.label_status.Location = new System.Drawing.Point(13, 65);
             this.label_status.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_status.Name = "label_status";
             this.label_status.Size = new System.Drawing.Size(48, 15);
@@ -55,7 +56,7 @@
             // 
             // button_stop
             // 
-            this.button_stop.Location = new System.Drawing.Point(13, 125);
+            this.button_stop.Location = new System.Drawing.Point(13, 139);
             this.button_stop.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.button_stop.Name = "button_stop";
             this.button_stop.Size = new System.Drawing.Size(155, 38);
@@ -66,7 +67,7 @@
             // 
             // button_play_pause
             // 
-            this.button_play_pause.Location = new System.Drawing.Point(13, 80);
+            this.button_play_pause.Location = new System.Drawing.Point(13, 94);
             this.button_play_pause.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.button_play_pause.Name = "button_play_pause";
             this.button_play_pause.Size = new System.Drawing.Size(155, 38);
@@ -158,20 +159,62 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Animation Speed: ";
             // 
+            // label_NatFreq
+            // 
+            this.label_NatFreq.AutoSize = true;
+            this.label_NatFreq.Location = new System.Drawing.Point(202, 104);
+            this.label_NatFreq.Name = "label_NatFreq";
+            this.label_NatFreq.Size = new System.Drawing.Size(115, 15);
+            this.label_NatFreq.TabIndex = 35;
+            this.label_NatFreq.Text = "Natural Frequency: ";
+            // 
             // label2
             // 
-            this.label2.Location = new System.Drawing.Point(189, 83);
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 180);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(347, 80);
-            this.label2.TabIndex = 35;
-            this.label2.Text = resources.GetString("label2.Text");
+            this.label2.Size = new System.Drawing.Size(247, 15);
+            this.label2.TabIndex = 36;
+            this.label2.Text = "Stop animation to show chladni like pattern";
+            // 
+            // comboBox_chladnipattern
+            // 
+            this.comboBox_chladnipattern.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_chladnipattern.FormattingEnabled = true;
+            this.comboBox_chladnipattern.Items.AddRange(new object[] {
+            "plasma",
+            "inferno",
+            "magma",
+            "grey",
+            "viridis",
+            "cividis",
+            "turbo",
+            "aurora",
+            "ember",
+            "ocean",
+            "sunset",
+            "neon",
+            "forest",
+            "ridged",
+            "iridescent",
+            "topographic",
+            "firestorm",
+            "chrome"});
+            this.comboBox_chladnipattern.Location = new System.Drawing.Point(269, 177);
+            this.comboBox_chladnipattern.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.comboBox_chladnipattern.Name = "comboBox_chladnipattern";
+            this.comboBox_chladnipattern.Size = new System.Drawing.Size(152, 23);
+            this.comboBox_chladnipattern.TabIndex = 37;
+            this.comboBox_chladnipattern.SelectedIndexChanged += new System.EventHandler(this.comboBox_chladnipattern_SelectedIndexChanged);
             // 
             // modalresultoption_frm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(554, 441);
+            this.Controls.Add(this.comboBox_chladnipattern);
             this.Controls.Add(this.label2);
+            this.Controls.Add(this.label_NatFreq);
             this.Controls.Add(this.label_status);
             this.Controls.Add(this.button_stop);
             this.Controls.Add(this.button_play_pause);
@@ -202,6 +245,8 @@
         private System.Windows.Forms.Label label_realtimeanim_speed;
         private System.Windows.Forms.Button button_animation_speed;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Label label_NatFreq;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox comboBox_chladnipattern;
     }
 }

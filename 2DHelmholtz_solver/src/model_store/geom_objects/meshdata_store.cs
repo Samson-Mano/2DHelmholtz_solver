@@ -945,11 +945,19 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
 
         public void updateAnimation(float sinevalue)
         {
-
+            // Only valid for modal results, not for static mesh
             mesh_tris.tri_shader.SetFloat("sinevalue", sinevalue);
             mesh_boundaries.line_shader.SetFloat("sinevalue", sinevalue);
             mesh_points.point_shader.SetFloat("sinevalue", sinevalue);
 
+        }
+
+        public void chladniPattern(float patternvalue)
+        {
+            // Only valid for modal results, not for static mesh
+            mesh_tris.tri_shader.SetFloat("uColormapMode", patternvalue);
+            mesh_boundaries.line_shader.SetFloat("uColormapMode", patternvalue);
+            mesh_points.point_shader.SetFloat("uColormapMode", patternvalue);
         }
 
 

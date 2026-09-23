@@ -169,6 +169,29 @@ void helmholtz_system_store::add_material(const int& materialid,
 }
 
 
+void helmholtz_system_store::normalize_material_wave_speeds()
+{
+	this->max_wave_speed = 0.0;
+
+	// Find the maximum wave speed among all materials
+	for (const auto& material_pair : material_list)
+	{
+		const material_store& material = material_pair.second;
+		if (material.wave_speed > this->max_wave_speed)
+		{
+			this->max_wave_speed = material.wave_speed;
+		}
+	}
+
+	// Normalize the wave speeds for all materials based on the maximum wave speed
+	for (auto& material_pair : material_list)
+	{
+		material_store& material = material_pair.second;
+		material.norm_wave_speed = material.wave_speed / this->max_wave_speed;
+	}
+
+}
+
 
 void helmholtz_system_store::add_nodeconstraint(const int& node_id,
 	const bool& isFieldBC,

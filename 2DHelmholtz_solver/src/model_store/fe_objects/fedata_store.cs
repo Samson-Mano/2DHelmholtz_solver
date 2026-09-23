@@ -82,7 +82,7 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
         {
 
             // (Re)Initialize the data
-            spectral_order_N = 6;
+            spectral_order_N = 3;
 
             fe_nodes = new node_list_store();
             fe_tris = new elementtri_list_store();

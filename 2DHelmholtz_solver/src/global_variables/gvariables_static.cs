@@ -124,8 +124,8 @@ namespace _2DHelmholtz_solver.global_variables
 
         public static bool is_paint_shrunk_triangle = false;
 
-        public static bool is_paint_chladni_pattern = true;
-
+        // public static bool is_paint_chladni_pattern = true;
+        public static int chladni_pattern_type = 2; // 0 = plasma, 1 = inferno, 2 = magma, 3 = greys
 
         public static float mesh_shrink_factor = 0.8f;
         public static float selectedmesh_shrink_factor = 0.8f;

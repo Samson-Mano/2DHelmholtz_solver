@@ -232,17 +232,6 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             OpenTK.Matrix4 mvp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
                             * graphic_events_control.modelMatrix;
 
-            // Rectangle bounds (normalized)
-            float rectMinX = Math.Min(corner_pt1.X, corner_pt2.X);
-            float rectMaxX = Math.Max(corner_pt1.X, corner_pt2.X);
-            float rectMinY = Math.Min(corner_pt1.Y, corner_pt2.Y);
-            float rectMaxY = Math.Max(corner_pt1.Y, corner_pt2.Y);
-
-            // Local helpers
-            bool InRect(Vector2 p) => p.X >= rectMinX && p.X <= rectMaxX
-                                   && p.Y >= rectMinY && p.Y <= rectMaxY;
-
-
 
             // Loop through all quadrilateral in map
             foreach (var quad_m in quadMap)
@@ -262,27 +251,18 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 Vector4 node_pt3_fp = mvp * new Vector4(node_pt3, 1.0f);
                 Vector4 node_pt4_fp = mvp * new Vector4(node_pt4, 1.0f);
 
-                // Cheap bounding-box reject
-                float minX = Math.Min(node_pt1_fp.X, Math.Min(node_pt2_fp.X, Math.Min(node_pt3_fp.X, node_pt4_fp.X)));
-                float maxX = Math.Max(node_pt1_fp.X, Math.Max(node_pt2_fp.X, Math.Max(node_pt3_fp.X, node_pt4_fp.X)));
-                float minY = Math.Min(node_pt1_fp.Y, Math.Min(node_pt2_fp.Y, Math.Min(node_pt3_fp.Y, node_pt4_fp.Y)));
-                float maxY = Math.Max(node_pt1_fp.Y, Math.Max(node_pt2_fp.Y, Math.Max(node_pt3_fp.Y, node_pt4_fp.Y)));
-
-
-                if (maxX < rectMinX || minX > rectMaxX || maxY < rectMinY || minY > rectMaxY)
-                    continue;
-
-
 
                 // Vertex test
-                if (InRect(new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) ||
-                    InRect(new Vector2(node_pt2_fp.X, node_pt2_fp.Y)) ||
-                    InRect(new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) ||
-                    InRect(new Vector2(node_pt4_fp.X, node_pt4_fp.Y)))
+                // Check whether the point is inside the selection rectangle or selection circle
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt1_fp.X, node_pt1_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt2_fp.X, node_pt2_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt3_fp.X, node_pt3_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_pt4_fp.X, node_pt4_fp.Y)) == true)
                 {
                     selected_quad_index.Add(quad_m.Key);
                     continue;
                 }
+
 
                 // Mid points
                 Vector3 md_pt_12 = gvariables_static.linear_interpolation3d(node_pt1, node_pt2, 0.50);
@@ -301,16 +281,15 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 Vector4 md_pt_41_fp = mvp * new Vector4(md_pt_41, 1.0f);
                 Vector4 quad_midpt_fp = mvp * new Vector4(quad_midpt, 1.0f);
 
-
-                if (InRect(new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) ||
-                    InRect(new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) ||
-                    InRect(new Vector2(md_pt_34_fp.X, md_pt_34_fp.Y)) ||
-                    InRect(new Vector2(md_pt_41_fp.X, md_pt_41_fp.Y)) ||
-                    InRect(new Vector2(quad_midpt_fp.X, quad_midpt_fp.Y)))
+                // Check whether the point is inside the selection rectangle or selection circle
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_12_fp.X, md_pt_12_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_23_fp.X, md_pt_23_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_34_fp.X, md_pt_34_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_41_fp.X, md_pt_41_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(quad_midpt_fp.X, quad_midpt_fp.Y)) == true)
                 {
                     selected_quad_index.Add(quad_m.Key);
                 }
-
 
             }
 

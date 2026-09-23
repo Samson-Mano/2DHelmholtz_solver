@@ -504,12 +504,13 @@ namespace _2DHelmholtz_solver
 
             }
 
-            //// Turn on Flag Material update form is open
-            //fedata.meshdata.isMaterialUpdateInProgress = true;
-            //fedata.meshdata.clear_selected_mesh();
 
-            // Show the form
-            option_Form.Show(this);
+            // Only show if not already visible; otherwise just bring to front
+            if(!option_Form.Visible)
+            {
+                option_Form.Show(this);
+            }
+            
             option_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
@@ -556,10 +557,14 @@ namespace _2DHelmholtz_solver
             fedata.isLoadUpdateInProgress = true;
             fedata.meshdata.clear_selected_nodes();
 
-            //// Show the form
-            // matprop_Form.update_material_data();
-            load_Form.update_selected_node_list();
-            load_Form.Show(this);
+            // Only show if not already visible; otherwise just bring to front
+            if(!load_Form.Visible)
+            {
+                // Show the form
+                load_Form.update_selected_node_list();
+                load_Form.Show(this);
+            }
+
             load_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
@@ -594,10 +599,15 @@ namespace _2DHelmholtz_solver
             fedata.isNodalConstraintUpdateInProgress = true;
             fedata.meshdata.clear_selected_nodes();
 
-            // Show the form
-            nodalconstraint_Form.update_dataGridView();
-            nodalconstraint_Form.update_selected_node_list();
-            nodalconstraint_Form.Show(this);
+            // Only show if not already visible; otherwise just bring to front
+            if (!nodalconstraint_Form.Visible)
+            {
+                // Show the form
+                nodalconstraint_Form.update_dataGridView();
+                nodalconstraint_Form.update_selected_node_list();
+                nodalconstraint_Form.Show(this);
+            }
+
             nodalconstraint_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
@@ -634,10 +644,16 @@ namespace _2DHelmholtz_solver
             fedata.isEdgeConstraintUpdateInProgress = true;
             fedata.meshdata.clear_selected_edges();
 
-            // Show the form
-            edgeconstraint_Form.update_dataGridView();
-            edgeconstraint_Form.update_selected_edge_list();
-            edgeconstraint_Form.Show(this);
+            // Only show if not already visible; otherwise just bring to front
+            if (!edgeconstraint_Form.Visible)
+            {
+                // Show the form
+                edgeconstraint_Form.update_dataGridView();
+                edgeconstraint_Form.update_selected_edge_list();
+                edgeconstraint_Form.Show(this);
+            }
+
+
             edgeconstraint_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
@@ -674,10 +690,15 @@ namespace _2DHelmholtz_solver
             fedata.isMaterialUpdateInProgress = true;
             fedata.meshdata.clear_selected_mesh();
 
-            // Show the form
-            matprop_Form.update_material_data();
-            matprop_Form.update_selected_element_list();
-            matprop_Form.Show(this);
+            // Only show if not already visible; otherwise just bring to front
+            if (!matprop_Form.Visible)
+            {
+                // Show the form
+                matprop_Form.update_material_data();
+                matprop_Form.update_selected_element_list();
+                matprop_Form.Show(this);
+            }
+
             matprop_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
@@ -788,14 +809,13 @@ namespace _2DHelmholtz_solver
 
             }
 
-            //// Turn on Flag Material update form is open
-            //fedata.meshdata.isMaterialUpdateInProgress = true;
-            //fedata.meshdata.clear_selected_mesh();
+            // Only show if not already visible; otherwise just bring to front
+            if (!solver_Form.Visible)
+            {
+                solver_Form.updateTextBox();
+                solver_Form.Show(this);
+            }
 
-            solver_Form.updateTextBox();
-
-            // Show the form
-            solver_Form.Show(this);
             solver_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
@@ -830,14 +850,13 @@ namespace _2DHelmholtz_solver
 
             }
 
-            //// Turn on Flag Material update form is open
-            //fedata.meshdata.isMaterialUpdateInProgress = true;
-            //fedata.meshdata.clear_selected_mesh();
+            // Only show if not already visible; otherwise just bring to front
+            if (!modalsolver_Form.Visible)
+            {
+                modalsolver_Form.updateTextBox();
+                modalsolver_Form.Show(this);
+            }
 
-            modalsolver_Form.updateTextBox();
-
-            // Show the form
-            modalsolver_Form.Show(this);
             modalsolver_Form.BringToFront();
 
             glControl_main_panel.Invalidate();
@@ -889,10 +908,14 @@ namespace _2DHelmholtz_solver
 
             }
 
-            // Show the form
-            modalresultoption_Form.initialize_modal_form();
+            if(!modalresultoption_Form.Visible)
+            {
+                // Show the form
+                modalresultoption_Form.initialize_modal_form();
+                modalresultoption_Form.Show(this);
+            }
 
-            modalresultoption_Form.Show(this);
+
             modalresultoption_Form.BringToFront();
 
             modalresultoption_Form.Invalidate();

@@ -374,6 +374,13 @@ namespace _2DHelmholtz_solver.other_windows
                         AppendStatus("Results read complete!\n");
                         MessageBox.Show("Solve completed successfully!", "Success",
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+
+                        //// Save the solver settings to properties for future sessions
+                        //Properties.Settings.Default.Sett_freq_value = Freq;
+                        //Properties.Settings.Default.Sett_spec_option = fe_data.spectral_order_N;
+                        //Properties.Settings.Default.Save();
+
                     }
                     catch (Exception ex)
                     {

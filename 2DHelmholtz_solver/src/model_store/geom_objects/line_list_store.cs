@@ -206,6 +206,11 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
             // Selected line list index;
             List<int> selected_line_index = new List<int>();
 
+
+            OpenTK.Matrix4 mvp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
+                                        * graphic_events_control.modelMatrix;
+
+
             // Loop through all line in map
             foreach (var ln_m in lineMap)
             {
@@ -215,28 +220,33 @@ namespace _2DHelmholtz_solver.src.model_store.geom_objects
                 Vector3 node_startpt = _allPts.pointMap[ln.start_pt_id].pt_coord;
                 Vector3 node_endpt = _allPts.pointMap[ln.end_pt_id].pt_coord;
 
+                Vector4 node_startpt_fp = mvp * new Vector4(node_startpt, 1.0f);
+                Vector4 node_endpt_fp = mvp * new Vector4(node_endpt, 1.0f);
+
+
+                // Vertex test
+                // Check whether the point is inside the selection rectangle or selection circle
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_startpt_fp.X, node_startpt_fp.Y)) == true ||
+                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_endpt_fp.X, node_endpt_fp.Y)) == true)
+                {
+                    selected_line_index.Add(ln_m.Key);
+                    continue;
+                }
+
+
                 // Mid points
                 Vector3 md_pt_25 = gvariables_static.linear_interpolation3d(node_startpt, node_endpt, 0.25);
                 Vector3 md_pt_50 = gvariables_static.linear_interpolation3d(node_startpt, node_endpt, 0.50);
                 Vector3 md_pt_75 = gvariables_static.linear_interpolation3d(node_startpt, node_endpt, 0.75);
 
                 //______________________________
-                Vector4 node_startpt_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(node_startpt.X, node_startpt.Y, node_startpt.Z, 1.0f);
-                Vector4 node_endpt_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(node_endpt.X, node_endpt.Y, node_endpt.Z, 1.0f);
+                Vector4 md_pt_25_fp = mvp * new Vector4(md_pt_25, 1.0f);
+                Vector4 md_pt_50_fp = mvp * new Vector4(md_pt_50, 1.0f);
+                Vector4 md_pt_75_fp = mvp * new Vector4(md_pt_75, 1.0f);
 
-                Vector4 md_pt_25_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(md_pt_25.X, md_pt_25.Y, md_pt_25.Z, 1.0f);
-                Vector4 md_pt_50_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(md_pt_50.X, md_pt_50.Y, md_pt_50.Z, 1.0f);
-                Vector4 md_pt_75_fp = graphic_events_control.projectionMatrix * graphic_events_control.viewMatrix
-                    * graphic_events_control.modelMatrix * new Vector4(md_pt_75.X, md_pt_75.Y, md_pt_75.Z, 1.0f);
 
-                // Check whether the point inside a rectangle
-                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_startpt_fp.X, node_startpt_fp.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(node_endpt_fp.X, node_endpt_fp.Y)) == true ||
-                    gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_25_fp.X, md_pt_25_fp.Y)) == true ||
+                // Check whether the point is inside the selection rectangle or selection circle
+                if (gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_25_fp.X, md_pt_25_fp.Y)) == true ||
                     gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_50_fp.X, md_pt_50_fp.Y)) == true ||
                     gvariables_static.isPointSelected(corner_pt1, corner_pt2, new Vector2(md_pt_75_fp.X, md_pt_75_fp.Y)) == true)
                 {

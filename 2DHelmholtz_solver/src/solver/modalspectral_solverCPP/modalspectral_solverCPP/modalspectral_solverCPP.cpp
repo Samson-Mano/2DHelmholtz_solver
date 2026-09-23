@@ -142,8 +142,10 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 	double geom_width = geom_max_x - geom_min_x;
 	double geom_height = geom_max_y - geom_min_y;
 
+	helmholtz_2dsystem.max_bound = std::max(geom_width, geom_height);
+
 	// Determine the scaling factor to fit the geometry within a 10 x 10 box
-	double scale_value = 10.0 / std::max(geom_width, geom_height);
+	double scale_value = 10.0 / helmholtz_2dsystem.max_bound;
 
 	// Scale the model coordinates to fit within the 10.0 x 10.0 box
 	for (auto& node_pair : helmholtz_2dsystem.node_list)
@@ -278,6 +280,10 @@ extern "C" __declspec(dllexport) void solve_modalspectralanalysisCPP(
 		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_speed);
 
 	}
+
+	// Normalize the wave speeds for all materials based on the maximum wave speed
+	helmholtz_2dsystem.normalize_material_wave_speeds();
+
 
 	stopwatch_elapsed_str.str("");       // clear the string content
 	stopwatch_elapsed_str.clear();       // clear any error flags

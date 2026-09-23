@@ -73,6 +73,7 @@ struct material_store
 	double permittivity = 0.0;
 	double permeability = 0.0;
 	double wave_speed = 0.0;
+	double norm_wave_speed = 0.0; // Normalized wave speed (wave_speed / maximum wave_speed)
 
 };
 
@@ -89,6 +90,9 @@ public:
 	std::unordered_map<int, material_store> material_list;
 
 	std::unordered_map<int, std::vector<int>> node_edge_map;
+
+	double max_wave_speed = 0.0; // Maximum wave speed among all materials
+	double max_bound = 0.0; // Maximum boundary value among all nodes
 
 
 	helmholtz_system_store();
@@ -119,6 +123,10 @@ public:
 		const double& permittivity,
 		const double& permeability,
 		const double& wave_speed);
+
+
+	void normalize_material_wave_speeds();
+
 
 	void add_nodeconstraint(const int& node_id,
 		const bool& isFieldBC,

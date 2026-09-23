@@ -230,12 +230,14 @@ int main()
 
 		double wave_speed = 1e9 / (std::sqrt(permittivity * permeability * 0.1));
 
-
-
 		// Add material to the helmholtz system store
 		helmholtz_2dsystem.add_material(materialid, permittivity, permeability, wave_speed);
 
 	}
+
+	// Normalize the wave speeds for all materials based on the maximum wave speed
+	helmholtz_2dsystem.normalize_material_wave_speeds();
+
 
 	stopwatch_elapsed_str.str("");       // clear the string content
 	stopwatch_elapsed_str.clear();       // clear any error flags
