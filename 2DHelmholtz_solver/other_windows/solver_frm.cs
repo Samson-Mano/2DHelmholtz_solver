@@ -49,7 +49,7 @@ namespace _2DHelmholtz_solver.other_windows
             // Update the model extent
 
             double x_extent = fe_data.geom_bounds.X;
-            double y_extent = fe_data.geom_bounds.X;
+            double y_extent = fe_data.geom_bounds.Y;
 
             // Use general format: no decimals for large values, scientific for small (<1)
             string formatValue(double v)

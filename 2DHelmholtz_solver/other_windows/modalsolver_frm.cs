@@ -1,4 +1,5 @@
-﻿using _2DHelmholtz_solver.src.events_handler;
+﻿using _2DHelmholtz_solver.global_variables;
+using _2DHelmholtz_solver.src.events_handler;
 using _2DHelmholtz_solver.src.global_variables;
 using _2DHelmholtz_solver.src.model_store.fe_objects;
 using _2DHelmholtz_solver.src.model_store.rslt_objects;
@@ -637,7 +638,19 @@ namespace _2DHelmholtz_solver.other_windows
 
                         fe_data.modalresultmeshdata.setResultMesh();
                         fe_data.modalresultmeshdata.isModalResultSet = true;
-                        fe_data.modalresultmeshdata.updateSelectedMode(0);
+
+                        int selected_index = Properties.Settings.Default.Sett_modal_selected_index;
+
+                        if (selected_index < 0 || selected_index >= fe_data.modalresultmeshdata.natural_Frequencies.Count)
+                        {
+                            selected_index = 0;
+                        }
+
+                        fe_data.modalresultmeshdata.updateSelectedMode(selected_index);
+                        gvariables_static.animate_play = true;
+                        gvariables_static.animate_pause = false;
+                        gvariables_static.animate_stop = false;
+
                         fe_data.modalresultmeshdata.start_animation();
 
                         fe_data.update_openTK_uniforms(true, true, true);

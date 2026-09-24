@@ -50,7 +50,7 @@
             this.label_status.Location = new System.Drawing.Point(13, 65);
             this.label_status.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_status.Name = "label_status";
-            this.label_status.Size = new System.Drawing.Size(48, 15);
+            this.label_status.Size = new System.Drawing.Size(63, 20);
             this.label_status.TabIndex = 34;
             this.label_status.Text = "Playing";
             // 
@@ -100,7 +100,7 @@
             this.comboBox_modedata.Location = new System.Drawing.Point(135, 27);
             this.comboBox_modedata.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.comboBox_modedata.Name = "comboBox_modedata";
-            this.comboBox_modedata.Size = new System.Drawing.Size(401, 23);
+            this.comboBox_modedata.Size = new System.Drawing.Size(401, 27);
             this.comboBox_modedata.TabIndex = 28;
             this.comboBox_modedata.SelectedIndexChanged += new System.EventHandler(this.comboBox_modedata_SelectedIndexChanged);
             // 
@@ -110,7 +110,7 @@
             this.label1.Location = new System.Drawing.Point(12, 30);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(115, 15);
+            this.label1.Size = new System.Drawing.Size(152, 20);
             this.label1.TabIndex = 27;
             this.label1.Text = "Natural Frequency: ";
             // 
@@ -120,7 +120,7 @@
             this.label_animation_speed.Location = new System.Drawing.Point(252, 35);
             this.label_animation_speed.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_animation_speed.Name = "label_animation_speed";
-            this.label_animation_speed.Size = new System.Drawing.Size(24, 15);
+            this.label_animation_speed.Size = new System.Drawing.Size(30, 20);
             this.label_animation_speed.TabIndex = 2;
             this.label_animation_speed.Text = "1.0";
             // 
@@ -130,7 +130,7 @@
             this.label_realtimeanim_speed.Location = new System.Drawing.Point(7, 84);
             this.label_realtimeanim_speed.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_realtimeanim_speed.Name = "label_realtimeanim_speed";
-            this.label_realtimeanim_speed.Size = new System.Drawing.Size(259, 15);
+            this.label_realtimeanim_speed.Size = new System.Drawing.Size(337, 20);
             this.label_realtimeanim_speed.TabIndex = 1;
             this.label_realtimeanim_speed.Text = "1 second in real time = 1 second in Animation";
             // 
@@ -164,7 +164,7 @@
             this.label_NatFreq.AutoSize = true;
             this.label_NatFreq.Location = new System.Drawing.Point(202, 104);
             this.label_NatFreq.Name = "label_NatFreq";
-            this.label_NatFreq.Size = new System.Drawing.Size(115, 15);
+            this.label_NatFreq.Size = new System.Drawing.Size(152, 20);
             this.label_NatFreq.TabIndex = 35;
             this.label_NatFreq.Text = "Natural Frequency: ";
             // 
@@ -173,7 +173,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(12, 180);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(247, 15);
+            this.label2.Size = new System.Drawing.Size(324, 20);
             this.label2.TabIndex = 36;
             this.label2.Text = "Stop animation to show chladni like pattern";
             // 
@@ -199,17 +199,35 @@
             "iridescent",
             "topographic",
             "firestorm",
-            "chrome"});
+            "chrome",
+            "invplasma",
+            "invinferno",
+            "invmagma",
+            "invgrey",
+            "invviridis",
+            "invcividis",
+            "invturbo",
+            "invaurora",
+            "invember",
+            "invocean",
+            "invsunset",
+            "invneon",
+            "invforest",
+            "invridged",
+            "inviridescent",
+            "invtopographic",
+            "invfirestorm",
+            "invchrome"});
             this.comboBox_chladnipattern.Location = new System.Drawing.Point(269, 177);
             this.comboBox_chladnipattern.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.comboBox_chladnipattern.Name = "comboBox_chladnipattern";
-            this.comboBox_chladnipattern.Size = new System.Drawing.Size(152, 23);
+            this.comboBox_chladnipattern.Size = new System.Drawing.Size(152, 27);
             this.comboBox_chladnipattern.TabIndex = 37;
             this.comboBox_chladnipattern.SelectedIndexChanged += new System.EventHandler(this.comboBox_chladnipattern_SelectedIndexChanged);
             // 
             // modalresultoption_frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(554, 441);
             this.Controls.Add(this.comboBox_chladnipattern);
@@ -227,6 +245,7 @@
             this.Name = "modalresultoption_frm";
             this.Text = "Modal Result Options";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.modalresultoption_frm_FormClosing);
+            this.Click += new System.EventHandler(this.modalresultoption_frm_Click);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);

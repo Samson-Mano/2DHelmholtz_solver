@@ -69,11 +69,23 @@
     <Compile Include="main_frm.Designer.cs">
       <DependentUpon>main_frm.cs</DependentUpon>
     </Compile>
+    <Compile Include="other_windows\about_frm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="other_windows\about_frm.Designer.cs">
+      <DependentUpon>about_frm.cs</DependentUpon>
+    </Compile>
     <Compile Include="other_windows\edgeconstraint_frm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="other_windows\edgeconstraint_frm.Designer.cs">
       <DependentUpon>edgeconstraint_frm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="other_windows\helper_frm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="other_windows\helper_frm.Designer.cs">
+      <DependentUpon>helper_frm.cs</DependentUpon>
     </Compile>
     <Compile Include="other_windows\modalresultoption_frm.cs">
       <SubType>Form</SubType>
@@ -168,8 +180,14 @@
     <EmbeddedResource Include="main_frm.resx">
       <DependentUpon>main_frm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="other_windows\about_frm.resx">
+      <DependentUpon>about_frm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="other_windows\edgeconstraint_frm.resx">
       <DependentUpon>edgeconstraint_frm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="other_windows\helper_frm.resx">
+      <DependentUpon>helper_frm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="other_windows\modalresultoption_frm.resx">
       <DependentUpon>modalresultoption_frm.cs</DependentUpon>
@@ -268,6 +286,7 @@
     <Content Include="Example_model\grid_50x50_tri.txt" />
     <Content Include="Example_model\helmholtz_resonator_model.txt" />
     <Content Include="innx_icon.ico" />
+    <None Include="Resources\Nova_Propulsion_logo_main2.png" />
     <Content Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP.sln" />
     <Content Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP\helmholtz_solverCPP.cpp" />
     <Content Include="src\solver\helmholtz_solverCPP\helmholtz_solverCPP\helmholtz_solverCPP.vcxproj.filters" />

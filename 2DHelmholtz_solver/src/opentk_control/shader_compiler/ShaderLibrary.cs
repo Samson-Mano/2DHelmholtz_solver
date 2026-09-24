@@ -202,9 +202,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
             uniform float sinevalue = 1.0;
 
 
-            uniform float uNodeWidth = 0.08;    // how thick the node lines are (try 0.02 – 0.08)
             uniform float uColormapMode = 2.0; // 0 = plasma, 1 = inferno, 2 = magma, 3 = greys
-            uniform float uDisplacementScale = 1.0; // max |deflscale| for normalization
 
 
             in float v_deflscale;
@@ -266,7 +264,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             vec3 greys(float t)
             {
-                return vec3(1.0 - t);
+                return vec3(t);
             }
 
 
@@ -448,6 +446,32 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
                 if (mode == 17) return chrome(t);
                 return plasma(t);
             }
+            
+            vec3 applyColormap2(float t)
+            {
+                // Use a different colormap for the second mode
+                int mode = int(uColormapMode + 0.5);
+                if (mode == 18) return plasma(t);
+                if (mode == 19) return inferno(t);
+                if (mode == 20) return magma(t);
+                if (mode == 21) return greys(t);
+                if (mode == 22) return viridis(t);
+                if (mode == 23) return cividis(t);
+                if (mode == 24) return turbo(t);
+                if (mode == 25) return aurora(t);
+                if (mode == 26) return ember(t);
+                if (mode == 27) return ocean(t);
+                if (mode == 28) return sunset(t);
+                if (mode == 29) return neon(t);
+                if (mode == 30) return forest(t);
+                if (mode == 31) return ridged(t);
+                if (mode == 32) return iridescent(t);
+                if (mode == 33) return topographic(t);
+                if (mode == 34) return firestorm(t);
+                if (mode == 35) return chrome(t);
+                return applyColormap(t); // Default to the first colormap
+            }
+
 
             void main() 
             {
@@ -461,31 +485,57 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
                 }
                 else
                 {
-                    // Static mode: Plot the chladni pattern using the deflection scale
-                    // 1) Normalize the signed deflection to [0, 1]
-                    float scaled = v_deflscale / max(uDisplacementScale, 1e-6);
+                    if (uColormapMode < 18)
+                    {
+                        
+                        float uNodeWidth = 0.08;    // how thick the node lines are (try 0.02 – 0.08)
 
-                    // 2) Distance from the node line (|d| = 0 means on a node)
-                    float nodeDist = abs(scaled);
+                        // Static mode: Plot the chladni pattern using the deflection scale
+                        // 1) Normalize the signed deflection to [0, 1]
+                        float scaled = v_deflscale;
 
-                    // 3) Base color from colormap of |deflection|
-                    //    Node regions (small |d|) map to low t, antinodes to high t.
-                    vec3 base = applyColormap(nodeDist);
+                        // 2) Distance from the node line (|d| = 0 means on a node)
+                        float nodeDist = abs(scaled);
 
-                    // 4) Chladni node-line highlight:
-                    //    Use a sharp falloff so only the very-near-zero region lights up.
-                    //    smoothstep(edge0, edge1, x) — we invert it so nodeDist=0 -> 1.
-                    float nodeLine = 1.0 - smoothstep(0.0, uNodeWidth, nodeDist);
+                        // 3) Base color from colormap of |deflection|
+                        //    Node regions (small |d|) map to low t, antinodes to high t.
+                        vec3 base = applyColormap(nodeDist);
 
-                    // Boost the node line to white; keep antinodes at base color.
-                    vec3 nodeColor = vec3(1.0); // pure white node lines
+                        // 4) Chladni node-line highlight:
+                        //    Use a sharp falloff so only the very-near-zero region lights up.
+                        //    smoothstep(edge0, edge1, x) — we invert it so nodeDist=0 -> 1.
+                        float nodeLine = 1.0 - smoothstep(0.0, uNodeWidth, nodeDist);
 
-                    // Blend: where nodeLine = 1, we get white; where 0, we get base.
-                    vertexColor = mix(base, nodeColor, nodeLine);
+                        // Boost the node line to white; keep antinodes at base color.
+                        vec3 nodeColor = vec3(1.0); // pure white node lines
 
-                    // 5) Optional: darken the antinodes slightly so nodes pop more.
-                    //    Comment out if you want the colormap to dominate.
-                    vertexColor *= mix(0.35, 1.0, nodeDist);
+                        // Blend: where nodeLine = 1, we get white; where 0, we get base.
+                        vertexColor = mix(base, nodeColor, nodeLine);
+
+                        // 5) Optional: darken the antinodes slightly so nodes pop more.
+                        //    Comment out if you want the colormap to dominate.
+                        vertexColor *= mix(0.35, 1.0, nodeDist);
+                    }
+                    else
+                    {
+
+                        float uNodeWidth = 0.16;    // how thick the node lines are (try 0.1 – 0.4)
+
+                        // ---- Chladni nodal contour ----
+                        float scaled   = v_deflscale;
+                        float nodeDist = abs(scaled);
+
+                        // Soft glow with sharp core (matches reference image)
+                        float brightness = pow(1.0 - clamp(nodeDist / uNodeWidth, 0.0, 1.0), 3.0);
+
+                        // Optional hot core inside the glow
+                        float core = 1.0 - smoothstep(0.0, uNodeWidth * 0.15, nodeDist);
+                        brightness = clamp(brightness + core * 0.5, 0.0, 1.0);
+
+                        // Monochrome black -> white
+                        vertexColor = applyColormap2(brightness);
+
+                    }
                 }   
 
                 f_Color = vec4(vertexColor, vertexTransparency); // Set the final color
