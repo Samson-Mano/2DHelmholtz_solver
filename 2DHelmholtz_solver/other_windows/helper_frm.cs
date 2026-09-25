@@ -137,7 +137,7 @@ namespace _2DHelmholtz_solver.other_windows
                 Line("             .......", fMono, cCode);
                 Blank();
                 Line("Follow the example format kept in the repository:", fBody, cBody);
-                Line("https://github.com/Samson-Mano/", fLink, cLink);
+                Line("https://github.com/Samson-Mano/2DHelmholtz_solver", fLink, cLink);
                 Blank();
 
                 // ---------------------------------------------------------------
