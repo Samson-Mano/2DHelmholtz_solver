@@ -47,6 +47,7 @@ namespace _2DHelmholtz_solver
         private solver_frm solver_Form;
         private modalsolver_frm modalsolver_Form;
         private modalresultoption_frm modalresultoption_Form;
+        private contourrange_frm contourrange_Form;
 
 
         private helper_frm helper_Form;
@@ -785,6 +786,37 @@ namespace _2DHelmholtz_solver
             glControl_main_panel.Invalidate();
         }
 
+        public void CallFrom_contourrange_frm()
+        {
+            // Note: Contour range update is added as an after thought 
+            // and not part of the original architecture. So, it is not as
+            // clean as the other update calls.
+            
+            if (fieldRealPlotToolStripMenuItem.Checked == true)
+            {
+                // Update the contour range for real field plot
+                TrySetResultOption(1);
+            }
+            else if (fieldImaginaryPlotToolStripMenuItem.Checked == true)
+            {
+                // Update the contour range for imaginary field plot
+                TrySetResultOption(2);
+            }
+            else if (fieldMagnitudePlotToolStripMenuItem.Checked == true)
+            {
+                // Update the contour range for magnitude field plot
+                TrySetResultOption(3);
+            }
+            else if (fieldPhasePlotToolStripMenuItem.Checked == true)
+            {
+                // Update the contour range for phase field plot
+                TrySetResultOption(4);  
+            }
+
+
+            glControl_main_panel.Invalidate();
+        }
+
         #endregion
 
 
@@ -888,6 +920,42 @@ namespace _2DHelmholtz_solver
         private void modalResultsToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(5);
 
         private void hideResultsToolStripMenuItem_Click(object sender, EventArgs e) => TrySetResultOption(0);
+
+
+        private void updateContourRangeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(!fedata.resultmeshdata.isResultSet)
+                return;
+
+            // Check if contourrange_Form is null or disposed
+            if (contourrange_Form == null || contourrange_Form.IsDisposed)
+            {
+                contourrange_Form = new contourrange_frm();
+
+                // Make it behave like a tool window
+                contourrange_Form.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                contourrange_Form.ShowInTaskbar = false;
+                contourrange_Form.TopLevel = true;
+                contourrange_Form.Owner = this;
+
+                // Set the start position to manual so we can control placement
+                contourrange_Form.StartPosition = FormStartPosition.Manual;
+
+                // Center the form on the parent
+                CenterFormOnParent(contourrange_Form);
+            }
+
+            if(!contourrange_Form.Visible)
+            {
+                // Show the form
+                contourrange_Form.UpdateContourRangeTextBoxes();
+                contourrange_Form.Show(this);
+            }
+
+            contourrange_Form.BringToFront();
+            contourrange_Form.Invalidate(); 
+
+        }
 
 
         private void modeResultsSettingsToolStripMenuItem_Click(object sender, EventArgs e)

@@ -171,14 +171,53 @@ namespace _2DHelmholtz_solver.src.model_store.rslt_objects
 
         public void updateResultType(drawing_events graphic_events_control)
         {
+
+            const double EPSILON = 1e-6;
+
+            // Get contour refined range
+            double contourRefinedMin = Math.Max(0.0, Math.Min(1.0, gvariables_static.contourLevel_rangeMin));
+            double contourRefinedMax = Math.Max(0.0, Math.Min(1.0, gvariables_static.contourLevel_rangeMax));
+
+            if (contourRefinedMin >= contourRefinedMax)
+            {
+                contourRefinedMin = 0.0;
+                contourRefinedMax = 1.0;
+            }
+
+
             // Helper function for normalization
             double Normalize(double value, double min, double max)
             {
-                // double maxAbs = Math.Max(Math.Abs(max), Math.Abs(min));
+                double span = max - min;
 
-                if (Math.Abs(max - min) < 1e-12)  // Prevent division by zero
-                    return 0.0; // Or 0.0 depending on what makes sense visually
-                return (value - min) / (max - min);
+                // Calculate the actual values at zoom boundaries
+                double actualRangeMin = min + span * contourRefinedMin;
+                double actualRangeMax = min + span * contourRefinedMax;
+                double actualRangeSpan = actualRangeMax - actualRangeMin;
+
+                double normalizedValue = ((float)value - actualRangeMin) / actualRangeSpan;
+
+
+                if (normalizedValue < -1.0f - EPSILON)
+                {
+                    normalizedValue = -2.0f;
+                }
+                else if (normalizedValue > 1.0f + EPSILON)
+                {
+                    normalizedValue = 2.0f;
+                }
+                else
+                {
+                    // Clamp the normalized value to [-1, 1] range
+                    normalizedValue = Math.Max(-1.0, Math.Min(1.0, normalizedValue));
+                }
+
+                return normalizedValue;
+
+                //if (Math.Abs(max - min) < 1e-12)  // Prevent division by zero
+                //    return 0.0;
+                //return (value - min) / (max - min);
+
             }
 
             void UpdateMeshValues(Func<rsltnode_store, double> valueSelector, double min, double max)

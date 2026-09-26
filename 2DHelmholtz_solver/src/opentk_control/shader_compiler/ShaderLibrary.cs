@@ -136,7 +136,7 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             vec3 jetHeatmap(float value) 
             {
-                float t = value;
+                float t = value; // Values are between [-1, 1]
 
                 return clamp(vec3(1.5) - abs(4.0 * vec3(t) + vec3(-3, -2, -1)), vec3(0), vec3(1));
             }
@@ -144,8 +144,20 @@ namespace _2DHelmholtz_solver.opentk_control.shader_compiler
 
             void main() 
             {
+                vec3 vertexColor = vec3(0.0); 
 
-                vec3 vertexColor = jetHeatmap(v_deflscale);
+                if (v_deflscale < -1.0f)
+                {
+                    vertexColor = vec3(0.4f, 0.4f, 0.4f); // Dark gray for negative values
+                }
+                else if (v_deflscale > 1.0f)
+                {
+                    vertexColor = vec3(0.8f, 0.8f, 0.8f); // Light gray for above 1.0 values
+                }
+                else
+                {
+                    vertexColor = jetHeatmap(v_deflscale);
+                }
 
                 f_Color = vec4(vertexColor, vertexTransparency); // Set the final color
             }
