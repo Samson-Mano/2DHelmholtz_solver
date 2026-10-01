@@ -67,13 +67,13 @@ Post-processing allows visualization of:
 
 ## Visualization Controls
 
-| Action                      | Shortcut                  |
-| --------------------------- | ------------------------- |
-| Zoom In / Out               | `Ctrl` + Scroll Wheel     |
-| Pan                         | `Ctrl` + Right Click Drag |
-| Zoom to Fit                 | `Ctrl` + `F`              |
-| Select Nodes / Elements     | `Shift` + Left Click Drag |
-| Deselect / Refine Selection | `Shift` + Right Click Drag|
+| Action                              | Shortcut                  |
+| ----------------------------------- | ------------------------- |
+| Zoom In / Out                       | `Ctrl` + Scroll Wheel     |
+| Pan                                 | `Ctrl` + Right Click Drag |
+| Zoom to Fit                         | `Ctrl` + `F`              |
+| Select Nodes / Edges / Elements     | `Shift` + Left Click Drag |
+| Deselect / Refine Selection         | `Shift` + Right Click Drag|
 
 ---
 
@@ -158,8 +158,19 @@ The Helmholtz solver window is accessed through the **Solve** menu. The solver w
 **Update Contour Range** option allows the contour plot maximum and minimum range to be adjusted. Concentrated field values at a few nodes might skew the contour plot and show a uniform color in most locations. By adjusting the maximum and minimum range (which varies between `1.0` and `0.0`), for example by selecting `0.8` for maximum contour range, values above `0.8 × maximum` will not be plotted, allowing for better visualization of the field values.
 
 > **Tip:** `Help → General Instruction` gives a few more instructions on how to use the tool.
-
 ---
+
+## Theory
+
+The theoretical background behind the C++ Helmholtz solver is documented in the
+following PDFs, located in the `Theory/` folder:
+
+- [Solving the Helmholtz Equation using Finite Element Analysis](2DHelmholtz_solver/Theory/Solving_Helmholtz_Equation_using_FEA_mano.pdf)
+  — derivation of the weak form, discretisation, and FE assembly for the 2D Helmholtz problem.
+
+- [1D Wave Equation with Absorbing Boundary Conditions](2DHelmholtz_solver/Theory/1dwaveeqn_ABC_condition_mano.pdf)
+  — derivation of the 1D wave equation and the formulation of absorbing (non-reflecting) boundary conditions used to truncate the computational domain.
+
 
 ## Examples
 
@@ -205,6 +216,11 @@ A dedicated modal analysis module is included to perform modal analysis of the d
 - **Solve → 2D Modal Solve** allows access to the modal analysis DLL package, which uses **ARPACK** to perform the modal analysis.
 - **Show Results → Modal Results** allows visualization of the modal results.
 - **Mode Result Settings** option allows changing the mode shapes and animation control.
+
+Mode shape example
+
+![Mode_shape_example](Images/modeshape_grid.gif)
+
 
 Below are some of the **Chladni-like patterns** generated using the modal analysis module:
 
@@ -270,7 +286,7 @@ This project is licensed under the **MIT License**.
 ```
 MIT License
 
-Copyright (c) 2025 Samson Mano
+Copyright (c) 2025 Samson Mano (Nova Propulsion) <mano@novapropulsion.space>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
