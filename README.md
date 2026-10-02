@@ -82,6 +82,12 @@ Post-processing allows visualization of:
 - OpenTK 3.3 based rendering
 - Contour plots of field values
 
+![Triangle Scattering](Images/visiexample_triangle_scattering.png)
+
+
+![Simple_Silencer](Images/visiexample_volumechange_amplf.png)
+
+
 ---
 
 ## How to Use the Software
@@ -165,12 +171,12 @@ The Helmholtz solver window is accessed through the **Solve** menu. The solver w
 The theoretical background behind the C++ Helmholtz solver is documented in the
 following PDFs, located in the `Theory/` folder:
 
-- [Solving the Helmholtz Equation using Finite Element Analysis](2DHelmholtz_solver/Theory/Solving_Helmholtz_Equation_using_FEA_mano.pdf)
+- [Solving the Helmholtz Equation using Finite Element Analysis](Theory/Solving_Helmholtz_Equation_using_FEA_mano.pdf)
   — derivation of the weak form, discretisation, and FE assembly for the 2D Helmholtz problem.
 
-- [1D Wave Equation with Absorbing Boundary Conditions](2DHelmholtz_solver/Theory/1dwaveeqn_ABC_condition_mano.pdf)
+- [1D Wave Equation with Absorbing Boundary Conditions](Theory/1dwaveeqn_ABC_condition_mano.pdf)
   — derivation of the 1D wave equation and the formulation of absorbing (non-reflecting) boundary conditions used to truncate the computational domain.
-
+---
 
 ## Examples
 
