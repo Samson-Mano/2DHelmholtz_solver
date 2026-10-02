@@ -511,13 +511,6 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
 
             }
 
-            // Paint the loads
-            if (gvariables_static.is_paint_loads == true)
-            {
-
-
-            }
-
 
             // Paint the constraints
             if (gvariables_static.is_paint_constraints == true)
@@ -534,7 +527,6 @@ namespace _2DHelmholtz_solver.src.model_store.fe_objects
                 fe_edgeconstraints.paint_edge_constraint_label();
 
             }
-
 
 
             if (isMaterialUpdateInProgress == true || isLoadUpdateInProgress == true || isNodalConstraintUpdateInProgress == true

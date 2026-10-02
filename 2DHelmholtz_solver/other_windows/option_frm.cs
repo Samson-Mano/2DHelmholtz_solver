@@ -46,7 +46,7 @@ namespace _2DHelmholtz_solver.other_windows
 
         private void checkBox_paintloads_CheckedChanged(object sender, EventArgs e)
         {
-            gvariables_static.is_paint_loads = checkBox_paintloads.Checked;
+            gvariables_static.is_paint_constraints_label = checkBox_paintconstraintlabels.Checked;
             refreshGLControl();
 
         }
@@ -81,7 +81,7 @@ namespace _2DHelmholtz_solver.other_windows
             checkBox_paintmesh.Checked =  gvariables_static.is_paint_mesh;
             checkBox_paintmeshboundaries.Checked = gvariables_static.is_paint_mesh_boundaries;
             checkBox_paintshrinkmesh.Checked =     gvariables_static.is_paint_shrunk_triangle;
-            checkBox_paintloads.Checked =  gvariables_static.is_paint_loads;
+            checkBox_paintconstraintlabels.Checked =  gvariables_static.is_paint_constraints_label;
             checkBox_paintconstraints.Checked = gvariables_static.is_paint_constraints;
 
         }
